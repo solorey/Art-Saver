@@ -1,0 +1,322 @@
+html{
+  font-size: 75%;
+}
+
+body{
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+$grey: #f0f0f0;
+$grey-dark: #e0e0e0;
+
+//old blue #0786cf
+$blue: #0a84ff;
+$blue-hover: #249cffff;
+$blue-active: $blue-hover;
+
+$border-style: 1px solid $grey-dark;
+$round: .25rem;
+
+#options-container{
+  margin: 0 auto;
+  max-width: 900px;
+  width: 100%;
+}
+
+table{
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+caption{
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+td{
+  padding: 0.75rem 1.5rem;
+}
+
+th{
+  background-color: $grey;
+  padding: 0.5rem 1.5rem;
+}
+
+tr{
+  border-top: $border-style;
+}
+
+#saved-table{
+  margin: 0 auto;
+  width: auto;
+
+  tr:nth-child(-n+2){
+    border: none;
+  }
+
+  tr > :first-child{
+    text-align: left;
+  }
+
+  tr > :not(:first-child){
+    text-align: right;
+  }
+}
+
+i[class^=icon] {
+  margin-right: .5rem;
+}
+
+.badge{
+  background-color: $grey;
+  border-radius: $round;
+  padding: .25rem .5rem;
+  color: black;
+  font-weight: 600;
+}
+
+form{
+  margin: 1rem 0;
+}
+
+button{
+  font-family: inherit;
+  font-size: 1rem;
+  padding: .5rem .5rem;
+  border: 0;
+  border-radius: $round;
+  cursor: pointer;
+  text-align: center;
+}
+
+h3{
+  font-size: 1.25rem;
+  padding: 1rem;
+  margin: 1.75rem 0rem 0.5rem 0rem;
+  background-color: $grey;
+  font-weight: 600;
+}
+
+[class^=option-]{
+  margin: .75rem 0;
+}
+
+%blue-button{
+  color: #fff;
+  background-color: $blue;
+
+  &:hover{
+    background-color: $blue-hover;
+  }
+
+  &:active{
+    background-color: $blue-active;
+  }
+}
+
+%optionlabel{
+  display: block;
+  margin-bottom: .25rem;
+}
+
+#userlist-input{ 
+  > label{
+    @extend %optionlabel;
+  }
+
+  .input-bar{
+    position: relative;
+    display: flex;
+
+    button{
+      @extend %blue-button;
+      border-radius: 0;
+      width: 7rem;
+
+      &:nth-of-type(3){
+        border-radius: 0 $round $round 0;
+      }
+    }
+  }
+}
+
+.custom-input{
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+
+  input{
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+
+  label{
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    overflow: hidden;
+    cursor: pointer;
+    border: $border-style;
+    border-radius: $round 0 0 $round;
+
+    .before{
+      background-color: $grey;
+      padding: calc(0.5rem - 1px) 1rem;
+      border-right: $border-style;
+    }
+  }
+}
+
+#filename{
+  flex: 1;
+  padding: calc(0.5rem - 1px) 1rem;
+}
+
+.option-textarea{
+  label{
+    @extend %optionlabel;
+  }
+
+  textarea{
+    font-size: 1rem;
+    width: 100%;
+    padding: .5rem;
+    border: $border-style;
+    border-radius: $round;
+    box-sizing: border-box;
+    margin-bottom: 0;
+    resize: vertical;
+  }
+
+  table{
+    display: none;
+  }
+}
+
+.help-button{
+  width: 6.5rem;
+  background-color: $grey;
+
+  &:hover{
+    background-color: $grey-dark;
+  }
+}
+
+.option-toggle{
+  display: table;
+  
+  input{
+    display: none;
+  }
+
+  label{
+    display: flex;
+    cursor: pointer;
+  }
+}
+
+.switch{
+  $width: 2.5rem;
+  $height: 1.5rem;
+  $diameter: 1rem;
+
+  $space: ($height - $diameter) / 2;
+
+  position: relative;
+  width: $width;
+  height: $height;
+  border-radius: $height / 2;
+  background-color: $grey;
+  margin-right: .5rem;
+  transition: .2s;
+
+  label:hover &{
+    background-color: $grey-dark;
+  }
+
+  input:checked + &{
+    background-color: $blue;
+  }
+  
+  label:hover input:checked + &{
+    background-color: $blue-hover;
+  }
+
+  &::after{
+    content: "";
+    position: absolute;
+    width: $diameter;
+    height: $diameter;
+    left: $space;
+    bottom: $space;
+    border-radius: $diameter / 2;
+    background-color: #fff;
+    transition: .2s;
+  }
+
+  input:checked + &::after{
+    left: $width - ($diameter + $space);
+  }
+}
+
+.option-select{
+  display: flex;
+  align-items: center;
+
+  select{
+    margin-left: .5rem;
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 0.25rem 1.5rem 0.25rem 0.25rem;
+    border: $border-style;
+    border-radius: $round;
+    -moz-appearance: none;
+    background: url("/icons/selection.svg") no-repeat right .5rem center / auto;
+    cursor: pointer;
+  }
+}
+
+#settings-buttons{
+  text-align: center;
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+
+  > button{
+    margin: 0 2px;
+    width: 12rem;
+
+    @extend %blue-button;
+  }
+}
+
+#import-options {
+  width: 0;
+  overflow: hidden;
+}
+
+.undo-bar{
+  width: max-content;
+  display: none;
+  background-color: #fff3cd;
+  color: #856404;
+  padding: .5rem 2rem;
+  margin: 0 auto;
+
+  .undo-button{
+    width: 2.5rem;
+    margin-left: 2rem;
+    text-decoration: underline;
+    text-align: center;
+    cursor: pointer;
+
+    &:hover, &:active{
+      font-weight: bold;
+      color: #856404;
+    }
+  }
+}

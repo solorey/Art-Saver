@@ -1,0 +1,373 @@
+html {
+  font-size: 75%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  padding: 0px;
+  overflow: hidden;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
+}
+
+#popup-container {
+  min-width: 250px;
+  max-width: 800px;
+  max-height: 600px;
+}
+
+.tabs {
+  display: flex;
+}
+.tabs > :last-child {
+  margin-left: auto;
+}
+.tabs > button {
+  background-color: inherit;
+  border: none;
+  outline: none;
+  padding: 0.5rem 1.5rem;
+  transition: 0.3s;
+  font-size: 16px;
+}
+.tabs > button:not(#settings-tab) {
+  display: none;
+}
+.tabs > button:hover {
+  background-color: #f0f0f0;
+}
+.tabs > button.active {
+  background-color: #e0e0e0;
+}
+
+.tab-content {
+  display: none;
+}
+
+.header {
+  background-color: #f0f0f0;
+  border-top: 1px solid #e0e0e0;
+  padding: 0.5rem 0.75rem;
+}
+
+#stats-site {
+  text-transform: capitalize;
+}
+
+.stat-row {
+  border-top: 1px solid #e0e0e0;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex: 1;
+}
+.stat-row > div {
+  white-space: nowrap;
+}
+.stat-row > :first-child {
+  margin: auto auto auto 0;
+}
+.stat-row > :last-child {
+  margin: auto 0 auto 0.75rem;
+}
+
+#user-profile {
+  display: flex;
+}
+
+#user-stats {
+  border-left: 1px solid #e0e0e0;
+  display: none;
+  min-width: 140px;
+  flex-direction: column;
+  flex: 1;
+}
+
+#profile-cover {
+  background-color: #f0f0f0;
+  padding: 0.5rem;
+  text-align: center;
+  border-top: 1px solid #e0e0e0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 110px;
+}
+#profile-cover > div {
+  margin: 0.25rem auto;
+}
+
+#profile-pic {
+  max-width: 50px;
+}
+
+.img-thumbnail {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.25rem;
+  font-size: 0px;
+  display: table;
+  margin: auto;
+  padding: 0.25rem;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.loading-icon {
+  animation: rotation 0.5s steps(12, end) infinite;
+  animation-iteration-count: infinite;
+}
+
+#user-name {
+  font-weight: 600;
+  font-size: 1.25rem;
+  white-space: nowrap;
+}
+
+#user-buttons {
+  margin-top: 0.25rem;
+  display: none;
+  justify-content: center;
+}
+
+.icon-button {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  color: #141414;
+  font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
+  margin: 0 2px;
+  display: flex;
+}
+.icon-button > i {
+  margin: auto;
+}
+.icon-button:hover {
+  background-color: #f0f0f0;
+}
+.icon-button#user-folder {
+  display: none;
+}
+
+.badge {
+  background-color: #f0f0f0;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-weight: 600;
+}
+
+.search-box {
+  display: none;
+  border-top: 1px solid #e0e0e0;
+  width: 100%;
+}
+.search-box .search {
+  padding: calc(.25rem - 1px) 0.75rem;
+  background-color: #f0f0f0;
+  display: flex;
+}
+.search-box .search button {
+  border-radius: 0 0.25rem 0.25rem 0;
+  border-left: none;
+  margin: 0;
+}
+.search-box .search input {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.25rem 0 0 0.25rem;
+  padding: 0.25rem 0.5rem;
+  width: 100%;
+  font-size: inherit;
+  font-family: inherit;
+}
+.search-box .list {
+  border-top: 1px solid #e0e0e0;
+  position: relative;
+  overflow: auto;
+  resize: vertical;
+}
+.search-box .link-list {
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+.search-box .link-list > a {
+  position: absolute;
+  display: block;
+  text-decoration: none;
+  color: #141414;
+  padding: 1px 1.75rem;
+  transition: padding-left 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+}
+.search-box .link-list > a:hover {
+  background-color: #f0f0f0;
+  padding-left: 2.25rem;
+}
+.search-box .link-list > a .link-search {
+  font-weight: 700;
+}
+
+#total-saved {
+  display: none;
+}
+
+.stat-button {
+  cursor: pointer;
+  white-space: nowrap;
+}
+.stat-button:hover {
+  background-color: #f0f0f0;
+}
+
+.search-holder {
+  height: 0px;
+  overflow: hidden;
+  transition: height 0.5s;
+}
+
+.input-holder {
+  flex: 1;
+}
+
+.button-stat {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: #fff;
+}
+
+#recheck {
+  background-color: #07cc07;
+  color: #fff;
+  border: 0;
+}
+#recheck .button-stat {
+  color: #07cc07;
+}
+#recheck:hover {
+  background-color: #07da07;
+}
+#recheck:active {
+  background-color: #08e908;
+}
+
+#download-all, #download-lock {
+  background-color: #0a84ff;
+  color: #fff;
+  border: 0;
+}
+#download-all:hover, #download-lock:hover {
+  background-color: #249cffff;
+}
+#download-all:active, #download-lock:active {
+  background-color: #249cffff;
+}
+
+#download-all .button-stat {
+  color: #0a84ff;
+}
+#download-all[disabled] {
+  background-color: #f0f0f0;
+  pointer-events: none;
+  color: #787878;
+}
+#download-all[disabled] .button-stat {
+  color: inherit;
+}
+
+#download-lock {
+  padding: 0 0.5rem;
+}
+#download-lock i {
+  font-size: 1rem;
+}
+
+#found-stats {
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  flex: 1;
+}
+
+.flex-button {
+  display: flex;
+  flex: 1;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+}
+.flex-button > :last-child {
+  margin: auto 0 auto 0.75rem;
+}
+.flex-button .label-1 {
+  margin: auto;
+  display: block;
+}
+.flex-button .label-2 {
+  margin: auto;
+  display: none;
+}
+.flex-button:hover .label-1 {
+  display: none;
+}
+.flex-button:hover .label-2 {
+  display: block;
+}
+
+#unsupported-page {
+  border-top: 1px solid #e0e0e0;
+  background-color: #fff3cd;
+  color: #856404;
+}
+#unsupported-page .linebreak {
+  border-top: 1px solid #856404;
+  margin: 0.5rem 0rem;
+}
+
+#unsupported-info {
+  width: 250px;
+  padding: 0.75rem 1.25rem;
+  margin: auto;
+}
+
+#getting-info {
+  width: 250px;
+  padding: 0.75rem 1.25rem;
+  margin: auto;
+  display: flex;
+}
+#getting-info > div {
+  margin: auto;
+}
+
+#getting-page {
+  border-top: 1px solid #e0e0e0;
+  background-color: #f0f0f0;
+}
+
+#link-tester {
+  padding-left: 1.25rem;
+  padding-right: 0.75rem;
+  position: absolute;
+  top: 0;
+  opacity: 0;
+}

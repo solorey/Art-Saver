@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css" />
+  <link rel="stylesheet" href="/css/iconfont.css" />
+</head>
+
+<body>
+  <div id="popup-container">
+    <div class="tabs">
+      <button id="user-tab" class="tab-link" data-tab="user-page"><i class="icon-user"></i></button>
+      <button id="stats-tab" class="tab-link" data-tab="stats-page"><i class="icon-stats"></i></button>
+      <button id="settings-tab" class="tab-link"><i class="icon-gear"></i></button>
+    </div>
+
+    <div class="tab-content" id="user-page">
+      <div id="user-profile">
+        <div id="profile-cover">
+          <div class="img-thumbnail">
+            <img id="profile-pic" src="/icons/loading.svg" class="loading-icon" alt="Profile picture" width="50" height="50">
+          </div>
+          <div id="user-name">Loading...</div>
+          <div id="user-buttons">
+            <a id="user-home" class="icon-button" target="_blank"><i class="icon-home"></i></a>
+            <a id="user-gallery" class="icon-button" target="_blank"><i class="icon-gallery"></i></a>
+            <a id="user-folder" class="icon-button"><i class="icon-folder"></i></a>
+          </div>
+        </div>
+        <div id="user-stats">
+          <div id="total-saved" class="stat-row stat-button" data-toggle="closed">
+            <div>Saved</div>
+            <div>
+              <span class="badge">-</span>
+            </div>
+          </div>
+          
+          <div class="header">User stats</div>
+        </div>
+      </div>
+      
+      <div id="saved-list" class="search-box">
+        <div class="search">
+          <div class="input-holder">
+            <input type="text" placeholder="Search">
+          </div>
+          <button class="icon-button"><i class="icon-descend"></i></button>
+        </div>
+        <div class="list">
+          <div class="link-list" data-sort="descend"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="stats-page">
+      <div class="header">On current page</div>
+      <div id="found-stats">
+        <button id="recheck" class="flex-button">
+          <div class="label-1">Saved</div>
+          <div class="label-2">Recheck</div>
+          <div>
+            <span class="button-stat" id="saved-stat" class="">-</span>
+          </div>
+        </button>
+        <button id="download-all" class="flex-button" disabled>
+          <div class="label-1">Downloads</div>
+          <div class="label-2">Download</div>
+          <div>
+            <span class="button-stat" id="downloads-stat" class="">-</span>
+          </div>
+        </button>
+        <button id="download-lock" data-toggle="closed">
+          <i id="download-bolt" class="icon-lock_closed"></i>
+        </button>
+      </div>
+      <div id="stats-site" class="header">Unknown site</div>
+      <div id="total-users" class="stat-row stat-button" data-toggle="closed">
+        <div>Users saved</div>
+        <div>
+          <span class="badge">-</span>
+        </div>
+      </div>
+      <div id="total-submissions" class="stat-row stat-button" data-toggle="closed">
+        <div>Submissions saved</div>
+        <div>
+          <span class="badge">-</span>
+        </div>
+      </div>
+      
+      <div id="user-list" class="search-box">
+        <div class="search">
+          <div class="input-holder">
+            <input type="text" placeholder="Search">
+          </div>
+          <button class="icon-button"><i class="icon-descend"></i></button>
+        </div>
+        <div class="list">
+          <div class="link-list" data-sort="descend"></div>
+        </div>
+      </div>
+
+      <div id="submission-list" class="search-box">
+        <div class="search">
+          <div class="input-holder">
+            <input type="text" placeholder="Search">
+          </div>
+          <button class="icon-button"><i class="icon-descend"></i></button>
+        </div>
+        <div class="list">
+          <div class="link-list" data-sort="descend"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="unsupported-page">
+      <div id="unsupported-info">
+        <div>Unable to get site information.</div>
+        <div class="linebreak"></div>
+        <div>Make sure you are on a supported site and the page is fully loaded.</div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="getting-page">
+      <div id="getting-info">
+        <img src="/icons/loading.svg" class="loading-icon" width="16" height="16">
+        <div>Getting page and site information.</div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/content_scripts/selectors.js"></script>
+  <script src="popup.js"></script>
+</body>
+
+</html>

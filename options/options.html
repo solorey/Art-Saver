@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="options.css" type="text/css">
+    <link rel="stylesheet" href="/css/iconfont.css"/>
+  </head>
+
+  <body>
+    <div id="options-container">
+      <table id="saved-table">
+        <caption>Total users and submissions saved</caption>
+        <tr>
+          <th>Site</th>
+          <th>Users</th>
+          <th>Submissions</th>
+        </tr>
+      </table>
+
+      <div id="userlist-undo" class="undo-bar">
+        <div>The userlist has been reset</div>
+        <div class="undo-button">Undo</div>
+      </div>
+
+      <form id="options">
+
+        <h3>Global</h3>
+        <div id="userlist-input">
+          <label>Upload own saved userlist, or export/reset current list</label>
+          <div class="input-bar">
+            <div class="custom-input">
+              <input id="userlist" accept=".json" type="file" />
+              <label for="userlist">
+                <div class="before">Browse</div>
+                <div id="filename"><i class="icon-upload"></i>Choose file</div>
+              </label>
+            </div>
+            <button id="submit-list">Set</button>
+            <button id="export-list"><i class="icon-download"></i>Export</button>
+            <button id="reset-list"><i class="icon-reset"></i>Reset</button>  
+          </div>
+        </div>
+        <div class="option-select">
+          <label for="conflict">File Conflict</label>
+          <select id="conflict" class="custom-select">
+            <option value="overwrite">Overwrite</option>
+            <option value="uniquify">Uniquify</option>
+          </select>
+        </div>
+        <div class="option-toggle">
+          <label for="replace-spaces">
+            <input id="replace-spaces" type="checkbox"/>
+            <div class="switch"></div>
+            <div>Replace spaces with underscore</div>
+          </label>
+        </div>
+
+        <h3>Deviantart</h3>
+        <div class="option-textarea">
+          <label for="dev-user-folder">User folder</label>
+          <textarea id="dev-user-folder" spellcheck="false"></textarea>
+          <button class="help-button">Show Help</button>
+        </div>
+        <div class="option-textarea">
+          <label for="dev-file">Save File as</label>
+          <textarea id="dev-file" spellcheck="false"></textarea>
+          <button class="help-button">Show Help</button>
+        </div>
+        <div class="option-toggle">
+          <label for="dev-larger">
+            <input id="dev-larger" type="checkbox"/>
+            <div class="switch"></div>
+            <div>Try to download larger images</div>
+          </label>
+        </div>
+        <div class="option-toggle">
+          <label for="stash">
+            <input id="stash" type="checkbox"/>
+            <div class="switch"></div>
+            <div>Download stash links in description</div>
+          </label>
+        </div>
+
+        <div class="stash-options">
+          <div class="option-textarea">
+            <label for="dev-stash">Save Stash File as</label>
+            <textarea id="dev-stash" spellcheck="false"></textarea>
+            <button class="help-button">Show Help</button>
+          </div>
+          <div class="option-toggle">
+            <label for="dev-move">
+              <input id="dev-move" type="checkbox"/>
+              <div class="switch"></div>
+              <div>Save file in stash folder</div>
+            </label>
+          </div>
+        </div>
+
+        <h3>Pixiv</h3>
+        <div class="option-textarea">
+          <label for="pix-user-folder">User folder</label>
+          <textarea id="pix-user-folder" spellcheck="false"></textarea>
+          <button class="help-button">Show Help</button>
+        </div>
+        <div class="option-textarea">
+          <label for="pix-file">Save File as</label>
+          <textarea id="pix-file" spellcheck="false"></textarea>
+          <button class="help-button">Show Help</button>
+        </div>
+        <div class="option-textarea">
+          <label for="pix-multiple">Save Multiple Files as</label>
+          <textarea id="pix-multiple" spellcheck="false"></textarea>
+          <button class="help-button">Show Help</button>
+        </div>
+        <div class="option-select">
+          <label for="ugoira" >Save Uqoira as</label>
+          <select id="ugoira" class="custom-select">
+            <option value="multiple">Multiple Files</option>
+            <option value="zip">ZIP</option>
+            <option value="apng">APNG</option>
+            <option value="gif">GIF</option>
+            <option value="webm">WEBM</option>
+          </select>
+        </div>
+
+        <h3>Furaffinity</h3>
+        <div class="option-textarea">
+          <label for="fur-user-folder">User folder</label>
+          <textarea id="fur-user-folder" spellcheck="false"></textarea>
+          <button class="help-button">Show Help</button>
+        </div>
+        <div class="option-textarea">
+          <label for="fur-file">Save File as</label>
+          <textarea id="fur-file" spellcheck="false"></textarea>
+          <button class="help-button">Show Help</button>
+        </div>
+
+        <h3>Inkbunny</h3>
+        <div class="option-textarea">
+          <label for="ink-user-folder">User folder</label>
+          <textarea id="ink-user-folder" spellcheck="false"></textarea>
+          <button class="help-button">Show Help</button>
+        </div>
+        <div class="option-textarea">
+          <label for="ink-file">Save File as</label>
+          <textarea id="ink-file" spellcheck="false"></textarea>
+          <button class="help-button">Show Help</button>
+        </div>
+        <div class="option-textarea">
+          <label for="ink-multiple">Save Multiple Files as</label>
+          <textarea id="ink-multiple" spellcheck="false"></textarea>
+          <button class="help-button">Show Help</button>
+        </div>
+      </form>
+
+      <div id="options-undo" class="undo-bar">
+        <div>The options have been reset to default</div>
+        <div class="undo-button">Undo</div>
+      </div>
+
+      <div id="settings-buttons">
+        <input id="import-options"accept=".json" type="file"/>
+        <button id="click-import"><i class="icon-upload"></i>Import settings</button>
+        <button id="export-options"><i class="icon-download"></i>Export settings</button>
+        <button id="reset-options"><i class="icon-reset"></i>Reset to default</button>
+      </div>
+    </div>
+    <script src="/content_scripts/selectors.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
+

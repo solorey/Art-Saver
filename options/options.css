@@ -1,0 +1,267 @@
+html {
+  font-size: 75%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+#options-container {
+  margin: 0 auto;
+  max-width: 900px;
+  width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+caption {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+td {
+  padding: 0.75rem 1.5rem;
+}
+
+th {
+  background-color: #f0f0f0;
+  padding: 0.5rem 1.5rem;
+}
+
+tr {
+  border-top: 1px solid #e0e0e0;
+}
+
+#saved-table {
+  margin: 0 auto;
+  width: auto;
+}
+#saved-table tr:nth-child(-n+2) {
+  border: none;
+}
+#saved-table tr > :first-child {
+  text-align: left;
+}
+#saved-table tr > :not(:first-child) {
+  text-align: right;
+}
+
+i[class^=icon] {
+  margin-right: 0.5rem;
+}
+
+.badge {
+  background-color: #f0f0f0;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  color: black;
+  font-weight: 600;
+}
+
+form {
+  margin: 1rem 0;
+}
+
+button {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.5rem 0.5rem;
+  border: 0;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+h3 {
+  font-size: 1.25rem;
+  padding: 1rem;
+  margin: 1.75rem 0rem 0.5rem 0rem;
+  background-color: #f0f0f0;
+  font-weight: 600;
+}
+
+[class^=option-] {
+  margin: 0.75rem 0;
+}
+
+#settings-buttons > button, #userlist-input .input-bar button {
+  color: #fff;
+  background-color: #0a84ff;
+}
+#settings-buttons > button:hover, #userlist-input .input-bar button:hover {
+  background-color: #249cffff;
+}
+#settings-buttons > button:active, #userlist-input .input-bar button:active {
+  background-color: #249cffff;
+}
+
+.option-textarea label, #userlist-input > label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+#userlist-input .input-bar {
+  position: relative;
+  display: flex;
+}
+#userlist-input .input-bar button {
+  border-radius: 0;
+  width: 7rem;
+}
+#userlist-input .input-bar button:nth-of-type(3) {
+  border-radius: 0 0.25rem 0.25rem 0;
+}
+
+.custom-input {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+.custom-input input {
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+.custom-input label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.25rem 0 0 0.25rem;
+}
+.custom-input label .before {
+  background-color: #f0f0f0;
+  padding: calc(0.5rem - 1px) 1rem;
+  border-right: 1px solid #e0e0e0;
+}
+
+#filename {
+  flex: 1;
+  padding: calc(0.5rem - 1px) 1rem;
+}
+
+.option-textarea textarea {
+  font-size: 1rem;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.25rem;
+  box-sizing: border-box;
+  margin-bottom: 0;
+  resize: vertical;
+}
+.option-textarea table {
+  display: none;
+}
+
+.help-button {
+  width: 6.5rem;
+  background-color: #f0f0f0;
+}
+.help-button:hover {
+  background-color: #e0e0e0;
+}
+
+.option-toggle {
+  display: table;
+}
+.option-toggle input {
+  display: none;
+}
+.option-toggle label {
+  display: flex;
+  cursor: pointer;
+}
+
+.switch {
+  position: relative;
+  width: 2.5rem;
+  height: 1.5rem;
+  border-radius: 0.75rem;
+  background-color: #f0f0f0;
+  margin-right: 0.5rem;
+  transition: 0.2s;
+}
+label:hover .switch {
+  background-color: #e0e0e0;
+}
+input:checked + .switch {
+  background-color: #0a84ff;
+}
+label:hover input:checked + .switch {
+  background-color: #249cffff;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  left: 0.25rem;
+  bottom: 0.25rem;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  transition: 0.2s;
+}
+input:checked + .switch::after {
+  left: 1.25rem;
+}
+
+.option-select {
+  display: flex;
+  align-items: center;
+}
+.option-select select {
+  margin-left: 0.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.25rem 1.5rem 0.25rem 0.25rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.25rem;
+  -moz-appearance: none;
+  background: url("/icons/selection.svg") no-repeat right 0.5rem center/auto;
+  cursor: pointer;
+}
+
+#settings-buttons {
+  text-align: center;
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+#settings-buttons > button {
+  margin: 0 2px;
+  width: 12rem;
+}
+
+#import-options {
+  width: 0;
+  overflow: hidden;
+}
+
+.undo-bar {
+  width: max-content;
+  display: none;
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0.5rem 2rem;
+  margin: 0 auto;
+}
+.undo-bar .undo-button {
+  width: 2.5rem;
+  margin-left: 2rem;
+  text-decoration: underline;
+  text-align: center;
+  cursor: pointer;
+}
+.undo-bar .undo-button:hover, .undo-bar .undo-button:active {
+  font-weight: bold;
+  color: #856404;
+}

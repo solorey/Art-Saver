@@ -1,0 +1,93 @@
+{
+  "manifest_version": 2,
+  "name": "Art Saver",
+  "version": "0.8",
+  "description": "Easily download and track downloads in supported art gallery websites.",
+
+  "browser_specific_settings": {
+    "gecko": {
+      "strict_min_version": "69.0"
+    }
+  },
+  
+  "options_ui": {
+    "page": "options/options.html"
+  },
+
+  "background": {
+    "scripts": [
+      "background/background.js"
+    ]
+  },
+
+  "icons": {
+    "16": "icons/icon_16.svg",
+    "48": "icons/icon.svg"
+  },
+
+  "permissions": [
+    "downloads",
+    "storage",
+    "*://*.pximg.net/*",
+    "*://sta.sh/*",
+    "*://api-da.wixmp.com/*",
+    "*://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/*",
+    "*://wixmp-ed30a86b8c4ca887773594c2.wixmp.com/",
+    "*://*.deviantart.net/*",
+    "*://*.deviantart.com/*",
+    "*://d.facdn.net/*",
+    "*://*.ib.metapix.net/*"
+  ],
+
+  "page_action": {
+    "browser_style": false,
+    "default_icon": "icons/icon_16.svg",
+    "default_title": "Art Saver",
+    "default_popup": "popup/popup.html",
+    "show_matches": [
+      "*://*.furaffinity.net/*",
+      "*://*.deviantart.com/*",
+      "*://*.pixiv.net/*",
+      "*://*.inkbunny.net/*"
+    ]
+  },
+
+  "web_accessible_resources": ["workers/fileworker.js"],
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.furaffinity.net/*"],
+      "js": ["content_scripts/furaffinity.js"]
+    },
+    {
+      "matches": ["*://*.deviantart.com/*"],
+      "js": ["content_scripts/deviantart.js"]
+    },
+    {
+      "matches": ["*://*.pixiv.net/*"],
+      "js": ["content_scripts/pixiv.js"]
+    },
+    {
+      "matches": ["*://*.inkbunny.net/*"],
+      "js": ["content_scripts/inkbunny.js"]
+    },
+    {
+      "matches": ["*://sta.sh/*"],
+      "js": ["content_scripts/stash.js"]
+    },
+    {
+      "matches": [
+        "*://*.furaffinity.net/*",
+        "*://*.deviantart.com/*",
+        "*://*.inkbunny.net/*",
+        "*://*.pixiv.net/*",
+        "*://sta.sh/*"
+      ],
+      "js": [
+        "content_scripts/selectors.js",
+        "content_scripts/main.js"
+      ],
+      "css": ["css/style.css"]
+    }
+  ]
+}
