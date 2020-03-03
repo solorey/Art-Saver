@@ -43,12 +43,14 @@ as.inkbunny.userInfo = async function(user, page, savedlist){
   let userpage = await fetcher(`https://inkbunny.net/${user.name}`, "document");
   user.icon = $(userpage, '.elephant_555753 a[href^="https://inkbunny.net/"] > img').src;
 
+  user.id = $(userpage, 'a[href*="user_id="]').href.split("=").pop();
+
   user.folderMeta = {
     site: user.site,
-    userName: user.name
+    userName: user.name,
+    userId: user.id
   };
 
-  user.id = $(userpage, 'a[href*="user_id="]').href.split("=").pop();
   let favpage = await fetcher(`https://inkbunny.net/userfavorites_process.php?favs_user_id=${user.id}`, "document");
 
   let stats = $$(userpage, ".elephant_babdb6 .content > div > span strong").map(s => s.textContent.replace(/,/g, ""));
@@ -58,7 +60,7 @@ as.inkbunny.userInfo = async function(user, page, savedlist){
     ["Views", stats[3]]
   ]);
 
-  user.saved = savedlist[user.name] || [];
+  user.saved = savedlist ? savedlist[user.name] || [] : [];
 
   user.home = `https://inkbunny.net/${user.name}`;
   user.gallery = `https://inkbunny.net/gallery/${user.name}`;
@@ -105,7 +107,7 @@ as.inkbunny.check.checkThumbnails = function(thumbnails, user){
       let imgid = parseInt(/\/(\d+)/.exec(a.href)[1], 10);
 
       let otheruser = /\sby\ (\w+)(?:$|(?:\ -\ ))/.exec(img.getAttribute("title"));
-      let subuser = (otheruser)? otheruser[1] : user;
+      let subuser = otheruser ? otheruser[1] : user;
 
       addButton("inkbunny", subuser, imgid, img, img, a.href);
     }
@@ -180,6 +182,7 @@ as.inkbunny.download.getMeta = function(r, progress){
   meta.site = "inkbunny";
   meta.title = $(r, "#pictop h1").textContent;
   meta.userName = $(r, '#pictop a[href^="https://inkbunny.net/"] > img').alt;
+  meta.userId = $(r, 'a[href*="user_id"]').href.split("=").pop();
   meta.submissionId = parseInt(/\/(\d+)/.exec($(r, '[rel="canonical"]').href)[1], 10);
 
   info.savedSite = meta.site;

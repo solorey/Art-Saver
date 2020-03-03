@@ -209,7 +209,7 @@ function createDownload(site, anchor, url, position){
 }
 
 function addButton(site, user, imgid, img, anchor, url, position = "afterend"){
-  let parent = (["afterend", "beforebegin"].includes(position))? anchor.parentElement : anchor;
+  let parent = ["afterend", "beforebegin"].includes(position) ? anchor.parentElement : anchor;
   let button = $(parent, ".artsaver-check, .artsaver-download");
 
   if (img.getAttribute("data-checkstatus") !== "checked"){
@@ -326,7 +326,7 @@ async function fetchBlobsProgress(downloads, progress){
 
     let loaded = 0;
     let total = parseInt(response.headers.get("Content-Length"), 10);
-    let computable = (total) ? true : false;
+    let computable = total ? true : false;
 
     let reader = response.body.getReader();
     let chunks = [];
@@ -444,7 +444,7 @@ function sendStats(){
     return;
   }
 
-  let isuser = (page.user) ? true : false;
+  let isuser = page.user ? true : false;
   browser.runtime.sendMessage({
     function: "sitestats",
     total: {saved, downloads},
@@ -465,7 +465,8 @@ async function userInfo(page){
   };
 
   let item = await browser.storage.local.get("userlist");
-  user = await as[user.site].userInfo(user, page, item.userlist[user.site]);
+  let savedlist = item.userlist ? item.userlist[user.site] : {};
+  user = await as[user.site].userInfo(user, page, savedlist);
 
   browser.runtime.sendMessage({function: "userstats", user, submissionUrl: page.links.submissionUrl});
 }

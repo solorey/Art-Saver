@@ -15,7 +15,7 @@ function pageInfo(){
   };
   let split = page.url.split("/");
   page.page = split[3];
-  page.modern = ($("#ddmenu"))? true : false;
+  page.modern = $("#ddmenu") ? true : false;
 
   if (["user", "journals", "gallery", "scraps", "favorites", "view", "full"].includes(page.page)){
     page.user = /([^ ]+)(?: --|'s)/.exec($("title").textContent)[1];
@@ -37,7 +37,33 @@ as.furaffinity.userInfo = async function(user, page, savedlist){
   user.lower = page.userLower;
 
   let userpage = await fetcher(`https://www.furaffinity.net/user/${user.lower}/`, "document");
-  user.icon = $(userpage, (page.modern)? "img.user-nav-avatar" : "img.avatar").src;
+  let iconelement = $(userpage, page.modern ? "img.user-nav-avatar" : "img.avatar");
+
+  if (iconelement){
+    user.icon = iconelement.src;
+
+    let stats = page.modern ? $(userpage, "div[class^=userpage-section-] .cell") : $(userpage, '[title^="Once"]').parentElement;
+    stats = stats.textContent.replace(/\D+/g, " ").trim().split(" ");
+
+    if (page.modern){
+      user.stats = new Map([
+        ["Submissions", stats[1]],
+        ["Favs", stats[2]],
+        ["Views", stats[0]]
+      ]);
+    }
+    else {
+      user.stats = new Map([
+        ["Submissions", stats[1]],
+        ["Favorites", stats[5]],
+        ["Page Visits", stats[0]]
+      ]);
+    }
+  }
+  else {
+    user.stats = new Map([]);
+    user.icon = $(".submission-id-avatar img, .avatar img").src;
+  }
 
   user.folderMeta = {
     site: user.site,
@@ -45,14 +71,7 @@ as.furaffinity.userInfo = async function(user, page, savedlist){
     userLower: user.lower
   };
 
-  let stats = $(userpage, "div[class^=userpage-section-] .table .cell").innerText.split(/\n?.+: /g);
-  user.stats = new Map([
-    ["Submissions", stats[2]],
-    ["Favs", stats[3]],
-    ["Views", stats[1]]
-  ]);
-
-  user.saved = savedlist[user.lower] || [];
+  user.saved = (savedlist) ? savedlist[user.lower] || [] : [];
 
   user.home = `https://www.furaffinity.net/user/${user.lower}`;
   user.gallery = `https://www.furaffinity.net/gallery/${user.lower}`;
@@ -75,7 +94,7 @@ as.furaffinity.check.startChecking = function(){
     //remove attribute indicating the submission has already been checked
     changed.forEach(e => $(e, "img").removeAttribute("data-checkstatus"));
 
-    changed = changed.map(c => ((c.matches(".preview_img a"))? c.parentElement.parentElement : c));
+    changed = changed.map(c => (c.matches(".preview_img a") ? c.parentElement.parentElement : c));
     this.checkThumbnails(changed, page.userLower);
   });
 
@@ -138,7 +157,7 @@ as.furaffinity.check.checkThumbnails = function(thumbnails, user){
       let imgid = parseInt(href.split("/")[4], 10);
 
       let otheruser = $(figure, 'a[href^="/user/"]');
-      let subuser = (otheruser)? otheruser.getAttribute("href").split("/")[2] : user;
+      let subuser = otheruser ? otheruser.getAttribute("href").split("/")[2] : user;
 
       addButton("furaffinity", subuser, imgid, img, img, href);
     }

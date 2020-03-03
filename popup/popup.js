@@ -1,5 +1,6 @@
 var globalopened = false;
 var globalrunningobservers = [];
+
 openTab("getting-page");
 
 (async function(){
@@ -32,7 +33,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   browser.storage.local.get(["userlist", "options"]).then(res => {
     switch(request.function){
       case "sitestats":
-        siteStats(request, res.userlist[request.site]);
+        siteStats(request, res.userlist[request.site] || {});
         break;
 
       case "userstats":
@@ -89,6 +90,7 @@ function showSavedList(stat, list){
 
 function siteStats(request, sitelist){
   globalrunningobservers.forEach(ob => ob.disconnect());
+  globalrunningobservers = [];
 
   $("#stats-tab").style.display = "block";
   $("#stats-site").textContent = request.site;
@@ -118,11 +120,10 @@ function siteStats(request, sitelist){
     }
   }
 
-  //TODO just use the information from entries
   let resize = new ResizeObserver(entries => {
     let ul = $("#user-list .list");
     let sl = $("#submission-list .list");
-    let sblock = ($("#submission-list").style.display === "block")? 45 : 0;
+    let sblock = ($("#submission-list").style.display === "block") ? 45 : 0;
     ul.style.maxHeight = `${600 - ul.offsetTop - sblock}px`;
     sl.style.maxHeight = `${600 - sl.offsetTop}px`;
   });
@@ -155,23 +156,35 @@ function userStats(request, options){
   let userstats = $("#user-stats");
   $$(userstats, ".header ~ .stat-row").forEach(row => removeElement(row));
 
-  let rows = "";
-  for (let [stat, value] of user.stats.entries()){
-    rows += `<div class="stat-row"><div>${stat}</div><div><span class="badge">${value}</span></div></div>`;
+  let userprofile = $("#user-profile");
+
+  let hasstats = user.stats.size > 0;
+  $(userstats, ".header").style.display = hasstats ? "block" : "none";
+  userprofile.style.flexDirection = hasstats ? "row" : "column";
+
+  if (hasstats){
+    for (let [stat, value] of user.stats.entries()){
+      let row = document.createElement("div");
+      row.className = "stat-row";
+      row.innerHTML = '<div></div><div><span class="badge"></span></div>';
+      row.firstElementChild.textContent = stat;
+      $(row, "span").textContent = value;
+
+      userstats.insertAdjacentElement("beforeend", row);
+    }
   }
-  $(userstats, ".header").insertAdjacentHTML("afterend", rows);
+  
   userstats.style.display = "flex";
 
   if (user.saved.length === 0){
     return;
   }
 
-  let up = $("#user-profile");
-  $("#saved-list .list").style.maxHeight = `${600 - (up.offsetTop + up.offsetHeight + 29)}px`;
-
   let savedelem = $("#total-saved");
   $(savedelem, ".badge").textContent = user.saved.length;
   savedelem.style.display = "flex";
+
+  $("#saved-list .list").style.maxHeight = `${600 - (userprofile.offsetTop + userprofile.offsetHeight + 29)}px`;
 
   let listelem = $("#saved-list");
   createVirtualList(listelem, user.saved, "submission", request.submissionUrl);
@@ -202,7 +215,7 @@ function createVirtualList(sbox, values, linktype, linkstring){
   let rh = 18;
   let listresult = [];
 
-  let defaultheight = (values.length < 10)? (values.length * rh) + 1 : 181;
+  let defaultheight = (values.length < 10) ? (values.length * rh) + 1 : 181;
   listholder.style.height = `${defaultheight}px`;
   refreshResult();
 
@@ -249,7 +262,11 @@ function createVirtualList(sbox, values, linktype, linkstring){
     let i = listresult[index];
     let a = document.createElement("a");
     a.target = "_blank";
-    a.innerHTML = `<li>${i[1]}<span class="link-search">${i[2]}</span>${i[i.length - 1]}</li>`;
+    a.innerHTML = '<li><span class="link-search"></span></li>';
+    let li = a.firstElementChild;
+    li.insertAdjacentText("afterbegin", i[1]);
+    li.insertAdjacentText("beforeend", i[i.length - 1]);
+    li.firstElementChild.textContent = i[2];
     a.href = linkstring.replace(RegExp(`{${linktype}}`, "g"), i[0]);
     a.style.top = `${index * rh}px`;
     return a;

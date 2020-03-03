@@ -9,13 +9,13 @@ addTable("pix-multiple", tableMaker(["site", "userName", "userId", "title", "sub
 addTable("fur-user-folder", tableMaker(["site", "userName", "userLower"]));
 addTable("fur-file", tableMaker(["site", "userName", "userLower", "title", "submissionId", "fileName", "fileId", "ext"]));
 
-addTable("ink-user-folder", tableMaker(["site", "userName"]));
-addTable("ink-file", tableMaker(["site", "userName", "title", "submissionId", "fileName", "fileId", "ext"]));
-addTable("ink-multiple", tableMaker(["site", "userName", "title", "submissionId", "fileName", "fileId", "page", "ext"]));
+addTable("ink-user-folder", tableMaker(["site", "userName", "userId"]));
+addTable("ink-file", tableMaker(["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "ext"]));
+addTable("ink-multiple", tableMaker(["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "page", "ext"]));
 
 //restore options on page load
 document.addEventListener("DOMContentLoaded", () => {
-  browser.storage.local.get().then(res => {
+  browser.storage.local.get("options").then(res => {
     res.options ? setOptions(res.options) : setDefault();
 
     fixFormat();
@@ -66,7 +66,6 @@ $("#export-list").onclick = async () => {
   });
 };
 
-//TODO create undo dialog instead of confirm box
 $("#reset-list").onclick = async () => {
   let undo = $("#userlist-undo");
   if (undo.style.display == "flex"){
@@ -115,7 +114,7 @@ $("#export-options").onclick = () => {
 
   browser.downloads.download({
     url: window.URL.createObjectURL(blob),
-    filename: "checkmarks-settings.json",
+    filename: "artsaver-settings.json",
     saveAs: true
   });
 };
@@ -188,28 +187,25 @@ async function userlistDetails(){
   }
 
   let sites = ["deviantart", "pixiv", "furaffinity", "inkbunny"];
-  let rows = "";
+
+  let tbody = $(savedtable,  "tbody");
 
   for (let s of sites){
     if (!list[s]){
       continue;
     }
 
-    let sitename = s[0].toUpperCase() + s.slice(1);
-    let tusers = new Set(Object.keys(list[s])).size;
-    let tsubmissions = new Set(Object.values(list[s]).flat()).size;
+    let row = document.createElement("tr");
+    row.innerHTML = '<td></td><td><span class="badge"></span></td><td><span class="badge"></span></td>';
+    row.firstElementChild.textContent = s[0].toUpperCase() + s.slice(1);  //site
+    let badges = $$(row, "span");
+    badges[0].textContent = new Set(Object.keys(list[s])).size;           //total users
+    badges[1].textContent = new Set(Object.values(list[s]).flat()).size;  //total saved submissions
 
-    rows += `
-      <tr>
-        <td>${sitename}</td>
-        <td><span class="badge">${tusers}</span></td>
-        <td><span class="badge">${tsubmissions}</span></td>
-      </tr>
-    `;
+    tbody.insertAdjacentElement("beforeend", row)
   }
 
   savedtable.removeAttribute("style");
-  $(savedtable,  "tr").insertAdjacentHTML("afterend", rows);
 }
 
 function showStashOptions(){

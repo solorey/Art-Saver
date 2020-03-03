@@ -14,7 +14,7 @@ function pageInfo(){
     }
   };
   let split = page.url.split("/");
-  page.eclipse = ($("#deviantART-v7"))? false : true;
+  page.eclipse = $("#deviantART-v7") ? false : true;
   page.page = split[4];
 
   if (!split[4] && $("title").textContent.endsWith(" | DeviantArt")){
@@ -55,6 +55,7 @@ as.deviantart.userInfo = async function(user, page, savedlist){
     ]);
   }
   else {
+    user.stats = new Map([]);
     user.icon = $(`img[title=${user.name}], img[alt="${user.name}'s avatar"]`).src;
   }
 
@@ -63,10 +64,10 @@ as.deviantart.userInfo = async function(user, page, savedlist){
     userName: user.name
   };
 
-  user.saved = savedlist[user.name] || [];
+  user.saved = savedlist ? savedlist[user.name] || [] : [];
 
   user.home = `https://www.deviantart.com/${user.name}`;
-  user.gallery = `https://www.deviantart.com/${user.name}/gallery/${(page.eclipse) ? "all" : "?catpath=/"}`;
+  user.gallery = `https://www.deviantart.com/${user.name}/gallery/${page.eclipse ? "all" : "?catpath=/"}`;
 
   return user;
 }
@@ -174,7 +175,7 @@ as.deviantart.check.checkThumbnails = function(thumbnails){
       let imgid = parseInt(href.split("-").pop(), 10);
       let img = $(thumb, "img");
       let user = thumb.getAttribute("data-super-alt");
-      user = (user)? user.split(" ").pop() : img.alt.split(" ").pop();
+      user = user ? user.split(" ").pop() : img.alt.split(" ").pop();
 
       addButton("deviantart", user, imgid, img, img, href);
     }
@@ -190,7 +191,7 @@ as.deviantart.check.checkSubmission = function(user, url){
     return;
   }
 
-  let submission = ($("#output").style.display === "none" && submissions.length > 1)? submissions[1] : submissions[0];
+  let submission = ($("#output").style.display === "none" && submissions.length > 1) ? submissions[1] : submissions[0];
   try {
     let holder = $(submission, ".artsaver-holder");
     if (!holder){
@@ -351,7 +352,7 @@ as.deviantart.download.getMeta = async function(r, options, progress){
   else { //the user is uncool; downloading is hard
     let type = r.media.types.filter(m => m.f && (m.c || m.s || m.b)).pop();
 
-    let url = (type.c)? `${r.media.baseUri}/${type.c}` : type.s || type.b;
+    let url = type.c ? `${r.media.baseUri}/${type.c}` : type.s || type.b;
 
     if (r.media.prettyName){
       url = url.replace(/<prettyName>/g, r.media.prettyName);
@@ -428,7 +429,7 @@ as.deviantart.download.getStashMeta = async function(sr, url){
   let fileres = await fetcher(info.downloadurl, "response");
   let attachment = fileres.headers.get("content-disposition");
 
-  let reg = /(?:''|\/)([^\/?]+)\.(\w+)(?:\?token=.+)?$/.exec((attachment)? attachment : fileres.url);
+  let reg = /(?:''|\/)([^\/?]+)\.(\w+)(?:\?token=.+)?$/.exec(attachment ? attachment : fileres.url);
   meta.stashFileName = reg[1];
   meta.stashExt = reg[2];
 
@@ -481,7 +482,7 @@ async function getImage(imgsrc){
 
   async function imgSize(src){
     let imgres = await fetcher(src, "response");
-    return (imgres.status === 200)? parseInt(imgres.headers.get("content-length"), 10) : 0;
+    return (imgres.status === 200) ? parseInt(imgres.headers.get("content-length"), 10) : 0;
   }
 
   function imgDim(src){

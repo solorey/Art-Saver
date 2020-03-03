@@ -76,7 +76,7 @@ as.pixiv.userInfo = async function(user, page, savedlist){
     userId: user.id
   };
 
-  user.saved = savedlist[user.id] || [];
+  user.saved = savedlist ? savedlist[user.id] || [] : [];
 
   user.home = `https://www.pixiv.net/users/${user.id}`;
   user.gallery = `https://www.pixiv.net/users/${user.id}/artworks`;
@@ -195,7 +195,7 @@ as.pixiv.check.checkThumbnails = function(thumbnails, user){
       let img = $(a, "img");
 
       let userlink = $(element, 'a[href*="/users/"]');
-      let subuser = (userlink)? /\/(\d+)/.exec(userlink.href)[1] : user;
+      let subuser = userlink ? /\/(\d+)/.exec(userlink.href)[1] : user;
 
       addButton("pixiv", subuser, imgid, img, a, a.href, "beforeend");
     }
