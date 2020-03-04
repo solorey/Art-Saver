@@ -1,2 +1,4 @@
 *.scss export-ignore
-*.gitattributes
+.gitattributes export-ignore
+LICENSE export-ignore
+*.md export-ignore
