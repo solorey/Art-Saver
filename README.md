@@ -4,7 +4,7 @@
 A Webextension to easily download and track downloads in supported art gallery websites.
 
 ## Download
-![][addon]
+[![For Firefox][amo]][addon]
 
 ## Features
 - Custom filenames
@@ -22,8 +22,9 @@ Code used:
 - [JSZip][zip] : for ZIP encoding
 
 [logo]: https://addons.cdn.mozilla.net/user-media/addon_icons/2628/2628195-128.png
+[addon]: https://addons.mozilla.org/en-US/firefox/addon/art-saver/
 
-[addon]: https://addons.cdn.mozilla.net/static/img/addons-buttons/AMO-button_1.png
+[amo]: https://addons.cdn.mozilla.net/static/img/addons-buttons/AMO-button_1.png
 
 [px]: https://addons.mozilla.org/en-US/firefox/addon/px-downloader/
 [px-logo]: https://addons.cdn.mozilla.net/user-media/addon_icons/802/802600-32.png
