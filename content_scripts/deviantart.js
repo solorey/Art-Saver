@@ -380,7 +380,7 @@ as.deviantart.download.getMeta = async function(r, options, progress){
 
 as.deviantart.download.getStash = async function(urls){
   let handleStash = async (sr, url) => {
-    if (sr.startsWith("Error:")){
+    if (typeof(sr) === "string" && sr.startsWith("Error:")){
       asLog(sr, url);
       return;
     }
