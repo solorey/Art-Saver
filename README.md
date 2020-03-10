@@ -1,7 +1,9 @@
 # Art-Saver 
-![][logo]
+<img src="https://github.com/solorey/Art-Saver/blob/master/icons/icon.svg" height=128 width=128>
 
 A Webextension to easily download and track downloads in supported art gallery websites.
+
+Check the [Wiki][wiki] for information on how this addon works along with [Supported Sites][sites].
 
 ## Download
 [![For Firefox][amo]][addon]
@@ -21,7 +23,12 @@ Code used:
 - [gif.js][gif] : for GIF encoding
 - [JSZip][zip] : for ZIP encoding
 
-[logo]: https://addons.cdn.mozilla.net/user-media/addon_icons/2628/2628195-128.png
+Other:
+- [icomoon][iconfont] : for icon font creation
+
+[wiki]: https://github.com/solorey/Art-Saver/wiki
+[sites]: https://github.com/solorey/Art-Saver/wiki/Supported-Sites
+
 [addon]: https://addons.mozilla.org/en-US/firefox/addon/art-saver/
 
 [amo]: https://addons.cdn.mozilla.net/static/img/addons-buttons/AMO-button_1.png
@@ -35,3 +42,5 @@ Code used:
 [upng]: https://github.com/photopea/UPNG.js/
 [gif]: https://jnordberg.github.io/gif.js/
 [zip]: https://stuk.github.io/jszip/
+
+[iconfont]: https://icomoon.io/
