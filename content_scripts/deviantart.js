@@ -346,22 +346,33 @@ as.deviantart.download.getMeta = async function(r, options, progress){
   desc.innerHTML = r.extended.description;
   info.stash = [...new Set($$(desc , 'a[href^="https://sta.sh/"]').map(su => su.href))];
 
-  if (r.isDownloadable){ //the user is cool; downloading is easy
+  if (r.isDownloadable){ //the user is cool; downloading full resolution is easy
     info.downloadurl = r.extended.download.url;
   }
-  else { //the user is uncool; downloading is hard
-    let type = r.media.types.filter(m => m.f && (m.c || m.s || m.b)).pop();
+  else { //the user is uncool; downloading is hard and often full resolution is not available
 
-    let url = type.c ? `${r.media.baseUri}/${type.c}` : type.s || type.b;
+    //Usually
+    //type.c = image
+    //type.s = swf
+    //type.b = mp4, gif
+    let type = r.media.types.filter(m => m.f && (m.t == "fullview" || m.s || m.b)).pop();
+
+    let url = (type.t == "fullview") ? type.c ? `${r.media.baseUri}/${type.c}` : r.media.baseUri : type.s || type.b;
 
     if (r.media.prettyName){
       url = url.replace(/<prettyName>/g, r.media.prettyName);
     }
-    if ((type.c || type.b) && r.media.token){
+    if (r.media.token){
       url = `${url}?token=${r.media.token[0]}`;
     }
 
-    info.downloadurl = url.replace(/q_\d+/, "q_100");
+    //Make sure quailty is 100
+    //Replacing .jpg with .png can lead to better quailty
+    if (/\/v1\/fill\//.test(url)){
+      url = url.replace(/q_\d+/, "q_100").replace(".jpg?", ".png?");
+    }
+
+    info.downloadurl = url;
   }
 
   let reg = /\/([^\/?]+)\.(\w+)(?:\?token=.+)?$/.exec(info.downloadurl);
@@ -389,7 +400,7 @@ as.deviantart.download.getStash = async function(urls){
     if (otherstash.length > 0){
       let surls;
       //If the stash url is a folder that contains a subfolder/"stack"
-      //The url for the subfolder is not original in the document and 
+      //The url for the subfolder is not originally in the document and
       //is loaded using javascript.
       //Current solution: Create a new tab and load the stash url to render the javascript.
       //Get the subfolder urls when they are loaded and then close the tab.
