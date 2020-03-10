@@ -235,7 +235,7 @@ function tableMaker(tablemetas){
     stashFileName: "The original file name of the stash submission. Does not include extension.",
     stashExt: "File extension of the stash submission.",
     userId: "The user Id of the artist.",
-    page: "The page number of the file in the submission set.",
+    page: "The page number of the file in the submission set. Pages start at 1.",
     fileId: "Id of the submission file.",
     userLower: "The way the user name appears in the url bar."
   };

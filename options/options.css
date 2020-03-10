@@ -83,6 +83,22 @@ h3 {
   font-weight: 600;
 }
 
+.question {
+  text-decoration: none;
+  color: #6d6d6d;
+  margin-left: 0.5rem;
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+}
+.question i {
+  margin: 0;
+}
+:hover > .question {
+  visibility: visible;
+  opacity: 1;
+}
+
 [class^=option-] {
   margin: 0.75rem 0;
 }

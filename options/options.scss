@@ -97,6 +97,24 @@ h3{
   font-weight: 600;
 }
 
+.question{
+  text-decoration: none;
+  color: #6d6d6d;
+  margin-left: .5rem;
+  visibility: hidden;
+  opacity: 0;
+  transition: .3s;
+
+  i {
+    margin: 0;
+  }
+
+  :hover > & {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
 [class^=option-]{
   margin: .75rem 0;
 }
