@@ -400,8 +400,7 @@ as.deviantart.download.getStash = async function(urls){
     if (otherstash.length > 0){
       let surls;
       //If the stash url is a folder that contains a subfolder/"stack"
-      //The url for the subfolder is not originally in the document and
-      //is loaded using javascript.
+      //The url for the subfolder is not originally in the document and is loaded using javascript.
       //Current solution: Create a new tab and load the stash url to render the javascript.
       //Get the subfolder urls when they are loaded and then close the tab.
       if (otherstash.some(os => os.getAttribute("gmi-type") === "stack")){

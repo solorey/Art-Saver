@@ -99,15 +99,19 @@ h3{
 
 .question{
   text-decoration: none;
-  color: #6d6d6d;
   margin-left: .5rem;
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  line-height: 15px;
+  border-radius: 7.5px;
+  color:white;
+  background-color:#888;
+
+  text-align: center;
   visibility: hidden;
   opacity: 0;
   transition: .3s;
-
-  i {
-    margin: 0;
-  }
 
   :hover > & {
     visibility: visible;
