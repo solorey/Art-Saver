@@ -14,12 +14,11 @@ addTable("ink-file", tableMaker(["site", "userName", "userId", "title", "submiss
 addTable("ink-multiple", tableMaker(["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "page", "ext"]));
 
 //restore options on page load
-document.addEventListener("DOMContentLoaded", () => {
-  browser.storage.local.get("options").then(res => {
-    res.options ? setOptions(res.options) : setDefault();
+document.addEventListener("DOMContentLoaded", async () => {
+  let res = await browser.storage.local.get("options");
+  res.options ? setOptions(res.options) : setDefault();
 
-    fixFormat();
-  });
+  fixFormat();
 });
 
 userlistDetails();
@@ -119,11 +118,10 @@ $("#export-options").onclick = () => {
   });
 };
 
-$("#import-options").oninput = function(){
-  getJSON(this.files[0]).then(jsonfile => {
-    setOptions(jsonfile);
-    fixFormat();
-  });
+$("#import-options").oninput = async function(){
+  let jsonfile = await getJSON(this.files[0]);
+  setOptions(jsonfile);
+  fixFormat();
 };
 
 $("#click-import").onclick = () => {

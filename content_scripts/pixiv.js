@@ -143,10 +143,11 @@ as.pixiv.check.checkPage = function(page){
 
 as.pixiv.check.checkPopupSmall = function(popup){
   let user = /\/(\d+)/.exec($(popup, 'a[href*="/users/"]').href)[1];
-  for (let img of $$(popup, "a.item")){
-    let imgid = parseInt(/\/(\d+)$/.exec(img.href)[1], 10);
+  for (let sub of $$(popup, "a.item")){
+    let url = sub.href;
+    let subid = parseInt(/\/(\d+)$/.exec(url)[1], 10);
 
-    addButton("pixiv", user, imgid, img, img, img.href, "beforeend");
+    addButton("pixiv", user, subid, sub, sub, url, "beforeend");
   }
 }
 
@@ -191,13 +192,14 @@ as.pixiv.check.checkThumbnails = function(thumbnails, user){
   for (let element of thumbnails){
     try {
       let a = $(element, 'a[href*="/artworks/"]');
-      let imgid = parseInt(/\/(\d+)$/.exec(a.href)[1], 10);
-      let img = $(a, "img");
+      let url = a.href;
+      let subid = parseInt(/\/(\d+)$/.exec(url)[1], 10);
+      let sub = $(a, "img");
 
       let userlink = $(element, 'a[href*="/users/"]');
       let subuser = userlink ? /\/(\d+)/.exec(userlink.href)[1] : user;
 
-      addButton("pixiv", subuser, imgid, img, a, a.href, "beforeend");
+      addButton("pixiv", subuser, subid, sub, a, url, "beforeend");
     }
     catch (err){}
   }
@@ -206,27 +208,27 @@ as.pixiv.check.checkThumbnails = function(thumbnails, user){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 as.pixiv.check.checkSubmission = function(user, url){
-  let submission = $("figure > [role=presentation]");
-  if (!submission){
+  let presentation = $("figure > [role=presentation]");
+  if (!presentation){
     return;
   }
 
   try {
-    let img = $(submission, "a > img, canvas");
-    if (img.nodeName === "CANVAS"){
-      img.parentElement.style = "display:flex; justify-content:center;";
+    let submission = $(presentation, "a > img, canvas");
+    if (submission.nodeName === "CANVAS"){
+      submission.parentElement.style = "display:flex; justify-content:center;";
     }
-    let imgid = parseInt(/\/(\d+)$/.exec(url)[1], 10);
+    let subid = parseInt(/\/(\d+)$/.exec(url)[1], 10);
 
-    let holder = $(submission, ".artsaver-holder");
+    let holder = $(presentation, ".artsaver-holder");
     if (!holder){
       holder = document.createElement("div");
       holder.className = "artsaver-holder";
 
-      img.insertAdjacentElement("beforebegin", holder);
+      submission.insertAdjacentElement("beforebegin", holder);
     }
 
-    holder.style = `position:absolute; width:${img.width}px; height:${img.height}px;`;
+    holder.style = `position:absolute; width:${submission.width}px; height:${submission.height}px;`;
 
     let resize = new ResizeObserver(entries => {
       let change = [...entries].pop().contentRect;
@@ -234,9 +236,9 @@ as.pixiv.check.checkSubmission = function(user, url){
       holder.style.width = `${change.width}px`;
     });
     globalrunningobservers.push(resize);
-    resize.observe(img);
+    resize.observe(submission);
 
-    addButton("pixiv", user, imgid, img, holder, url, "beforeend");
+    addButton("pixiv", user, subid, submission, holder, url, "beforeend");
   }
   catch (err){}
 }

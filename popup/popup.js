@@ -2,8 +2,9 @@ var globalopened = false;
 var globalrunningobservers = [];
 
 openTab("getting-page");
+getPageInfo();
 
-(async function(){
+async function getPageInfo(){
   let tabs = await browser.tabs.query({
     active: true,
     currentWindow: true
@@ -14,7 +15,7 @@ openTab("getting-page");
 
   $("#download-all").onclick = () => send(id, "downloadall");
   $("#recheck").onclick = () => send(id, "recheck");
-})();
+}
 
 function send(id, message){
   browser.tabs.sendMessage(id, {
@@ -24,22 +25,22 @@ function send(id, message){
   });
 }
 
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async request => {
   if (request.function === "pageerror"){
     openTab("unsupported-page");
     return;
   }
 
-  browser.storage.local.get(["userlist", "options"]).then(res => {
-    switch(request.function){
-      case "sitestats":
-        siteStats(request, res.userlist[request.site] || {});
-        break;
+  let res = await browser.storage.local.get(["userlist", "options"]);
 
-      case "userstats":
-        userStats(request, res.options);
-    }
-  });
+  switch(request.function){
+    case "sitestats":
+      siteStats(request, res.userlist[request.site] || {});
+      break;
+
+    case "userstats":
+      userStats(request, res.options);
+  }
 });
 
 function openTab(tab){

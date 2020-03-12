@@ -102,14 +102,14 @@ as.inkbunny.check.getThumbnails = function(){
 as.inkbunny.check.checkThumbnails = function(thumbnails, user){
   for (let widget of thumbnails){
     try {
-      let img = $(widget, "img");
-      let a = $(widget, "a");
-      let imgid = parseInt(/\/(\d+)/.exec(a.href)[1], 10);
+      let sub = $(widget, "img");
+      let url = $(widget, "a").href;
+      let subid = parseInt(/\/(\d+)/.exec(url)[1], 10);
 
-      let otheruser = /\sby\ (\w+)(?:$|(?:\ -\ ))/.exec(img.getAttribute("title"));
+      let otheruser = /\sby\ (\w+)(?:$|(?:\ -\ ))/.exec(sub.getAttribute("title"));
       let subuser = otheruser ? otheruser[1] : user;
 
-      addButton("inkbunny", subuser, imgid, img, img, a.href);
+      addButton("inkbunny", subuser, subid, sub, sub, url);
     }
     catch (err){}
   }
@@ -118,24 +118,24 @@ as.inkbunny.check.checkThumbnails = function(thumbnails, user){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 as.inkbunny.check.checkSubmission = function(user, url){
-  let mainsub = $(".content.magicboxParent");
-  if (!mainsub){
+  let contentbox = $(".content.magicboxParent");
+  if (!contentbox){
     return;
   }
 
   try {
-    let imgid = parseInt(/\/(\d+)/.exec(url)[1], 10);
-    let img = $(mainsub, "#magicbox, .widget_imageFromSubmission img, #mediaspace");
+    let subid = parseInt(/\/(\d+)/.exec(url)[1], 10);
+    let submission = $(contentbox, "#magicbox, .widget_imageFromSubmission img, #mediaspace");
 
-    let holder = $(mainsub, ".artsaver-holder");
+    let holder = $(contentbox, ".artsaver-holder");
     if (!holder){
       holder = document.createElement("div");
       holder.className = "artsaver-holder";
-      img.insertAdjacentElement("beforebegin", holder);
-      holder.insertAdjacentElement("afterbegin", img);
+      submission.insertAdjacentElement("beforebegin", holder);
+      holder.insertAdjacentElement("afterbegin", submission);
     }
 
-    addButton("inkbunny", user, imgid, img, holder, url, "beforeend");
+    addButton("inkbunny", user, subid, submission, holder, url, "beforeend");
   }
   catch (err){}
 }

@@ -93,6 +93,7 @@ h3 {
   border-radius: 7.5px;
   color: white;
   background-color: #888;
+  cursor: help;
   text-align: center;
   visibility: hidden;
   opacity: 0;

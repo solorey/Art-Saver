@@ -208,18 +208,18 @@ function createDownload(site, anchor, url, position){
   return downloadbutton;
 }
 
-function addButton(site, user, imgid, img, anchor, url, position = "afterend"){
+function addButton(site, user, subid, submission, anchor, url, position = "afterend"){
   let parent = ["afterend", "beforebegin"].includes(position) ? anchor.parentElement : anchor;
   let button = $(parent, ".artsaver-check, .artsaver-download");
 
-  if (img.getAttribute("data-checkstatus") !== "checked"){
-    let result = checkUserList(site, user, imgid);
-    img.setAttribute("data-checkstatus", "checked");
+  if (submission.getAttribute("data-checkstatus") !== "checked"){
+    let result = checkUserList(site, user, subid);
+    submission.setAttribute("data-checkstatus", "checked");
 
     if (result.found){
       $$(parent, "[class^=artsaver]").forEach(e => removeElement(e));
 
-      button = createCheck(anchor, result.color, position, {site, user: result.user, id: imgid});
+      button = createCheck(anchor, result.color, position, {site, user: result.user, id: subid});
     }
   }
 

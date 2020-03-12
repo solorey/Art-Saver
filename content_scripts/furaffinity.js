@@ -152,14 +152,14 @@ as.furaffinity.check.getThumbnails = function(){
 as.furaffinity.check.checkThumbnails = function(thumbnails, user){
   for (let figure of thumbnails){
     try {
-      let img = $(figure, "img");
-      let href = $(figure, "a").href;
-      let imgid = parseInt(href.split("/")[4], 10);
+      let sub = $(figure, "img");
+      let url = $(figure, "a").href;
+      let subid = parseInt(url.split("/")[4], 10);
 
       let otheruser = $(figure, 'a[href^="/user/"]');
       let subuser = otheruser ? otheruser.getAttribute("href").split("/")[2] : user;
 
-      addButton("furaffinity", subuser, imgid, img, img, href);
+      addButton("furaffinity", subuser, subid, sub, sub, url);
     }
     catch (err){}
   }
@@ -172,11 +172,11 @@ as.furaffinity.check.checkUserFavorites = function(){
 
   for (let fav of $$('#gallery-latest-favorites > [id^="sid"]')){
     try {
-      let img = $(fav, "img");
-      let imgid = parseInt(/(\d+)/.exec(fav.id)[1], 10);
-      let user = favdata[imgid].lower;
+      let sub = $(fav, "img");
+      let subid = parseInt(/(\d+)/.exec(fav.id)[1], 10);
+      let user = favdata[subid].lower;
 
-      addButton("furaffinity", user, imgid, img, img, $(fav, "a").href);
+      addButton("furaffinity", user, subid, sub, sub, $(fav, "a").href);
     }
     catch (err){}
   }
@@ -211,9 +211,9 @@ as.furaffinity.check.checkSubmission = function(user, url, modern){
   }
 
   try {
-    let imgid = parseInt(url.split("/")[4], 10);
+    let subid = parseInt(url.split("/")[4], 10);
 
-    addButton("furaffinity", user, imgid, submission, submission, url);
+    addButton("furaffinity", user, subid, submission, submission, url);
   }
   catch (err){}
 }

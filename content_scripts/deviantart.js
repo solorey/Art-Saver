@@ -171,13 +171,13 @@ as.deviantart.check.getThumbnails = function(){
 as.deviantart.check.checkThumbnails = function(thumbnails){
   for (let thumb of thumbnails){
     try {
-      let href = thumb.getAttribute("href") || $(thumb, "a").href;
-      let imgid = parseInt(href.split("-").pop(), 10);
-      let img = $(thumb, "img");
+      let url = thumb.getAttribute("href") || $(thumb, "a").href;
+      let subid = parseInt(url.split("-").pop(), 10);
+      let sub = $(thumb, "img");
       let user = thumb.getAttribute("data-super-alt");
-      user = user ? user.split(" ").pop() : img.alt.split(" ").pop();
+      user = user ? user.split(" ").pop() : sub.alt.split(" ").pop();
 
-      addButton("deviantart", user, imgid, img, img, href);
+      addButton("deviantart", user, subid, sub, sub, url);
     }
     catch (err){}
   }
@@ -191,23 +191,23 @@ as.deviantart.check.checkSubmission = function(user, url){
     return;
   }
 
-  let submission = ($("#output").style.display === "none" && submissions.length > 1) ? submissions[1] : submissions[0];
+  let view = ($("#output").style.display === "none" && submissions.length > 1) ? submissions[1] : submissions[0];
   try {
-    let holder = $(submission, ".artsaver-holder");
+    let holder = $(view, ".artsaver-holder");
     if (!holder){
       holder = document.createElement("div");
       holder.className = "artsaver-holder";
       holder.onclick = function(){this.style.display = "table"};
 
-      let subchildren = [...submission.children];
-      submission.insertAdjacentElement("afterbegin", holder);
+      let subchildren = [...view.children];
+      view.insertAdjacentElement("afterbegin", holder);
       subchildren.forEach(c => holder.insertAdjacentElement("beforeend", c));
     }
 
-    let img = $(submission, "img, #gmi-FilmPlayer");
-    let imgid = parseInt(url.split("-").pop(), 10);
+    let submission = $(view, "img, #gmi-FilmPlayer");
+    let subid = parseInt(url.split("-").pop(), 10);
 
-    let button = addButton("deviantart", user, imgid, img, img, url);
+    let button = addButton("deviantart", user, subid, submission, submission, url);
     if (button){
       button.style.display = "";
     }
@@ -234,12 +234,12 @@ as.deviantart.check.getThumbnailsEclipse = function(){
 as.deviantart.check.checkThumbnailsEclipse = function(thumbnails){
   for (let thumb of thumbnails){
     try {
-      let href = thumb.getAttribute("href") || $(thumb, "a").href;
-      let imgid = parseInt(href.split("-").pop(), 10);
-      let img = $(thumb, "img");
+      let url = thumb.getAttribute("href") || $(thumb, "a").href;
+      let subid = parseInt(url.split("-").pop(), 10);
+      let sub = $(thumb, "img");
       let user = ($(thumb, ".user-link") || thumb).getAttribute("title").split(" ").pop();
 
-      addButton("deviantart", user, imgid, img, thumb, href, "beforeend");
+      addButton("deviantart", user, subid, sub, thumb, url, "beforeend");
     }
     catch (err){}
   }
@@ -250,10 +250,11 @@ as.deviantart.check.checkPopupEclipse = function(popup){
   for (let thumb of $$(popup, "[data-hook=deviation_link]")){
     try {
       thumb.firstElementChild.style.position = "relative";
-      let imgid = parseInt(thumb.href.split("-").pop(), 10);
-      let img = $(thumb, "img");
+      let url = thumb.href;
+      let subid = parseInt(url.split("-").pop(), 10);
+      let sub = $(thumb, "img");
 
-      addButton("deviantart", user, imgid, img, img, thumb.href);
+      addButton("deviantart", user, subid, sub, sub, url);
     }
     catch (err){}
   }
@@ -263,12 +264,12 @@ as.deviantart.check.checkPopupEclipse = function(popup){
 
 as.deviantart.check.checkSubmissionEclipse = function(user, url){
   try {
-    let submission = $("[data-hook=art_stage]");
-    let img = $(submission, "img, [data-hook=react-playable]");
-    img.parentElement.style.position = "relative";
-    let imgid = parseInt(url.split("-").pop(), 10);
+    let stage = $("[data-hook=art_stage]");
+    let submission = $(stage, "img, [data-hook=react-playable]");
+    submission.parentElement.style.position = "relative";
+    let subid = parseInt(url.split("-").pop(), 10);
 
-    addButton("deviantart", user, imgid, img, img, url);
+    addButton("deviantart", user, subid, submission, submission, url);
   }
   catch (err){}
 }

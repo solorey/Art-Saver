@@ -2,37 +2,28 @@ browser.runtime.onInstalled.addListener(details => {
   browser.runtime.openOptionsPage();
 });
 
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(request => {
   switch (request.function){
-    case "download":
-      startDownload(request.options.url, request.options.filename, request.options.meta).then(sendResponse);
-      break;
-
     case "blob":
       let bloburl = window.URL.createObjectURL(request.options.blob);
-      startDownload(bloburl, request.options.filename, request.options.meta).then(sendResponse);
-      break;
+      return startDownload(bloburl, request.options.filename, request.options.meta);
 
     case "updatelist":
-      updateUserList(request.site, request.user, request.id).then(sendResponse);
-      break;
+      return updateUserList(request.site, request.user, request.id);
 
     case "createobjecturl":
-      sendResponse(window.URL.createObjectURL(request.object));
-      break;
+      return window.URL.createObjectURL(request.object);
 
     case "revokeobjecturl":
       window.URL.revokeObjectURL(request.url);
-      break;
+      return;
 
     case "opentab":
-      stashTab(request.options.url).then(sendResponse);
-      break;
+      return stashTab(request.options.url);
 
     case "openuserfolder":
-      openFolder(request.folderFile, request.meta, request.replace).then(sendResponse);
+      return openFolder(request.folderFile, request.meta, request.replace);
   }
-  return true;
 });
 
 var updating = false;
