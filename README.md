@@ -1,9 +1,22 @@
-# Art-Saver 
+<p align="center">
 <img src="https://github.com/solorey/Art-Saver/blob/master/icons/icon.svg" height=128 width=128>
+</p>
 
-A Webextension to easily download and track downloads in supported art gallery websites.
+<h1 align="center">Art Saver</h1>
 
-Check the [Wiki][wiki] for information on how this addon works along with [Supported Sites][sites].
+A Webextension to easily download art submissions directly from the thumbnail.
+
+## How to use
+
+Simply hover over a thumbnail on any page of the website and click the download button.
+<img src="https://github.com/solorey/Art-Saver/blob/master/icons/download.svg" width=16 height=16>
+
+Submissions that have already been downloaded will show a green checkmark.
+<img src="https://github.com/solorey/Art-Saver/blob/master/icons/check_green.svg" width=16 height=16>
+
+Check the [Wiki][wiki] for additional information.
+
+View the [Supported Sites][sites].
 
 ## Download
 [![For Firefox][amo]][addon]
