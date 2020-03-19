@@ -59,7 +59,7 @@ $("#export-list").onclick = async () => {
   let blob = new Blob([JSON.stringify(res.userlist)], {type : "application/json"});
 
   browser.downloads.download({
-    url: window.URL.createObjectURL(blob),
+    url: URL.createObjectURL(blob),
     filename: "Userlist.json",
     saveAs: true
   });
@@ -112,7 +112,7 @@ $("#export-options").onclick = () => {
   let blob = new Blob([JSON.stringify(optionsInfo())], {type : "application/json"});
 
   browser.downloads.download({
-    url: window.URL.createObjectURL(blob),
+    url: URL.createObjectURL(blob),
     filename: "artsaver-settings.json",
     saveAs: true
   });

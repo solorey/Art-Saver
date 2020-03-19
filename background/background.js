@@ -5,17 +5,17 @@ browser.runtime.onInstalled.addListener(details => {
 browser.runtime.onMessage.addListener(request => {
   switch (request.function){
     case "blob":
-      let bloburl = window.URL.createObjectURL(request.options.blob);
+      let bloburl = URL.createObjectURL(request.options.blob);
       return startDownload(bloburl, request.options.filename, request.options.meta);
 
     case "updatelist":
       return updateUserList(request.site, request.user, request.id);
 
     case "createobjecturl":
-      return window.URL.createObjectURL(request.object);
+      return URL.createObjectURL(request.object);
 
     case "revokeobjecturl":
-      window.URL.revokeObjectURL(request.url);
+      URL.revokeObjectURL(request.url);
       return;
 
     case "opentab":
@@ -141,7 +141,7 @@ function handleChanged(delta){
   }
   //console.log(currentdownloads);
   //console.log(`Download ${delta.id} has completed:`, delta);
-  window.URL.revokeObjectURL(delta.url);
+  URL.revokeObjectURL(delta.url);
   let dlid = `${delta.id}`;
 
   if (dlid in folderfiles){
@@ -159,7 +159,7 @@ browser.downloads.onChanged.addListener(handleChanged);
 var folderfiles = {};
 
 async function openFolder(filename, meta, replace){
-  let url = window.URL.createObjectURL(new Blob([""]));
+  let url = URL.createObjectURL(new Blob([""]));
   filename = createFilename(meta, filename, replace);
   let dlid = await browser.downloads.download({url, filename});
   folderfiles[`${dlid}`] = url;
