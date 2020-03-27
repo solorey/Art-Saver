@@ -162,7 +162,6 @@ function userStats(request, options){
   let hasstats = user.stats.size > 0;
   $(userstats, ".header").style.display = hasstats ? "block" : "none";
   userprofile.style.flexDirection = hasstats ? "row" : "column";
-
   if (hasstats){
     for (let [stat, value] of user.stats.entries()){
       let row = document.createElement("div");
@@ -195,7 +194,12 @@ function userStats(request, options){
   let folderelem = $("#user-folder");
   folderelem.style.display = "flex";
   folderelem.onclick = () => {
-    openFolder(`${options[user.site].userFolder}folderopener.file`, user.folderMeta, options.global.replace);
+    browser.runtime.sendMessage({
+      function: "openuserfolder",
+      folderFile: `${options[user.site].userFolder}folderopener.file`,
+      meta: user.folderMeta,
+      replace: options.global.replace
+    });
   };
 }
 
@@ -330,13 +334,4 @@ function toggleListSort(sbox){
     linklist.setAttribute("data-sort", "descend");
     sorticon.className = "icon-descend";
   }
-}
-
-function openFolder(filename, meta, replacespaces){
-  browser.runtime.sendMessage({
-    function: "openuserfolder",
-    folderFile: filename,
-    meta: meta,
-    replace: replacespaces
-  });
 }

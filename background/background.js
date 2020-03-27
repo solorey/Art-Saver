@@ -2,27 +2,27 @@ browser.runtime.onInstalled.addListener(details => {
   browser.runtime.openOptionsPage();
 });
 
-browser.runtime.onMessage.addListener(async request => {
+browser.runtime.onMessage.addListener(request => {
   switch (request.function){
     case "blob":
       let bloburl = URL.createObjectURL(request.options.blob);
-      return startDownload(bloburl, request.options.filename, request.options.meta);
+      return Promise.resolve(startDownload(bloburl, request.options.filename, request.options.meta));
 
     case "updatelist":
-      return updateUserList(request.site, request.user, request.id);
+      return Promise.resolve(updateUserList(request.site, request.user, request.id));
 
     case "createobjecturl":
-      return URL.createObjectURL(request.object);
+      return Promise.resolve(URL.createObjectURL(request.object));
 
     case "revokeobjecturl":
       URL.revokeObjectURL(request.url);
-      return;
+      return Promise.resolve();
 
     case "opentab":
-      return stashTab(request.options.url);
+      return Promise.resolve(stashTab(request.options.url));
 
     case "openuserfolder":
-      return openFolder(request.folderFile, request.meta, request.replace);
+      return Promise.resolve(openFolder(request.folderFile, request.meta, request.replace));
   }
 });
 
@@ -149,7 +149,7 @@ function handleChanged(delta){
     browser.downloads.erase({id: delta.id});
     delete folderfiles[dlid];
   }
-  else {
+  else if (dlid in folderfiles){
     delete currentdownloads[dlid];
   }
 }
