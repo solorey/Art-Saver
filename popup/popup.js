@@ -25,7 +25,9 @@ function send(id, message){
   });
 }
 
-browser.runtime.onMessage.addListener(async request => {
+browser.runtime.onMessage.addListener(request => actions(request));
+
+async function actions(request){
   if (request.function === "pageerror"){
     openTab("unsupported-page");
     return;
@@ -41,7 +43,7 @@ browser.runtime.onMessage.addListener(async request => {
     case "userstats":
       userStats(request, res.options);
   }
-});
+}
 
 function openTab(tab){
   $$(".tabs > button").forEach(t => t.classList.remove("active"));

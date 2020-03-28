@@ -2,29 +2,31 @@ browser.runtime.onInstalled.addListener(details => {
   browser.runtime.openOptionsPage();
 });
 
-browser.runtime.onMessage.addListener(request => {
+browser.runtime.onMessage.addListener(request => actions(request));
+
+async function actions(request){
   switch (request.function){
     case "blob":
       let bloburl = URL.createObjectURL(request.options.blob);
-      return Promise.resolve(startDownload(bloburl, request.options.filename, request.options.meta));
+      return startDownload(bloburl, request.options.filename, request.options.meta);
 
     case "updatelist":
-      return Promise.resolve(updateUserList(request.site, request.user, request.id));
+      return updateUserList(request.site, request.user, request.id);
 
     case "createobjecturl":
-      return Promise.resolve(URL.createObjectURL(request.object));
+      return URL.createObjectURL(request.object);
 
     case "revokeobjecturl":
       URL.revokeObjectURL(request.url);
-      return Promise.resolve();
+      return;
 
     case "opentab":
-      return Promise.resolve(stashTab(request.options.url));
+      return stashTab(request.options.url);
 
     case "openuserfolder":
-      return Promise.resolve(openFolder(request.folderFile, request.meta, request.replace));
+      return openFolder(request.folderFile, request.meta, request.replace);
   }
-});
+}
 
 var updating = false;
 
