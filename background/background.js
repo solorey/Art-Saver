@@ -2,9 +2,9 @@ browser.runtime.onInstalled.addListener(details => {
   browser.runtime.openOptionsPage();
 });
 
-browser.runtime.onMessage.addListener(request => actions(request));
+browser.runtime.onMessage.addListener(request => messageActions(request));
 
-async function actions(request){
+async function messageActions(request){
   switch (request.function){
     case "blob":
       let bloburl = URL.createObjectURL(request.options.blob);

@@ -25,9 +25,9 @@ function send(id, message){
   });
 }
 
-browser.runtime.onMessage.addListener(request => actions(request));
+browser.runtime.onMessage.addListener(request => messageActions(request));
 
-async function actions(request){
+async function messageActions(request){
   if (request.function === "pageerror"){
     openTab("unsupported-page");
     return;

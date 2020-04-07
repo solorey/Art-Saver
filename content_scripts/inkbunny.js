@@ -55,9 +55,9 @@ as.inkbunny.userInfo = async function(user, page, savedlist){
 
   let stats = $$(userpage, ".elephant_babdb6 .content > div > span strong").map(s => s.textContent.replace(/,/g, ""));
   user.stats = new Map([
-    ["Submissions", stats[0]],
+    ["Submissions", stats[1]],
     ["Favorites", $(favpage,  ".elephant_555753 .content > div:first-child").textContent.split(" ")[0].replace(/,/g, "")],
-    ["Views", stats[3]]
+    ["Views", stats[4]]
   ]);
 
   user.saved = savedlist ? savedlist[user.name] || [] : [];
