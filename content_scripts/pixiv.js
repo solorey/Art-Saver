@@ -37,8 +37,9 @@ function pageInfo(){
     page.userId = /\/(\d+)/.exec(page.url)[1];
   }
   else if (["artwork", "novel"].includes(page.page)){
-    page.user = $("a:nth-of-type(2) > div").textContent;
-    page.userId = $('a[href*="/users/"] > div').parentElement.href.split("/").pop();
+    let userelem = $("a:nth-of-type(2)");
+    page.user = userelem.textContent;
+    page.userId = userelem.href.split("/").pop();
   }
   else if (["following"].includes(page.page)){
     page.userId = /\/(\d+)/.exec(page.url)[1];
