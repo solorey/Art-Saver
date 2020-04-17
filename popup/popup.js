@@ -25,7 +25,9 @@ function send(id, message){
   });
 }
 
-browser.runtime.onMessage.addListener(request => messageActions(request));
+browser.runtime.onMessage.addListener(request => {
+  messageActions(request);
+});
 
 async function messageActions(request){
   if (request.function === "pageerror"){

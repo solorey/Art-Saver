@@ -2,7 +2,9 @@ browser.runtime.onInstalled.addListener(details => {
   browser.runtime.openOptionsPage();
 });
 
-browser.runtime.onMessage.addListener(request => messageActions(request));
+browser.runtime.onMessage.addListener(request => {
+  return messageActions(request);
+});
 
 async function messageActions(request){
   switch (request.function){
