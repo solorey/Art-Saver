@@ -125,16 +125,18 @@ function siteStats(request, sitelist){
     }
   }
 
-  let resize = new ResizeObserver(entries => {
-    let ul = $("#user-list .list");
-    let sl = $("#submission-list .list");
-    let sblock = ($("#submission-list").style.display === "block") ? 45 : 0;
+  let ul = $("#user-list .list");
+  let srow = $("#submission-list");
+  let sl = $("#submission-list .list");
+
+  let resize = new ResizeObserver(() => {
+    let sblock = (srow.style.display === "block") ? 45 : 0;
     ul.style.maxHeight = `${600 - ul.offsetTop - sblock}px`;
     sl.style.maxHeight = `${600 - sl.offsetTop}px`;
   });
   globalrunningobservers.push(resize);
-  resize.observe($("#user-list .list"));
-  resize.observe($("#submission-list .list"));
+  resize.observe(ul);
+  resize.observe(sl);
 
   if (request.user && !globalopened){
     $("#user-tab").style.display = "block";

@@ -323,6 +323,10 @@ async function fetchBlobsProgress(downloads, progress){
 
   async function getBlob(dl, i){
     let response = await fetcher(dl.url, "response");
+    
+    if (!response.ok){
+      throw `Status of download url: ${response.status}`;
+    }
 
     let loaded = 0;
     let total = parseInt(response.headers.get("Content-Length"), 10);
