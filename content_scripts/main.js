@@ -64,17 +64,18 @@ function asLog(...texts){
 
 //simpler fetch function with document support
 async function fetcher(url, type, init = {}){
-  let defaultinit = {
+  init = {
     credentials: "include",
-    referrer: window.location.href
-  }
-
-  init = {...defaultinit, ...init};
+    referrer: window.location.href,
+    ...init
+  };
 
   let response = await fetch(url, init);
 
   if (!response.ok && type !== "response"){
-    return `Error: ${response.status}`;
+    let err = new Error(url);
+    err.name = `Error ${response.status}`;
+    return err;
   }
 
   switch (type){
@@ -325,7 +326,9 @@ async function fetchBlobsProgress(downloads, progress){
     let response = await fetcher(dl.url, "response");
     
     if (!response.ok){
-      throw `Status of download url: ${response.status}`;
+      let err = new Error(dl.url);
+      err.name = `Error ${response.status}`;
+      throw err;
     }
 
     let loaded = 0;
@@ -380,10 +383,10 @@ function fileSize(bytes){
 
 async function downloadBlobs(blobs){
   let results = [];
-  for (let b of blobs){
+  for (let blob of blobs){
     let message = await browser.runtime.sendMessage({
       function: "blob",
-      options: b
+      ...blob
     });
     handleResponse(message);
     results.push(message.response);

@@ -9,8 +9,8 @@ browser.runtime.onMessage.addListener(request => {
 async function messageActions(request){
   switch (request.function){
     case "blob":
-      let bloburl = URL.createObjectURL(request.options.blob);
-      return startDownload(bloburl, request.options.filename, request.options.meta);
+      let bloburl = URL.createObjectURL(request.blob);
+      return startDownload(bloburl, request.filename, request.meta);
 
     case "updatelist":
       return updateUserList(request.site, request.user, request.id);
@@ -23,7 +23,7 @@ async function messageActions(request){
       return;
 
     case "opentab":
-      return stashTab(request.options.url);
+      return stashTab(request.url);
 
     case "openuserfolder":
       return openFolder(request.folderFile, request.meta, request.replace);
@@ -103,14 +103,14 @@ function createFilename(meta, path, replace){
   return path;
 }
 
-var currentdownloads = {};
+var currentdownloads = new Map();
 
 async function startDownload(url, filename, meta){
   let res = await browser.storage.local.get("options");
   filename = createFilename(meta, filename, res.options.global.replace);
   try {
     let dlid = await browser.downloads.download({url, filename, conflictAction: res.options.global.conflict});
-    currentdownloads[`${dlid}`] = url;
+    currentdownloads.set(dlid, url);
     return {response: "Success", url, filename};
   }
   catch (err){
@@ -127,7 +127,7 @@ async function stashTab(url){
 
 async function getStashUrls(id){
   try {
-    let urls = await browser.tabs.sendMessage(id, {req: "stashurls"});
+    let urls = await browser.tabs.sendMessage(id, {function: "stashurls"});
     if (urls && !urls.content.includes("")){
       return urls.content;
     }
@@ -143,29 +143,30 @@ function handleChanged(delta){
   if (!delta.state || delta.state.current !== "complete"){
     return;
   }
-  //console.log(currentdownloads);
-  //console.log(`Download ${delta.id} has completed:`, delta);
-  URL.revokeObjectURL(delta.url);
-  let dlid = `${delta.id}`;
 
-  if (dlid in folderfiles){
+  URL.revokeObjectURL(delta.url);
+  let dlid = delta.id;
+
+  if (folderfiles.has(dlid)){
+    //Delete the file used to open the folder
+    //and remove from the download history
     browser.downloads.removeFile(delta.id);
     browser.downloads.erase({id: delta.id});
-    delete folderfiles[dlid];
+    folderfiles.delete(dlid);
   }
-  else if (dlid in folderfiles){
-    delete currentdownloads[dlid];
+  else if (currentdownloads.has(dlid)){
+    currentdownloads.delete(dlid);
   }
 }
 
 browser.downloads.onChanged.addListener(handleChanged);
 
-var folderfiles = {};
+var folderfiles = new Map();
 
 async function openFolder(filename, meta, replace){
   let url = URL.createObjectURL(new Blob([""]));
   filename = createFilename(meta, filename, replace);
   let dlid = await browser.downloads.download({url, filename});
-  folderfiles[`${dlid}`] = url;
+  folderfiles.set(dlid, url);
   browser.downloads.show(dlid);
 }
