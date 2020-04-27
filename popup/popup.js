@@ -104,7 +104,7 @@ function siteStats(request, sitelist){
   $("#saved-stat").textContent = request.total.saved;
 
   let savedstats = {
-    user: [...new Set(Object.keys(sitelist))].sort(),
+    user: [...new Set(Object.keys(sitelist))].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: "base", numeric: true})),
     submission: [...new Set(Object.values(sitelist).flat())].sort((a, b) => b - a)
   };
 
