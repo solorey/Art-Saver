@@ -142,8 +142,8 @@ as.deviantart.check.getThumbnails = function(){
   for (let thumb of $$(".thumb, .embedded-image-deviation")){
     //----------------------------------------------
     //current unsupported thumbs
-    //                  literature,       gallery folder preview images
-    if (thumb.matches(".lit, .literature, div.stream.col-thumbs *")){
+    //                  literature,       journals,  gallery folder preview images
+    if (thumb.matches(".lit, .literature, .freeform, div.stream.col-thumbs *")){
       continue;
     }
     //----------------------------------------------
@@ -221,6 +221,10 @@ as.deviantart.check.checkSubmission = function(user, url){
 as.deviantart.check.getThumbnailsEclipse = function(){
   let thumbnails = [];
   for (let thumb of $$("[data-hook=deviation_link]")){
+    //filter out journals
+    if (/\/journal\//.test(thumb.href)){
+      continue;
+    }
     if (thumb.parentElement.matches("[data-hook=deviation_std_thumb]")){
       thumb = thumb.parentElement;
     }
@@ -304,6 +308,7 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
 
     if (options.deviantart.stash){
       let stashes = await this.getStash(info.stash);
+      
       let stashdownloads = stashes.map(s => ({
         url: s.info.downloadurl,
         meta: {...meta, ...s.meta},
@@ -351,7 +356,6 @@ as.deviantart.download.getMeta = async function(r, options, progress){
     info.downloadurl = r.extended.download.url;
   }
   else { //the user is uncool; downloading is hard and often full resolution is not available
-
     //Usually
     //type.c = image
     //type.s = swf
@@ -366,11 +370,15 @@ as.deviantart.download.getMeta = async function(r, options, progress){
     if (r.media.token){
       url = `${url}?token=${r.media.token[0]}`;
     }
-
     //Make sure quailty is 100
     //Replacing .jpg with .png can lead to better quailty
     if (/\/v1\/fill\//.test(url)){
       url = url.replace(/q_\d+/, "q_100").replace(".jpg?", ".png?");
+    }
+    //flash with no download button
+    if (/\/\/sandbox/.test(url)){
+      let embedded = await fetcher(url, "document");
+      url = $(embedded, "#sandboxembed").src;
     }
 
     info.downloadurl = url;
@@ -392,26 +400,26 @@ as.deviantart.download.getMeta = async function(r, options, progress){
 
 as.deviantart.download.getStash = async function(urls){
   let handleStash = async (sr, url) => {
-    if (typeof(sr) === "string" && sr.startsWith("Error:")){
-      asLog(sr, url);
+    if (sr instanceof Error){
+      asLog(sr);
       return;
     }
     //url for a list of stashes
     let otherstash = $$(sr, "div#gmi-StashStream > div#gmi-StashThumb");
     if (otherstash.length > 0){
-      let surls;
       //If the stash url is a folder that contains a subfolder/"stack"
       //The url for the subfolder is not originally in the document and is loaded using javascript.
       //Current solution: Create a new tab and load the stash url to render the javascript.
       //Get the subfolder urls when they are loaded and then close the tab.
+      let surls;
       if (otherstash.some(os => os.getAttribute("gmi-type") === "stack")){
-        let message = await browser.runtime.sendMessage({function: "opentab", options:{url}});
+        let message = await browser.runtime.sendMessage({function: "opentab", url});
         surls = message.urls;
       }
       else {
         surls = [...new Set(otherstash.flatMap(os => $(os, ".shadow > a").href))];
       }
-      return await this.getStash(surls);
+      return await navigateStashUrls(surls);
     }
     //download button on a stash page
     else if ($(sr, "a.dev-page-download")){
@@ -420,10 +428,21 @@ as.deviantart.download.getStash = async function(urls){
     return;
   }
 
-  let responses = await Promise.all(urls.map(u => fetcher(u, "document")));
-  let downloads = await Promise.all(responses.map((r, i) => handleStash(r, urls[i])));
+  async function navigateStashUrls(urls){
+    let responses = await Promise.all(urls.map(u => fetcher(u, "document")));
+    let downloads = await Promise.all(responses.map((r, i) => handleStash(r, urls[i])));
 
-  return downloads.flat(Infinity).filter(d => d);
+    return downloads.flat(Infinity).filter(d => d);
+  }
+
+  let stashes = await navigateStashUrls(urls);
+  //filter out duplicate stashes
+  let stashlist = {};
+  for (s of stashes){
+    stashlist[s.meta.stashUrlId] = s;
+  }
+
+  return Object.values(stashlist);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -440,7 +459,7 @@ as.deviantart.download.getStashMeta = async function(sr, url){
   let fileres = await fetcher(info.downloadurl, "response");
   let attachment = fileres.headers.get("content-disposition");
 
-  let reg = /(?:''|\/)([^\/?]+)\.(\w+)(?:\?token=.+)?$/.exec(attachment ? attachment : fileres.url);
+  let reg = /(?:''|\/)([^\/?]+)\.(\w+)(?:\?token=.+)?$/.exec(attachment || fileres.url);
   meta.stashFileName = reg[1];
   meta.stashExt = reg[2];
 
@@ -493,7 +512,7 @@ async function getImage(imgsrc){
 
   async function imgSize(src){
     let imgres = await fetcher(src, "response");
-    return (imgres.status === 200) ? parseInt(imgres.headers.get("content-length"), 10) : 0;
+    return (imgres.ok) ? parseInt(imgres.headers.get("content-length"), 10) : 0;
   }
 
   function imgDim(src){
