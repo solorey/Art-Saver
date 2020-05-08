@@ -227,6 +227,10 @@ as.deviantart.check.getThumbnailsEclipse = function(){
     }
     if (thumb.parentElement.matches("[data-hook=deviation_std_thumb]")){
       thumb = thumb.parentElement;
+      //filter out literature
+      if ($(thumb, "section > h4")){
+        continue;
+      }
     }
     thumbnails.push(thumb);
   }
