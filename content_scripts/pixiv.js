@@ -37,7 +37,7 @@ function pageInfo(){
     page.userId = /\/(\d+)/.exec(page.url)[1];
   }
   else if (["artwork", "novel"].includes(page.page)){
-    let userelem = $("a:nth-of-type(2)");
+    let userelem = $('a[href*="/users/"]:nth-of-type(2)');
     page.user = userelem.textContent;
     page.userId = userelem.href.split("/").pop();
   }
