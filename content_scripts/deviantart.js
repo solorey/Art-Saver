@@ -21,10 +21,10 @@ function pageInfo(){
     page.page = "user";
   }
 
-  if (page.page === "art"){
+  if (["art", "journal"].includes(page.page)){
     page.user = /by\ ([^\ ]+)\ on\ DeviantArt$/.exec($("title").textContent)[1];
   }
-  else if (["user", "gallery", "prints", "favourites", "journal", "posts"].includes(page.page)){
+  else if (["user", "gallery", "prints", "favourites", "posts"].includes(page.page)){
     if (page.eclipse){
       page.user = $("#content-container [data-username]").title;
     }
