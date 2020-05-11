@@ -273,6 +273,7 @@ function createVirtualList(sbox, values, linktype, linkstring){
     let i = listresult[index];
     let a = document.createElement("a");
     a.target = "_blank";
+    a.rel = "noopener noreferrer";
     a.innerHTML = '<li><span class="link-search"></span></li>';
     let li = a.firstElementChild;
     li.insertAdjacentText("afterbegin", i[1]);
