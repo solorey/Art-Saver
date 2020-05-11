@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Art Saver",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Easily download and track downloads in supported art gallery websites.",
 
   "browser_specific_settings": {
