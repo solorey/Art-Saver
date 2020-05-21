@@ -109,7 +109,7 @@ async function startDownload(url, filename, meta){
   let res = await browser.storage.local.get("options");
   filename = createFilename(meta, filename, res.options.global.replace);
   try {
-    let dlid = await browser.downloads.download({url, filename, conflictAction: res.options.global.conflict});
+    let dlid = await browser.downloads.download({url, filename, conflictAction: res.options.global.conflict, saveAs: false});
     currentdownloads.set(dlid, url);
     return {response: "Success", url, filename};
   }
@@ -166,7 +166,7 @@ var folderfiles = new Map();
 async function openFolder(filename, meta, replace){
   let url = URL.createObjectURL(new Blob([""]));
   filename = createFilename(meta, filename, replace);
-  let dlid = await browser.downloads.download({url, filename});
+  let dlid = await browser.downloads.download({url, filename, saveAs: false});
   folderfiles.set(dlid, url);
   browser.downloads.show(dlid);
 }
