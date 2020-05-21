@@ -15,7 +15,7 @@ function pageInfo(){
   };
   let split = page.url.split("/");
   page.eclipse = $("#deviantART-v7") ? false : true;
-  page.page = split[4];
+  page.page = split[4].split("#")[0];
 
   if (!split[4] && $("title").textContent.endsWith(" | DeviantArt")){
     page.page = "user";
@@ -24,7 +24,7 @@ function pageInfo(){
   if (["art", "journal"].includes(page.page)){
     page.user = /by\ ([^\ ]+)\ on\ DeviantArt$/.exec($("title").textContent)[1];
   }
-  else if (["user", "gallery", "prints", "favourites", "posts"].includes(page.page)){
+  else if (["about", "user", "gallery", "prints", "favourites", "posts"].includes(page.page)){
     if (page.eclipse){
       page.user = $("#content-container [data-username]").title;
     }
