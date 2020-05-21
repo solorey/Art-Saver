@@ -106,7 +106,7 @@ as.inkbunny.check.checkThumbnails = function(thumbnails, user){
       let url = $(widget, "a").href;
       let subid = parseInt(/\/(\d+)/.exec(url)[1], 10);
 
-      let otheruser = /\sby\ (\w+)(?:$|(?:\ -\ ))/.exec(sub.getAttribute("title"));
+      let otheruser = /\sby\ (\w+)(?:$|(?:\ -\ ))/.exec(sub.alt);
       let subuser = otheruser ? otheruser[1] : user;
 
       addButton("inkbunny", subuser, subid, sub, sub, url);
