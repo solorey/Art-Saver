@@ -13,18 +13,20 @@ function pageInfo(){
       submissionUrl: "https://www.deviantart.com/deviation/{submission}"
     }
   };
-  let split = page.url.split("/");
-  page.eclipse = $("#deviantART-v7") ? false : true;
-  page.page = split[4].split("#")[0];
 
-  if (!split[4] && $("title").textContent.endsWith(" | DeviantArt")){
-    page.page = "user";
+  page.eclipse = $("#deviantART-v7") ? false : true;
+
+  let path = new URL(page.url).pathname;
+
+  let reg = /^\/[^\/]+(?:\/([^\/]+))?/.exec(path);
+  if (reg){
+    page.page = (!reg[1] && $("title").textContent.endsWith(" | DeviantArt"))? "user" : reg[1];
   }
 
   if (["art", "journal"].includes(page.page)){
     page.user = /by\ ([^\ ]+)\ on\ DeviantArt$/.exec($("title").textContent)[1];
   }
-  else if (["about", "user", "gallery", "prints", "favourites", "posts"].includes(page.page)){
+  else if (["about", "user", "gallery", "prints", "favourites", "posts", "shop"].includes(page.page)){
     if (page.eclipse){
       page.user = $("#content-container [data-username]").title;
     }
