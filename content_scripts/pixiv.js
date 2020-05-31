@@ -418,8 +418,10 @@ async function recordUgoira(type, blobs, width, height, delays, progress){
   progress.width(100);
   progress.say(`Recording ${type}`);
 
+  let options = {videoBitsPerSecond: 5000000};
+
   let stream = canvas.captureStream();
-  let recorder = new MediaRecorder(stream);
+  let recorder = new MediaRecorder(stream, options);
 
   startCapturing();
   recorder.start();
