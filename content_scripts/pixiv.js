@@ -13,26 +13,19 @@ function pageInfo(){
       submissionUrl: "https://www.pixiv.net/artworks/{submission}"
     }
   };
-  if (/\/novel\//.test(page.url)){
-    page.page = "novel";
+
+  let path = new URL(page.url).pathname;
+
+  let reg1 = /^(?:\/en)?\/users\/\d+(?:\/([^\/\n]+))?/.exec(path);
+  let reg2 = /^(?:\/en)?\/(artwork|novel)/.exec(path);
+  if (reg1){
+    page.page = reg1[1] || "user";
   }
-  else if (/\/bookmarks\//.test(page.url)){
-    page.page = "bookmarks";
-  }
-  else if (/\/(following|mypixiv)/.test(page.url)){
-    page.page = "following";
-  }
-  else if (/\/users\/\d+\/(artworks|artworkrations|manga|novels)/.test(page.url)){
-    page.page = "gallery";
-  }
-  else if (/\/artworks\//.test(page.url)){
-    page.page = "artwork";
-  }
-  else if (/\/users\//.test(page.url)){
-    page.page = "user";
+  else if (reg2){
+    page.page = reg2[1];
   }
 
-  if (["gallery", "novels", "user", "bookmarks"].includes(page.page)){
+  if (["artworks", "illustrations", "manga", "novels", "user", "bookmarks"].includes(page.page)){
     page.user = $("h1").textContent;
     page.userId = /\/(\d+)/.exec(page.url)[1];
   }
@@ -41,7 +34,7 @@ function pageInfo(){
     page.user = userelem.textContent;
     page.userId = userelem.href.split("/").pop();
   }
-  else if (["following"].includes(page.page)){
+  else if (["following", "mypixiv"].includes(page.page)){
     page.userId = /\/(\d+)/.exec(page.url)[1];
     page.user = $$(`a[href$="/users/${page.userId}"]`).pop().textContent;
   }
