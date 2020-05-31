@@ -17,8 +17,8 @@ function pageInfo(){
   page.page = split[3];
   page.modern = $("#ddmenu") ? true : false;
 
-  if (["user", "journals", "gallery", "scraps", "favorites", "view", "full"].includes(page.page)){
-    page.user = /([^ ]+)(?: --|'s)/.exec($("title").textContent)[1];
+  if (["user", "journals", "journal", "gallery", "scraps", "favorites", "view", "full"].includes(page.page)){
+    page.user = /([^ ]+)(?: -- Fur |'s)/.exec($("title").textContent)[1];
   }
 
   if (["user", "journals", "gallery", "scraps", "favorites"].includes(page.page)){
@@ -26,6 +26,9 @@ function pageInfo(){
   }
   else if (["view", "full"].includes(page.page)){
     page.userLower = $(".classic-submission-title a, .submission-id-avatar a").href.split("/")[4];
+  }
+  else if (page.page == "journal"){
+    page.userLower = $(".maintable .avatar-box a, .user-nav .current").href.split("/")[4];
   }
 
   return page;

@@ -13,12 +13,12 @@ function pageInfo(){
       submissionUrl: "https://inkbunny.net/s/{submission}"
     }
   };
-  let split = page.url.split("/");
-  if (!split[4] && $("title").textContent.split(" |")[0].endsWith("< Profile")){
-    page.page = "user";
-  }
-  else if (/\.php\?/.test(split[3]) || split[4]){
-    page.page = split[3].split(".php?")[0];
+
+  let path = new URL(page.url).pathname;
+
+  let reg = /^\/([^\/\.]+)(?:\/([^\/]+))?/.exec(path);
+  if (reg){
+    page.page = (!reg[2] && $("title").textContent.split(" |")[0].endsWith("< Profile"))? "user" : reg[1];
   }
   if (page.page === "s"){
     page.page = "submission";
@@ -31,7 +31,8 @@ function pageInfo(){
     page.user = $('.elephant_555753 a[href^="https://inkbunny.net/"] > img').alt;
   }
   else if (["submissionsviewall"].includes(page.page)){
-    let userimage = $('.elephant_888a85 a[href^="https://inkbunny.net/"] > img');
+    let imgicon = 'a[href^="https://inkbunny.net/"] > img';
+    let userimage = $(`.elephant_555753 ${imgicon}, .elephant_888a85 ${imgicon}`);
     if (userimage){
       page.user = userimage.alt;
     }
