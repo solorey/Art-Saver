@@ -88,11 +88,10 @@ as.pixiv.check.startChecking = function(){
   this.checkPage(page);
 
   let observer = new MutationObserver((mutationsList, observer) => {
-    if (page.url !== window.location.href){
+    if (page.url !== window.location.href || (page.page === "artwork" && page.user != $('a[href*="/users/"]:nth-of-type(2)').textContent)){
       page = pageInfo();
     }
-    //console.log(mutationsList);
-    // let recheck = false;
+
     let newnodes = mutationsList.flatMap(m => [...m.addedNodes]).filter(n => n.nodeType === 1);
 
     if (page.page === "artwork" && newnodes.some(n => n.matches(".artsaver-holder ~ *"))){
@@ -112,7 +111,7 @@ as.pixiv.check.startChecking = function(){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 as.pixiv.check.checkPage = function(page){
-  if (page.page === "following"){
+  if (["following", "mypixiv"].includes(page.page)){
     this.checkFollowing();
   }
 
