@@ -422,7 +422,15 @@ as.deviantart.download.getStash = async function(urls){
       let surls;
       if (otherstash.some(os => os.getAttribute("gmi-type") === "stack")){
         let message = await browser.runtime.sendMessage({function: "opentab", url});
-        surls = message.urls;
+        if (message.response === "Success"){
+          surls = message.urls;
+        }
+        else {
+          let err = new Error(`Unable to get stash urls from ${url} within 30s`);
+          err.name = `Timeout`;
+          asLog(err);
+          return;
+        }
       }
       else {
         surls = [...new Set(otherstash.flatMap(os => $(os, ".shadow > a").href))];
