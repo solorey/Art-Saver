@@ -325,8 +325,10 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
     }
 
     let results = await this.handleDownloads(downloads, options, progress);
-    progress.say("Updating");
-    await updateList(info.savedSite, info.savedUser, info.savedId);
+    if (results.some(r => r === "Success")){
+      progress.say("Updating");
+      await updateList(info.savedSite, info.savedUser, info.savedId);
+    }
 
     progress.remove();
     reCheck();

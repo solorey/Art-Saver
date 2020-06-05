@@ -253,9 +253,10 @@ as.pixiv.download.startDownloading = async function(pageurl, progress){
     let downloads = this.createDownloads(info, meta, options);
 
     let results = await this.handleDownloads(downloads, info, options, progress);
-
-    progress.say("Updating");
-    await updateList(info.savedSite, info.savedUser, info.savedId);
+    if (results.some(r => r === "Success")){
+      progress.say("Updating");
+      await updateList(info.savedSite, info.savedUser, info.savedId);
+    }
 
     progress.remove();
     reCheck();

@@ -5,6 +5,9 @@ var globaltooltip = createTooltip();
 main();
 
 async function main(){
+  let options = await getOptions();
+  document.body.style.setProperty("--as-icon-size", `${options.global.iconSize}px`);
+  
   await setList();
 
   let page = await getPage();

@@ -1,6 +1,56 @@
-browser.runtime.onInstalled.addListener(details => {
-  browser.runtime.openOptionsPage();
+const globaldefault = {
+  global: {
+    conflict: "overwrite",
+    replace: true,
+    saveAs: false,
+    iconSize: "16"
+  },
+  deviantart: {
+    userFolder: "Saved/{site}/{userName}/",
+    file: "Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}",
+    larger: false,
+    stash: false,
+    stashFile: "Saved/{site}/{userName}/{submissionId}_{title}/{stashTitle}_by_{stashUserName}_{stashUrlId}.{stashExt}",
+    moveFile: false
+  },
+  pixiv: {
+    userFolder: "Saved/{site}/{userName}_{userId}/",
+    file: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}_by_{userName}.{ext}",
+    multiple: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}/{submissionId}_{title}_{page}_by_{userName}.{ext}",
+    ugoira: "multiple"
+  },
+  furaffinity: {
+    userFolder: "Saved/{site}/{userLower}/",
+    file: "Saved/{site}/{userLower}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
+  },
+  inkbunny: {
+    userFolder: "Saved/{site}/{userName}/",
+    file: "Saved/{site}/{userName}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
+    multiple: "Saved/{site}/{userName}/{submissionId}_{title}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
+  }
+};
+
+browser.runtime.onInstalled.addListener(() => {
+  setOptions();
 });
+
+async function setOptions(){
+  let options = await getOptions();
+  browser.storage.local.set({options});
+}
+
+async function getOptions(){
+  let res = await browser.storage.local.get("options");
+  return updateOptions(res.options || {});
+}
+
+function updateOptions(oldopt) {
+  let newopt = {};
+  for ([key, value] of Object.entries(globaldefault)) {
+    newopt[key] = Object.assign({}, value, oldopt[key] || {});
+  }
+  return newopt;
+}
 
 browser.runtime.onMessage.addListener(request => {
   return messageActions(request);
@@ -27,6 +77,15 @@ async function messageActions(request){
 
     case "openuserfolder":
       return openFolder(request.folderFile, request.meta, request.replace);
+
+    case "getoptions":
+      return getOptions();
+
+    case "getdefaultoptions":
+      return globaldefault;
+
+    case "updateoptions":
+      return updateOptions(request.newoptions);
   }
 }
 
@@ -109,7 +168,8 @@ async function startDownload(url, filename, meta){
   let res = await browser.storage.local.get("options");
   filename = createFilename(meta, filename, res.options.global.replace);
   try {
-    let dlid = await browser.downloads.download({url, filename, conflictAction: res.options.global.conflict, saveAs: false});
+    let opt = res.options.global;
+    let dlid = await browser.downloads.download({url, filename, conflictAction: opt.conflict, saveAs: opt.saveAs});
     currentdownloads.set(dlid, url);
     return {response: "Success", url, filename};
   }

@@ -162,8 +162,10 @@ as.inkbunny.download.startDownloading = async function(pageurl, progress){
     let downloads = await this.createDownloads(info, meta, options, progress);
 
     let results = await this.handleDownloads(downloads, progress);
-    progress.say("Updating");
-    await updateList(info.savedSite, info.savedUser, info.savedId);
+    if (results.some(r => r === "Success")){
+      progress.say("Updating");
+      await updateList(info.savedSite, info.savedUser, info.savedId);
+    }
 
     progress.remove();
     reCheck();

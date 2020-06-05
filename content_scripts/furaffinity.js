@@ -242,8 +242,10 @@ as.furaffinity.download.startDownloading = async function(pageurl, progress){
     let downloads = [{url: info.downloadurl, meta, filename: options.furaffinity.file}];
 
     let results = await this.handleDownloads(downloads, progress);
-    progress.say("Updating");
-    await updateList(info.savedSite, info.savedUser, info.savedId);
+    if (results.some(r => r === "Success")){
+      progress.say("Updating");
+      await updateList(info.savedSite, info.savedUser, info.savedId);
+    }
 
     progress.remove();
     reCheck();

@@ -1,3 +1,5 @@
+var globaldefault;
+
 addTable("dev-user-folder", tableMaker(["site", "userName"]));
 addTable("dev-file", tableMaker(["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext"]));
 addTable("dev-stash", tableMaker(["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt"]));
@@ -15,9 +17,15 @@ addTable("ink-multiple", tableMaker(["site", "userName", "userId", "title", "sub
 
 //restore options on page load
 document.addEventListener("DOMContentLoaded", async () => {
-  let res = await browser.storage.local.get("options");
-  res.options ? setOptions(res.options) : setDefault();
+  let options = await browser.runtime.sendMessage({
+    function: "getoptions"
+  });
+  setOptions(options);
 
+  fixFormat();
+});
+
+window.addEventListener("resize", () => {
   fixFormat();
 });
 
@@ -73,7 +81,7 @@ $("#reset-list").onclick = async () => {
 
   let old = await browser.storage.local.get("userlist");
   await browser.storage.local.remove("userlist");
-  userlistDetails();
+  await userlistDetails();
   
   undo.style.display = "flex";
 
@@ -81,22 +89,47 @@ $("#reset-list").onclick = async () => {
     await browser.storage.local.set({
       userlist: old.userlist
     });
-    userlistDetails();
+    await userlistDetails();
     undo.removeAttribute("style");
   }
 };
 
+for (n of $$(".custom-number")){
+  let num = $(n, "input");
+  $(n, ".increase").onmousedown = function(){ numberIncrement(num, this, 1) };
+  $(n, ".decrease").onmousedown = function(){ numberIncrement(num, this, -1) };
+}
+
+function numberIncrement(num, elem, n){
+  let step = () => num.stepUp(n);
+  step();
+
+  let intid;
+  let timeid = setTimeout(() => {
+    intid = setInterval(step, 80);
+  }, 400);
+
+  elem.onmouseup = elem.onmouseout = () => {
+    clearTimeout(timeid);
+    clearInterval(intid);
+    saveOptions();
+  };
+}
+
 $("#stash").oninput = () => showStashOptions();
 showStashOptions();
 
-$("#reset-options").onclick = () => {
+$("#reset-options").onclick = async () => {
   let undo = $("#options-undo");
   if (undo.style.display == "flex"){
     return;
   }
 
   let oldoptions = optionsInfo();
-  setDefault();
+  let options = await browser.runtime.sendMessage({
+    function: "getdefaultoptions"
+  });
+  setOptions(options);
   fixFormat();
 
   undo.style.display = "flex";
@@ -120,7 +153,11 @@ $("#export-options").onclick = () => {
 
 $("#import-options").oninput = async function(){
   let jsonfile = await getJSON(this.files[0]);
-  setOptions(jsonfile);
+  let newoptions = await browser.runtime.sendMessage({
+    function: "updateoptions",
+    newoptions: jsonfile
+  });
+  setOptions(newoptions);
   fixFormat();
 };
 
@@ -219,23 +256,23 @@ function showStashOptions(){
 
 function tableMaker(tablemetas){
   metas = {
-    site: "The name of the website. 'pixiv', 'deviantart', etc.",
-    userName: "The user name of the artist.",
-    title: "Title of the submission.",
-    submissionId: "Id of the submission. Different according to each site.",
-    submissionId36: "submissionId in base 36 format.",
-    fileName: "Original site filename of the submission. Does not include extension.",
-    ext: "File extension. 'jpg', 'png', 'gif', etc.",
-    stashUrlId: "The digits and letters at the end of a the stash url.",
-    stashUserName: "The user name of the artist of the stash submission.",
-    stashTitle: "Title of the stash submission.",
+    site:              "The name of the website. 'pixiv', 'deviantart', etc.",
+    userName:          "The user name of the artist.",
+    title:             "Title of the submission.",
+    submissionId:      "Id of the submission. Different according to each site.",
+    submissionId36:    "submissionId in base 36 format.",
+    fileName:          "Original site filename of the submission. Does not include extension.",
+    ext:               "File extension. 'jpg', 'png', 'gif', etc.",
+    stashUrlId:        "The digits and letters at the end of a the stash url.",
+    stashUserName:     "The user name of the artist of the stash submission.",
+    stashTitle:        "Title of the stash submission.",
     stashSubmissionId: "Id of the stash submission.",
-    stashFileName: "The original file name of the stash submission. Does not include extension.",
-    stashExt: "File extension of the stash submission.",
-    userId: "The user Id of the artist.",
-    page: "The page number of the file in the submission set. Pages start at 1.",
-    fileId: "Id of the submission file.",
-    userLower: "The way the user name appears in the url bar."
+    stashFileName:     "The original file name of the stash submission. Does not include extension.",
+    stashExt:          "File extension of the stash submission.",
+    userId:            "The user Id of the artist.",
+    page:              "The page number of the file in the submission set. Pages start at 1.",
+    fileId:            "Id of the submission file.",
+    userLower:          "The way the user name appears in the url bar."
   };
 
   let table = document.createElement("table");
@@ -254,92 +291,67 @@ function optionsInfo(){
   return {
     global: {
       conflict: $("#conflict").value,
-      replace: $("#replace-spaces").checked
+      replace:  $("#replace-spaces").checked,
+      saveAs:   $("#use-saveas").checked,
+      iconSize: $("#icon-size").value
     },
     deviantart: {
       userFolder: $("#dev-user-folder").value,
-      file: $("#dev-file").value,
-      larger: $("#dev-larger").checked,
-      stash: $("#stash").checked,
-      stashFile: $("#dev-stash").value,
-      moveFile: $("#dev-move").checked
+      file:       $("#dev-file").value,
+      larger:     $("#dev-larger").checked,
+      stash:      $("#stash").checked,
+      stashFile:  $("#dev-stash").value,
+      moveFile:   $("#dev-move").checked
     },
     pixiv: {
       userFolder: $("#pix-user-folder").value,
-      file: $("#pix-file").value,
-      multiple: $("#pix-multiple").value,
-      ugoira: $("#ugoira").value
+      file:       $("#pix-file").value,
+      multiple:   $("#pix-multiple").value,
+      ugoira:     $("#ugoira").value
     },
     furaffinity: {
       userFolder: $("#fur-user-folder").value,
-      file: $("#fur-file").value
+      file:       $("#fur-file").value
     },
     inkbunny: {
       userFolder: $("#ink-user-folder").value,
-      file: $("#ink-file").value,
-      multiple: $("#ink-multiple").value,
+      file:       $("#ink-file").value,
+      multiple:   $("#ink-multiple").value
     }
   };
 }
 
 function setOptions(options){
-  $("#conflict").value = options.global.conflict;
-  $("#replace-spaces").checked = options.global.replace;
+  let glob = options.global;
+  $("#conflict").value         = glob.conflict;
+  $("#replace-spaces").checked = glob.replace;
+  $("#use-saveas").checked     = glob.saveAs;
+  $("#icon-size").value        = glob.iconSize;
 
-  $("#dev-user-folder").value = options.deviantart.userFolder;
-  $("#dev-file").value = options.deviantart.file;
-  $("#dev-larger").checked = options.deviantart.larger;
-  $("#stash").checked = options.deviantart.stash;
-  $("#dev-stash").value = options.deviantart.stashFile;
-  $("#dev-move").checked = options.deviantart.moveFile;
+  let dev = options.deviantart;
+  $("#dev-user-folder").value = dev.userFolder;
+  $("#dev-file").value        = dev.file;
+  $("#dev-larger").checked    = dev.larger;
+  $("#stash").checked         = dev.stash;
+  $("#dev-stash").value       = dev.stashFile;
+  $("#dev-move").checked      = dev.moveFile;
 
-  $("#pix-user-folder").value = options.pixiv.userFolder;
-  $("#pix-file").value = options.pixiv.file;
-  $("#pix-multiple").value = options.pixiv.multiple;
-  $("#ugoira").value = options.pixiv.ugoira;
+  let pix = options.pixiv;
+  $("#pix-user-folder").value = pix.userFolder;
+  $("#pix-file").value        = pix.file;
+  $("#pix-multiple").value    = pix.multiple;
+  $("#ugoira").value          = pix.ugoira;
 
-  $("#fur-user-folder").value = options.furaffinity.userFolder;
-  $("#fur-file").value = options.furaffinity.file;
+  let fur = options.furaffinity;
+  $("#fur-user-folder").value = fur.userFolder;
+  $("#fur-file").value        = fur.file;
 
-  $("#ink-user-folder").value = options.inkbunny.userFolder;
-  $("#ink-file").value = options.inkbunny.file;
-  $("#ink-multiple").value = options.inkbunny.multiple;
+  let ink = options.inkbunny;
+  $("#ink-user-folder").value = ink.userFolder;
+  $("#ink-file").value        = ink.file;
+  $("#ink-multiple").value    = ink.multiple;
 
   saveOptions();
-}
-
-function setDefault(){
-  options = {
-    global: {
-      conflict: "overwrite",
-      replace: true
-    },
-    deviantart: {
-      userFolder: "Saved/{site}/{userName}/",
-      file: "Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}",
-      larger: false,
-      stash: false,
-      stashFile: "Saved/{site}/{userName}/{submissionId}_{title}/{stashTitle}_by_{stashUserName}_{stashUrlId}.{stashExt}",
-      moveFile: false
-    },
-    pixiv: {
-      userFolder: "Saved/{site}/{userName}_{userId}/",
-      file: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}_by_{userName}.{ext}",
-      multiple: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}/{submissionId}_{title}_{page}_by_{userName}.{ext}",
-      ugoira: "multiple"
-    },
-    furaffinity: {
-      userFolder: "Saved/{site}/{userLower}/",
-      file: "Saved/{site}/{userLower}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
-    },
-    inkbunny: {
-      userFolder: "Saved/{site}/{userName}/",
-      file: "Saved/{site}/{userName}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
-      multiple: "Saved/{site}/{userName}/{submissionId}_{title}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
-    }
-  };
-
-  setOptions(options);
 }
 
 function textareaResize(textarea){

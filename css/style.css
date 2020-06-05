@@ -1,5 +1,4 @@
 .artsaver-bar, .artsaver-progress, .artsaver-error, .artsaver-loading, .artsaver-download, .artsaver-check {
-  height: 16px;
   position: absolute;
   top: 0;
   left: 0;
@@ -12,16 +11,19 @@
   padding: 0;
   border: 0 none;
   background-repeat: no-repeat;
-  background-size: 16px 16px;
-  width: 16px;
+  background-size: var(--as-icon-size) var(--as-icon-size);
+  height: var(--as-icon-size);
+  width: var(--as-icon-size);
+}
+
+.artsaver-bar, .artsaver-progress {
+  height: 16px;
 }
 
 .artsaver-bar-text, .artsaver-tip {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   font-style: normal;
   font-weight: normal;
-  font-size: 12px;
-  line-height: 16px;
 }
 
 .artsaver-check[data-color=green] {
@@ -57,6 +59,11 @@
   animation: rotation 0.5s steps(12, end) infinite;
   background-image: url("/icons/loading.svg");
 }
+.artsaver-progress + .artsaver-loading {
+  background-size: 16px 16px;
+  height: 16px;
+  width: 16px;
+}
 
 .artsaver-error {
   background-image: url("/icons/error.svg");
@@ -66,6 +73,8 @@
 }
 
 .artsaver-tip {
+  font-size: 12px;
+  line-height: 16px;
   top: 0;
   background-color: #fff;
   border-radius: 3px;
@@ -132,7 +141,9 @@
 }
 
 .artsaver-bar-text {
-  padding-left: 19px;
+  font-size: calc(16px - 4px);
+  line-height: 16px;
+  padding-left: calc(16px + 3px);
   padding-right: 3px;
   text-align: right;
   white-space: nowrap;

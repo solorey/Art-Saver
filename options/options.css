@@ -8,7 +8,7 @@ body {
 
 #options-container {
   margin: 0 auto;
-  max-width: 900px;
+  max-width: 75rem;
   width: 100%;
 }
 
@@ -32,7 +32,7 @@ th {
 }
 
 tr {
-  border-top: 1px solid #e0e0e0;
+  border-top: 0.0833333333rem solid #e0e0e0;
 }
 
 #saved-table {
@@ -78,7 +78,7 @@ button {
 h3 {
   font-size: 1.25rem;
   padding: 1rem;
-  margin: 1.75rem 0rem 0.5rem 0rem;
+  margin: 1.75rem 0 0.5rem 0;
   background-color: #f0f0f0;
   font-weight: 600;
 }
@@ -87,10 +87,10 @@ h3 {
   text-decoration: none;
   margin-left: 0.5rem;
   display: inline-block;
-  width: 15px;
-  height: 15px;
-  line-height: 15px;
-  border-radius: 7.5px;
+  width: 1.25rem;
+  height: 1.25rem;
+  line-height: 1.25rem;
+  border-radius: 0.75rem;
   color: white;
   background-color: #888;
   cursor: help;
@@ -155,25 +155,25 @@ h3 {
   display: flex;
   overflow: hidden;
   cursor: pointer;
-  border: 1px solid #e0e0e0;
+  border: 0.0833333333rem solid #e0e0e0;
   border-radius: 0.25rem 0 0 0.25rem;
 }
 .custom-input label .before {
   background-color: #f0f0f0;
-  padding: calc(0.5rem - 1px) 1rem;
-  border-right: 1px solid #e0e0e0;
+  padding: 0.4166666667rem 1rem;
+  border-right: 0.0833333333rem solid #e0e0e0;
 }
 
 #filename {
   flex: 1;
-  padding: calc(0.5rem - 1px) 1rem;
+  padding: 0.4166666667rem 1rem;
 }
 
 .option-textarea textarea {
   font-size: 1rem;
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #e0e0e0;
+  border: 0.0833333333rem solid #e0e0e0;
   border-radius: 0.25rem;
   box-sizing: border-box;
   margin-bottom: 0;
@@ -210,6 +210,7 @@ h3 {
   background-color: #f0f0f0;
   margin-right: 0.5rem;
   transition: 0.2s;
+  flex-shrink: 0;
 }
 label:hover .switch {
   background-color: #e0e0e0;
@@ -244,11 +245,51 @@ input:checked + .switch::after {
   font-family: inherit;
   font-size: 1rem;
   padding: 0.25rem 1.5rem 0.25rem 0.25rem;
-  border: 1px solid #e0e0e0;
+  border: 0.0833333333rem solid #e0e0e0;
   border-radius: 0.25rem;
   -moz-appearance: none;
-  background: url("/icons/selection.svg") no-repeat right 0.5rem center/auto;
+  background: url("/icons/selection.svg") no-repeat right 0.5rem center/0.6666666667rem 1rem;
   cursor: pointer;
+}
+
+.option-number {
+  display: flex;
+  align-items: center;
+  margin: 0 0.25rem;
+}
+.option-number .custom-number {
+  display: inline-flex;
+}
+.option-number .custom-number input {
+  width: 3rem;
+  font-family: inherit;
+  font-size: 1rem;
+  border: 0.0833333333rem solid #e0e0e0;
+  border-radius: 0.25rem 0 0 0.25rem;
+  padding: 0.25rem 0.25rem 0.25rem 0.5rem;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+}
+.option-number .number-buttons {
+  display: flex;
+  flex-direction: column;
+}
+.option-number .number-buttons button {
+  height: 50%;
+  width: 1.25rem;
+  padding: 0;
+  background: #f0f0f0 url("/icons/selection.svg") no-repeat center/0.6666666667rem 1rem;
+}
+.option-number .number-buttons button:hover {
+  background-color: #e0e0e0;
+}
+.option-number .number-buttons button.increase {
+  border-radius: 0 0.25rem 0 0;
+  background-position-y: 0.45rem;
+}
+.option-number .number-buttons button.decrease {
+  border-radius: 0 0 0.25rem 0;
+  background-position-y: -0.45rem;
 }
 
 #settings-buttons {
@@ -258,7 +299,7 @@ input:checked + .switch::after {
   justify-content: center;
 }
 #settings-buttons > button {
-  margin: 0 2px;
+  margin: 0 0.1666666667rem;
   width: 12rem;
 }
 
