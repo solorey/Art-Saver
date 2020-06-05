@@ -426,9 +426,9 @@ as.deviantart.download.getStash = async function(urls){
           surls = message.urls;
         }
         else {
-          let err = new Error(`Unable to get stash urls from ${url} within 30s`);
-          err.name = `Timeout`;
-          asLog(err);
+          let error = new Error(`Stash tab does not exist. ${url}`);
+          error.name = "Connection Error";
+          asLog(error);
           return;
         }
       }

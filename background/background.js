@@ -180,46 +180,34 @@ async function startDownload(url, filename, meta){
 
 async function stashTab(url){
   let tab = await browser.tabs.create({url, active: false});
-  let urls = await getStashUrls(tab.id);
+  let stash = await getStashUrls(tab.id);
   try {
     await browser.tabs.remove(tab.id);
   }
   catch (err){}
   
-  if (urls){
-    return {response: "Success", urls};
-  }
-  else {
-    return {response: "Failure"};
-  }
+  return stash;
 }
 
-async function getStashUrls(tabid){
-  let repeat;
-  let timer;
-  async function stachMessage(id){
-    try {
-      let urls = await browser.tabs.sendMessage(id, {function: "stashurls"});
-      if (urls && !urls.content.includes("")){
-        clearTimeout(timer);
-        return urls.content;
-      }
-    }
-    catch (err){}
-  
-    return new Promise((resolve, reject) => {
-      repeat = setTimeout(() => resolve(stachMessage(id)), 500);
-    });
+async function getStashUrls(id){
+  try {
+    await browser.tabs.get(id);
   }
-  //30 seconds timer for response
-  let timeout = new Promise((resolve, reject) => {
-    timer = setTimeout(() => {
-      clearTimeout(repeat);
-      resolve();
-    }, 30000);
-  });
+  catch (err){
+    return {response: "Failure"};
+  }
 
-  return await Promise.race([stachMessage(tabid), timeout]);
+  try {
+    let urls = await browser.tabs.sendMessage(id, {function: "stashurls"});
+    if (urls && !urls.content.includes("")){
+      return {response: "Success", urls: urls.content};
+    }
+  }
+  catch (err){}
+
+  return new Promise((resolve, reject) => {
+    setTimeout(() => resolve(getStashUrls(id)), 500);
+  });
 }
 
 function handleChanged(delta){
