@@ -1,37 +1,40 @@
 const globaldefault = {
   global: {
     conflict: "overwrite",
-    replace: true,
-    saveAs: false,
+    replace:  true,
+    saveAs:   false,
     iconSize: "16"
   },
   deviantart: {
     userFolder: "Saved/{site}/{userName}/",
-    file: "Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}",
-    larger: false,
-    stash: false,
-    stashFile: "Saved/{site}/{userName}/{submissionId}_{title}/{stashTitle}_by_{stashUserName}_{stashUrlId}.{stashExt}",
-    moveFile: false
+    file:       "Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}",
+    larger:     false,
+    stash:      false,
+    stashFile:  "Saved/{site}/{userName}/{submissionId}_{title}/{stashTitle}_by_{stashUserName}_{stashUrlId}.{stashExt}",
+    moveFile:   false
   },
   pixiv: {
     userFolder: "Saved/{site}/{userName}_{userId}/",
-    file: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}_by_{userName}.{ext}",
-    multiple: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}/{submissionId}_{title}_{page}_by_{userName}.{ext}",
-    ugoira: "multiple"
+    file:       "Saved/{site}/{userName}_{userId}/{submissionId}_{title}_by_{userName}.{ext}",
+    multiple:   "Saved/{site}/{userName}_{userId}/{submissionId}_{title}/{submissionId}_{title}_{page}_by_{userName}.{ext}",
+    ugoira:     "multiple"
   },
   furaffinity: {
     userFolder: "Saved/{site}/{userLower}/",
-    file: "Saved/{site}/{userLower}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
+    file:       "Saved/{site}/{userLower}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
   },
   inkbunny: {
     userFolder: "Saved/{site}/{userName}/",
-    file: "Saved/{site}/{userName}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
-    multiple: "Saved/{site}/{userName}/{submissionId}_{title}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
+    file:       "Saved/{site}/{userName}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
+    multiple:   "Saved/{site}/{userName}/{submissionId}_{title}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
   }
 };
 
-browser.runtime.onInstalled.addListener(() => {
+browser.runtime.onInstalled.addListener(details => {
   setOptions();
+  if (details.reason === "install"){
+    browser.runtime.openOptionsPage();
+  }
 });
 
 async function setOptions(){
