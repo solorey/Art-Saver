@@ -415,28 +415,18 @@ as.deviantart.download.getStash = async function(urls){
     //url for a list of stashes
     let otherstash = $$(sr, "div#gmi-StashStream > div#gmi-StashThumb");
     if (otherstash.length > 0){
-      //If the stash url is a folder that contains a subfolder/"stack"
-      //The url for the subfolder is not originally in the document and is loaded using javascript.
-      //Current solution: Create a new tab and load the stash url to render the javascript.
-      //Get the subfolder urls when they are loaded and then close the tab.
-      let surls;
-      if (otherstash.some(os => os.getAttribute("gmi-type") === "stack")){
-        let message = await browser.runtime.sendMessage({function: "opentab", url});
-        if (message.response === "Success"){
-          surls = message.urls;
+      let surls = [];
+      for (os of otherstash){
+        if (os.getAttribute("gmi-type") === "stack"){
+          surls.push(decodeStash(os.getAttribute("gmi-stashid")));
         }
         else {
-          let error = new Error(`Stash tab does not exist. ${url}`);
-          error.name = "Connection Error";
-          asLog(error);
-          return;
+          surls.push($(os, ".shadow > a").href);
         }
       }
-      else {
-        surls = [...new Set(otherstash.flatMap(os => $(os, ".shadow > a").href))];
+
+      return await navigateStashUrls([...new Set(surls)]);
       }
-      return await navigateStashUrls(surls);
-    }
     //download button on a stash page
     else if ($(sr, "a.dev-page-download")){
       return await this.getStashMeta(sr, url);
@@ -539,4 +529,21 @@ async function getImage(imgsrc){
       img.src = src;
     });
   }
+}
+
+function decodeStash(num){
+  num = parseInt(num, 10);
+  
+  let link = "";
+  let chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+  let base = chars.length;
+  while (num){
+    remainder = num % base;
+    quotient = Math.trunc(num / base);
+    
+    num = quotient;
+    link = `${chars[remainder]}${link}`;
+  }
+
+  return `https://sta.sh/2${link}`;
 }
