@@ -426,9 +426,9 @@ as.deviantart.download.getStash = async function(urls){
       }
 
       return await navigateStashUrls([...new Set(surls)]);
-      }
+    }
     //download button on a stash page
-    else if ($(sr, "a.dev-page-download")){
+    else if ($(sr, "img.dev-content-full")){
       return await this.getStashMeta(sr, url);
     }
     return;
@@ -460,14 +460,20 @@ as.deviantart.download.getStashMeta = async function(sr, url){
   meta.stashUserName = $(sr, ".dev-title-container .username:not(.group)").textContent;
   meta.stashUrlId = url.split("/").pop();
 
-  info.downloadurl = $(sr, "a.dev-page-download").href;
-
-  let fileres = await fetcher(info.downloadurl, "response");
-  let attachment = fileres.headers.get("content-disposition");
-
-  let reg = /(?:''|\/)([^\/?]+)\.(\w+)(?:\?token=.+)?$/.exec(attachment || fileres.url);
-  meta.stashFileName = reg[1];
-  meta.stashExt = reg[2];
+  info.downloadurl = $(sr, "img.dev-content-full").src;
+  
+  let reg;
+  let preview = $(sr, "img.dev-content-normal").src;
+  if (/\/v1\//.test(preview)){
+    reg = /\.(\w+)\/v1\/.+?(\w+)-\w+\.\w+\?/.exec(preview);
+    meta.stashFileName = reg[2];
+    meta.stashExt = reg[1];
+  }
+  else {
+    reg = /\/(d[\w-]+)\.(\w+)\?/.exec(preview);
+    meta.stashFileName = reg[1];
+    meta.stashExt = reg[2];
+  }
 
   return {info, meta};
 }
@@ -501,7 +507,7 @@ async function compareUrls(url, options){
   let newurl = `https://${u[2]}/intermediary/f/${u[4]}/${u[5]}`;
 
   let compare = await Promise.all([getImage(url), getImage(newurl)]);
-  if (compare[0].filesize < compare[1].filesize){
+  if (compare[0].resolution < compare[1].resolution){
     url = newurl;
   }
 
