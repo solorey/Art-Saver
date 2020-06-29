@@ -220,7 +220,8 @@ as.inkbunny.download.getPageMeta = function(r){
   }
 
   let sub = $(r, ".content.magicboxParent");
-  let downloadlink = $(sub, 'a[download=""], a[href^="https://tx.ib.metapix.net/files/full/"], img[src*=".ib.metapix.net/files/"]');
+  //Check if these elements exist in order
+  let downloadlink = $(sub, 'a[download=""]') || $(sub, 'a[href^="https://tx.ib.metapix.net/files/full/"]') || $(sub, 'img[src*=".ib.metapix.net/files/"]');
 
   info.downloadurl = decodeURI(downloadlink.href || downloadlink.src);
 
