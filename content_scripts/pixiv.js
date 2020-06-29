@@ -60,9 +60,11 @@ as.pixiv.userInfo = async function(user, page, savedlist){
   ]);
 
   user.stats = new Map([
-    ["Submissions", statspages[0].body.work_sets.all.total],
-    ["Bookmarks", statspages[1].body.total]
+    ["Submissions", statspages[0].body.work_sets.all.total]
   ]);
+  if (!(statspages[1] instanceof Error)){ //not available when logged out
+    user.stats.set("Bookmarks", statspages[1].body.total);
+  }
 
   user.folderMeta = {
     site: user.site,

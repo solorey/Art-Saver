@@ -185,7 +185,11 @@ as.inkbunny.download.getMeta = function(r, progress){
   meta.site = "inkbunny";
   meta.title = $(r, "#pictop h1").textContent;
   meta.userName = $(r, '#pictop a[href^="https://inkbunny.net/"] > img').alt;
-  meta.userId = $(r, 'a[href*="user_id"]').href.split("=").pop();
+  try {
+    meta.userId = $(r, 'a[href*="user_id"]').href.split("=").pop(); //unavailable when logged out
+  }
+  catch (err){}
+  
   meta.submissionId = parseInt(/\/(\d+)/.exec($(r, '[rel="canonical"]').href)[1], 10);
 
   info.savedSite = meta.site;
