@@ -106,6 +106,8 @@ button {
 
 #profile-pic {
   max-width: 50px;
+  object-fit: cover;
+  object-position: top center;
 }
 
 .img-thumbnail {

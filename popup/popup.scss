@@ -150,6 +150,8 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 
 #profile-pic {
   max-width: 50px;
+  object-fit: cover;
+  object-position: top center;
 }
 
 .img-thumbnail{
