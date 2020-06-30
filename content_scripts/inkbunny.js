@@ -50,18 +50,18 @@ as.inkbunny.userInfo = async function(user, page, savedlist){
   }
   else {
     user.icon = $(userpage, '.elephant_555753 a[href^="https://inkbunny.net/"] > img').src;
-  user.id = $(userpage, 'a[href*="user_id="]').href.split("=").pop();
+    user.id = $(userpage, 'a[href*="user_id="]').href.split("=").pop();
 
-  let favpage = await fetcher(`https://inkbunny.net/userfavorites_process.php?favs_user_id=${user.id}`, "document");
+    let favpage = await fetcher(`https://inkbunny.net/userfavorites_process.php?favs_user_id=${user.id}`, "document");
 
-  let stats = $$(userpage, ".elephant_babdb6 .content > div > span strong").map(s => s.textContent.replace(/,/g, ""));
-  user.stats = new Map([
-    ["Submissions", stats[1]],
-    ["Favorites", $(favpage,  ".elephant_555753 .content > div:first-child").textContent.split(" ")[0].replace(/,/g, "")],
-    ["Views", stats[4]]
-  ]);
+    let stats = $$(userpage, ".elephant_babdb6 .content > div > span strong").map(s => s.textContent.replace(/,/g, ""));
+    user.stats = new Map([
+      ["Submissions", stats[1]],
+      ["Favorites", $(favpage,  ".elephant_555753 .content > div:first-child").textContent.split(" ")[0].replace(/,/g, "")],
+      ["Views", stats[4]]
+    ]);
   }
-
+  
   user.folderMeta = {
     site: user.site,
     userName: user.name,
@@ -251,15 +251,25 @@ as.inkbunny.download.createDownloads = async function(info, meta, options, progr
     downloads[0].filename = options.inkbunny.multiple;
   }
 
-  let pagedocs = [];
+  let results = [];
   for (let i = 1, pages = info.pages; i <= pages; i++){
-    if (i !== info.thisPage){
-      pagedocs.push(fetcher(`https://inkbunny.net/s/${meta.submissionId}-p${i}`, "document"));
+    if (i === info.thisPage){
+      continue;
+    }
+
+    progress.say(`Getting pages ${i}`);
+
+    while (true){
+      let page = await fetcher(`https://inkbunny.net/s/${meta.submissionId}-p${i}`, "document");
+      if (page instanceof Error){
+        await timer(4000);
+      }
+      else {
+        results.push(page);
+        break;
+      }
     }
   }
-
-  progress.say("Getting pages");
-  let results = await Promise.all(pagedocs);
 
   for (let r of results){
     let pm = this.getPageMeta(r);
@@ -271,6 +281,12 @@ as.inkbunny.download.createDownloads = async function(info, meta, options, progr
   }
 
   return downloads;
+}
+
+async function timer(ms){
+  return await new Promise((resolve, reject) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
