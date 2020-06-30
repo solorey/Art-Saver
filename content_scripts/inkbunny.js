@@ -42,15 +42,15 @@ function pageInfo(){
 
 as.inkbunny.userInfo = async function(user, page, savedlist){
   let userpage = await fetcher(`https://inkbunny.net/${user.name}`, "document");
-  user.icon = $(userpage, '.elephant_555753 a[href^="https://inkbunny.net/"] > img').src;
 
+  if (userpage instanceof Error){
+    user.icon = $(`img[alt=${user.name}]`).src;
+    user.id = "{userId}";
+    user.stats = new Map([]);
+  }
+  else {
+    user.icon = $(userpage, '.elephant_555753 a[href^="https://inkbunny.net/"] > img').src;
   user.id = $(userpage, 'a[href*="user_id="]').href.split("=").pop();
-
-  user.folderMeta = {
-    site: user.site,
-    userName: user.name,
-    userId: user.id
-  };
 
   let favpage = await fetcher(`https://inkbunny.net/userfavorites_process.php?favs_user_id=${user.id}`, "document");
 
@@ -60,6 +60,13 @@ as.inkbunny.userInfo = async function(user, page, savedlist){
     ["Favorites", $(favpage,  ".elephant_555753 .content > div:first-child").textContent.split(" ")[0].replace(/,/g, "")],
     ["Views", stats[4]]
   ]);
+  }
+
+  user.folderMeta = {
+    site: user.site,
+    userName: user.name,
+    userId: user.id
+  };
 
   user.saved = savedlist ? savedlist[user.name] || [] : [];
 
