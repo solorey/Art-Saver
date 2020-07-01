@@ -82,7 +82,7 @@ $("#reset-list").onclick = async () => {
   let old = await browser.storage.local.get("userlist");
   await browser.storage.local.remove("userlist");
   await userlistDetails();
-  
+
   undo.style.display = "flex";
 
   $(undo, ".undo-button").onclick = async () => {

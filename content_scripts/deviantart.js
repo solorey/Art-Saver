@@ -323,7 +323,7 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
           resolve(message.data);
         }
       });
-      
+
       let stashdownloads = stashes.map(s => ({
         blob: s.info.blob,
         url: s.info.downloadurl,

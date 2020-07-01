@@ -179,7 +179,7 @@ function userStats(request, options){
       userstats.insertAdjacentElement("beforeend", row);
     }
   }
-  
+
   userstats.style.display = "flex";
 
   if (user.saved.length === 0){

@@ -61,7 +61,7 @@ as.inkbunny.userInfo = async function(user, page, savedlist){
       ["Views", stats[4]]
     ]);
   }
-  
+
   user.folderMeta = {
     site: user.site,
     userName: user.name,
@@ -196,7 +196,7 @@ as.inkbunny.download.getMeta = function(r, progress){
     meta.userId = $(r, 'a[href*="user_id"]').href.split("=").pop(); //unavailable when logged out
   }
   catch (err){}
-  
+
   meta.submissionId = parseInt(/\/(\d+)/.exec($(r, '[rel="canonical"]').href)[1], 10);
 
   info.savedSite = meta.site;

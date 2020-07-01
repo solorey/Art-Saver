@@ -7,7 +7,7 @@ main();
 async function main(){
   let options = await getOptions();
   document.body.style.setProperty("--as-icon-size", `${options.global.iconSize}px`);
-  
+
   await setList();
 
   let page = await getPage();
@@ -327,7 +327,7 @@ async function fetchBlobsProgress(downloads, progress){
 
   async function getBlob(dl, i){
     let response = await fetcher(dl.url, "response");
-    
+
     if (!response.ok){
       let err = new Error(dl.url);
       err.name = `Error ${response.status}`;
