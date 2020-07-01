@@ -75,9 +75,6 @@ async function messageActions(request){
       URL.revokeObjectURL(request.url);
       return;
 
-    case "opentab":
-      return stashTab(request.url);
-
     case "openuserfolder":
       return openFolder(request.folderFile, request.meta, request.replace);
 
@@ -179,38 +176,6 @@ async function startDownload(url, filename, meta){
   catch (err){
     return {response: "Failure", url, filename};
   }
-}
-
-async function stashTab(url){
-  let tab = await browser.tabs.create({url, active: false});
-  let stash = await getStashUrls(tab.id);
-  try {
-    await browser.tabs.remove(tab.id);
-  }
-  catch (err){}
-  
-  return stash;
-}
-
-async function getStashUrls(id){
-  try {
-    await browser.tabs.get(id);
-  }
-  catch (err){
-    return {response: "Failure"};
-  }
-
-  try {
-    let urls = await browser.tabs.sendMessage(id, {function: "stashurls"});
-    if (urls && !urls.content.includes("")){
-      return {response: "Success", urls: urls.content};
-    }
-  }
-  catch (err){}
-
-  return new Promise((resolve, reject) => {
-    setTimeout(() => resolve(getStashUrls(id)), 500);
-  });
 }
 
 function handleChanged(delta){

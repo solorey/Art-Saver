@@ -52,7 +52,10 @@
     ]
   },
 
-  "web_accessible_resources": ["workers/fileworker.js"],
+  "web_accessible_resources": [
+    "workers/fileworker.js",
+    "workers/stashworker.js"
+  ],
 
   "content_scripts": [
     {
@@ -72,16 +75,11 @@
       "js": ["content_scripts/inkbunny.js"]
     },
     {
-      "matches": ["*://sta.sh/*"],
-      "js": ["content_scripts/stash.js"]
-    },
-    {
       "matches": [
         "*://*.furaffinity.net/*",
         "*://*.deviantart.com/*",
         "*://*.inkbunny.net/*",
-        "*://*.pixiv.net/*",
-        "*://sta.sh/*"
+        "*://*.pixiv.net/*"
       ],
       "js": [
         "content_scripts/selectors.js",

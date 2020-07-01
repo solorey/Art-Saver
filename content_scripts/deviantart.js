@@ -313,9 +313,19 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
     let downloads = [{url: info.downloadurl, meta, filename: options.deviantart.file}];
 
     if (options.deviantart.stash){
-      let stashes = await this.getStash(info.stash);
+      progress.say("Getting stash");
+      let fileworker = new Worker(browser.runtime.getURL("/workers/stashworker.js"));
+      fileworker.postMessage(info.stash);
+
+      let stashes = await new Promise((resolve, reject) => {
+        fileworker.onmessage = message => {
+          fileworker.terminate();
+          resolve(message.data);
+        }
+      });
       
       let stashdownloads = stashes.map(s => ({
+        blob: s.info.blob,
         url: s.info.downloadurl,
         meta: {...meta, ...s.meta},
         filename: options.deviantart.stashFile
@@ -406,80 +416,6 @@ as.deviantart.download.getMeta = async function(r, options, progress){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.deviantart.download.getStash = async function(urls){
-  let handleStash = async (sr, url) => {
-    if (sr instanceof Error){
-      asLog(sr);
-      return;
-    }
-    //url for a list of stashes
-    let otherstash = $$(sr, "div#gmi-StashStream > div#gmi-StashThumb");
-    if (otherstash.length > 0){
-      let surls = [];
-      for (os of otherstash){
-        if (os.getAttribute("gmi-type") === "stack"){
-          surls.push(decodeStash(os.getAttribute("gmi-stashid")));
-        }
-        else {
-          surls.push($(os, ".shadow > a").href);
-        }
-      }
-
-      return await navigateStashUrls([...new Set(surls)]);
-    }
-    //download button on a stash page
-    else if ($(sr, "img.dev-content-full")){
-      return await this.getStashMeta(sr, url);
-    }
-    return;
-  }
-
-  async function navigateStashUrls(urls){
-    let responses = await Promise.all(urls.map(u => fetcher(u, "document")));
-    let downloads = await Promise.all(responses.map((r, i) => handleStash(r, urls[i])));
-
-    return downloads.flat(Infinity).filter(d => d);
-  }
-
-  let stashes = await navigateStashUrls(urls);
-  //filter out duplicate stashes
-  let stashlist = {};
-  for (s of stashes){
-    stashlist[s.meta.stashUrlId] = s;
-  }
-
-  return Object.values(stashlist);
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-as.deviantart.download.getStashMeta = async function(sr, url){
-  let info = {}, meta = {};
-  meta.stashSubmissionId = $(sr, "div.dev-page-view").getAttribute("gmi-deviationid");
-  meta.stashTitle = $(sr, ".dev-title-container .title").textContent;
-  meta.stashUserName = $(sr, ".dev-title-container .username:not(.group)").textContent;
-  meta.stashUrlId = url.split("/").pop();
-
-  info.downloadurl = $(sr, "img.dev-content-full").src;
-  
-  let reg;
-  let preview = $(sr, "img.dev-content-normal").src;
-  if (/\/v1\//.test(preview)){
-    reg = /\.(\w+)\/v1\/.+?(\w+)-\w+\.\w+\?/.exec(preview);
-    meta.stashFileName = reg[2];
-    meta.stashExt = reg[1];
-  }
-  else {
-    reg = /\/(d[\w-]+)\.(\w+)\?/.exec(preview);
-    meta.stashFileName = reg[1];
-    meta.stashExt = reg[2];
-  }
-
-  return {info, meta};
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 as.deviantart.download.handleDownloads = async function(downloads, options, progress){
   if (options.deviantart.moveFile && downloads.length > 1){
     let stashfolder = /.*\//.exec(options.deviantart.stashFile);
@@ -491,7 +427,13 @@ as.deviantart.download.handleDownloads = async function(downloads, options, prog
     downloads[0].meta = downloads[1].meta;
   }
 
-  let blobs = await fetchBlobsProgress(downloads, progress);
+  let blobs = await fetchBlobsProgress([downloads[0]], progress);
+
+  if (downloads.length > 1){
+    downloads[0] = blobs[0];
+    blobs = downloads;
+  }
+
   progress.saving(blobs.length);
 
   return await downloadBlobs(blobs);
@@ -535,21 +477,4 @@ async function getImage(imgsrc){
       img.src = src;
     });
   }
-}
-
-function decodeStash(num){
-  num = parseInt(num, 10);
-  
-  let link = "";
-  let chars = "0123456789abcdefghijklmnopqrstuvwxyz";
-  let base = chars.length;
-  while (num){
-    remainder = num % base;
-    quotient = Math.trunc(num / base);
-    
-    num = quotient;
-    link = `${chars[remainder]}${link}`;
-  }
-
-  return `https://sta.sh/2${link}`;
 }
