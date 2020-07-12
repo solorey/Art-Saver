@@ -230,9 +230,9 @@ function addButton(site, user, subid, submission, anchor, url, position = "after
         let cover = document.createElement("div");
         cover.className = "artsaver-screen";
         cover.style.opacity = `${globaloptions.screenOpacity}%`;
-    
+
         let icon = document.createElement("div");
-    
+
         cover.insertAdjacentElement("afterbegin", icon);
         button.insertAdjacentElement("afterend", cover);
       }

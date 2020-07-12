@@ -248,7 +248,7 @@ as.deviantart.check.checkThumbnailsEclipse = function(thumbnails){
       let subid = parseInt(url.split("-").pop(), 10);
       let sub = $(thumb, "img");
       let user = ($(thumb, ".user-link") || thumb).getAttribute("title").split(" ").pop();
-      
+
       let anchor = (thumb.nodeName == "A") ? thumb : $(thumb, "a");
       addButton("deviantart", user, subid, sub, anchor, url, "beforeend");
     }

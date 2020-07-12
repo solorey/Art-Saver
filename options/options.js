@@ -127,11 +127,11 @@ for (nr of $$(".number-range")){
   let number = $(nr, "input[type=number]");
   let range = $(nr, "input[type=range]");
   range.value = number.value;
-  number.oninput = function(){ 
+  number.oninput = function(){
     range.value = this.value;
     saveOptions();
   };
-  range.oninput = function(){ 
+  range.oninput = function(){
     number.value = this.value;
     saveOptions();
   };
@@ -333,7 +333,7 @@ function optionsInfo(){
       currentoptions[s.site][s.option] = elem.value;
     }
   }
-  
+
   return currentoptions;
 }
 
