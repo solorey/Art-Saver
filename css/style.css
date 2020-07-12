@@ -148,3 +148,27 @@
   text-align: right;
   white-space: nowrap;
 }
+
+.artsaver-screen {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: #808080;
+  display: flex;
+}
+.artsaver-screen > div {
+  margin: auto;
+  max-width: 200px;
+  max-height: 200px;
+  position: relative;
+  display: block;
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  background-image: url("/icons/check_flat.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}

@@ -1,12 +1,13 @@
 var globaluserlist;
 var globalrunningobservers = [];
 var globaltooltip = createTooltip();
+var globaloptions;
 
 main();
 
 async function main(){
-  let options = await getOptions();
-  document.body.style.setProperty("--as-icon-size", `${options.global.iconSize}px`);
+  globaloptions = (await getOptions()).global;
+  document.body.style.setProperty("--as-icon-size", `${globaloptions.iconSize}px`);
 
   await setList();
 
@@ -46,7 +47,7 @@ async function reCheck(){
   globalrunningobservers = [];
 
   $$("[data-checkstatus]").forEach(e => e.removeAttribute("data-checkstatus"));
-  $$(".artsaver-check").forEach(e => removeElement(e));
+  $$(".artsaver-check, .artsaver-screen").forEach(e => removeElement(e));
 
   let page = await getPage();
   as[page.site].check.startChecking();
@@ -212,7 +213,7 @@ function createDownload(site, anchor, url, position){
   return downloadbutton;
 }
 
-function addButton(site, user, subid, submission, anchor, url, position = "afterend"){
+function addButton(site, user, subid, submission, anchor, url, position = "afterend", screen = true){
   let parent = ["afterend", "beforebegin"].includes(position) ? anchor.parentElement : anchor;
   let button = $(parent, ".artsaver-check, .artsaver-download");
 
@@ -224,6 +225,17 @@ function addButton(site, user, subid, submission, anchor, url, position = "after
       $$(parent, "[class^=artsaver]").forEach(e => removeElement(e));
 
       button = createCheck(anchor, result.color, position, {site, user: result.user, id: subid});
+
+      if (globaloptions.addScreen && screen){
+        let cover = document.createElement("div");
+        cover.className = "artsaver-screen";
+        cover.style.opacity = `${globaloptions.screenOpacity}%`;
+    
+        let icon = document.createElement("div");
+    
+        cover.insertAdjacentElement("afterbegin", icon);
+        button.insertAdjacentElement("afterend", cover);
+      }
     }
   }
 

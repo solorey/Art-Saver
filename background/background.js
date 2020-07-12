@@ -3,7 +3,9 @@ const globaldefault = {
     conflict: "overwrite",
     replace:  true,
     saveAs:   false,
-    iconSize: "16"
+    iconSize: "16",
+    addScreen: false,
+    screenOpacity: 50
   },
   deviantart: {
     userFolder: "Saved/{site}/{userName}/",

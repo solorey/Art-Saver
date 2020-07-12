@@ -209,7 +209,7 @@ as.deviantart.check.checkSubmission = function(user, url){
     let submission = $(view, "img, #gmi-FilmPlayer");
     let subid = parseInt(url.split("-").pop(), 10);
 
-    let button = addButton("deviantart", user, subid, submission, submission, url);
+    let button = addButton("deviantart", user, subid, submission, submission, url, "afterend", false);
     if (button){
       button.style.display = "";
     }
@@ -248,8 +248,9 @@ as.deviantart.check.checkThumbnailsEclipse = function(thumbnails){
       let subid = parseInt(url.split("-").pop(), 10);
       let sub = $(thumb, "img");
       let user = ($(thumb, ".user-link") || thumb).getAttribute("title").split(" ").pop();
-
-      addButton("deviantart", user, subid, sub, thumb, url, "beforeend");
+      
+      let anchor = (thumb.nodeName == "A") ? thumb : $(thumb, "a");
+      addButton("deviantart", user, subid, sub, anchor, url, "beforeend");
     }
     catch (err){}
   }
@@ -279,7 +280,7 @@ as.deviantart.check.checkSubmissionEclipse = function(user, url){
     submission.parentElement.style.position = "relative";
     let subid = parseInt(url.split("-").pop(), 10);
 
-    addButton("deviantart", user, subid, submission, submission, url);
+    addButton("deviantart", user, subid, submission, submission, url, "afterend", false);
   }
   catch (err){}
 }
@@ -312,7 +313,7 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
 
     let downloads = [{url: info.downloadurl, meta, filename: options.deviantart.file}];
 
-    if (options.deviantart.stash){
+    if (options.deviantart.stash && info.stash.length > 0){
       progress.say("Getting stash");
       let fileworker = new Worker(browser.runtime.getURL("/workers/stashworker.js"));
       fileworker.postMessage(info.stash);
@@ -402,15 +403,18 @@ as.deviantart.download.getMeta = async function(r, options, progress){
     info.downloadurl = url;
   }
 
-  let reg = /\/([^\/?]+)\.(\w+)(?:\?token=.+)?$/.exec(info.downloadurl);
-  meta.fileName = r.media.prettyName || reg[1];
-  meta.ext = reg[2];
+  let reg = /\/([^\/?]+)\.(\w+)(?:\?token=.+)?$/;
+  let fileinfo = reg.exec(info.downloadurl);
+  meta.fileName = r.media.prettyName || fileinfo[1];
+  meta.ext = fileinfo[2];
 
   if (info.downloadurl.search("/v1/fill/") === -1 || !options.deviantart.larger){
     return {info, meta};
   }
   progress.say("Comparing images");
   info.downloadurl = await compareUrls(info.downloadurl, options);
+  //update extension in case it is different
+  meta.ext = reg.exec(info.downloadurl)[2];
   return {info, meta};
 }
 

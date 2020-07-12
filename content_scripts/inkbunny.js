@@ -143,7 +143,7 @@ as.inkbunny.check.checkSubmission = function(user, url){
       holder.insertAdjacentElement("afterbegin", submission);
     }
 
-    addButton("inkbunny", user, subid, submission, holder, url, "beforeend");
+    addButton("inkbunny", user, subid, submission, holder, url, "beforeend", false);
   }
   catch (err){}
 }

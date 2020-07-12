@@ -233,7 +233,7 @@ as.pixiv.check.checkSubmission = function(user, url){
     globalrunningobservers.push(resize);
     resize.observe(submission);
 
-    addButton("pixiv", user, subid, submission, holder, url, "beforeend");
+    addButton("pixiv", user, subid, submission, holder, url, "beforeend", false);
   }
   catch (err){}
 }
@@ -339,11 +339,11 @@ as.pixiv.download.handleDownloads = async function(downloads, info, options, pro
   }
   //convert ugoira based on option choosen
   progress.start();
-  progress.say(`Staring ${type} process`);
+  progress.say(`Starting ${type} process`);
 
   let justblobs = blobs.map(b => b.blob);
   let convertedblob;
-  switch(type){
+  switch (type){
     case "apng":
     case "gif":
       convertedblob = await convertUgoira(type, justblobs, info.width, info.height, info.delays, progress);

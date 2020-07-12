@@ -216,7 +216,7 @@ as.furaffinity.check.checkSubmission = function(user, url, modern){
   try {
     let subid = parseInt(url.split("/")[4], 10);
 
-    addButton("furaffinity", user, subid, submission, submission, url);
+    addButton("furaffinity", user, subid, submission, submission, url, "afterend", false);
   }
   catch (err){}
 }

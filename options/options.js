@@ -95,13 +95,22 @@ $("#reset-list").onclick = async () => {
 };
 
 for (n of $$(".custom-number")){
+  let range;
+  if (n.matches(".number-range .custom-number")){
+    range = $(n.parentElement.parentElement.parentElement, "input[type=range]");
+  }
   let num = $(n, "input");
-  $(n, ".increase").onmousedown = function(){ numberIncrement(num, this, 1) };
-  $(n, ".decrease").onmousedown = function(){ numberIncrement(num, this, -1) };
+  $(n, ".increase").onmousedown = function(){ numberIncrement(num, this, 1, range) };
+  $(n, ".decrease").onmousedown = function(){ numberIncrement(num, this, -1, range) };
 }
 
-function numberIncrement(num, elem, n){
-  let step = () => num.stepUp(n);
+function numberIncrement(num, elem, n, range){
+  let step = () => {
+    num.stepUp(n);
+    if (range){
+      range.value = num.value;
+    }
+  };
   step();
 
   let intid;
@@ -115,6 +124,23 @@ function numberIncrement(num, elem, n){
     saveOptions();
   };
 }
+
+for (nr of $$(".number-range")){
+  let number = $(nr, "input[type=number]");
+  let range = $(nr, "input[type=range]");
+  range.value = number.value;
+  number.oninput = function(){ 
+    range.value = this.value;
+    saveOptions();
+  };
+  range.oninput = function(){ 
+    number.value = this.value;
+    saveOptions();
+  };
+}
+
+$("#add-screen").oninput = () => showScreenOptions();
+showScreenOptions();
 
 $("#stash").oninput = () => showStashOptions();
 showStashOptions();
@@ -243,6 +269,16 @@ async function userlistDetails(){
   savedtable.removeAttribute("style");
 }
 
+function showScreenOptions(){
+  let screenoptions = $("div.screen-options");
+  if ($("input#add-screen").checked){
+    screenoptions.removeAttribute("style");
+  }
+  else {
+    screenoptions.style.display = "none";
+  }
+}
+
 function showStashOptions(){
   let stashoptions = $("div.stash-options");
   if ($("input#stash").checked){
@@ -293,7 +329,9 @@ function optionsInfo(){
       conflict: $("#conflict").value,
       replace:  $("#replace-spaces").checked,
       saveAs:   $("#use-saveas").checked,
-      iconSize: $("#icon-size").value
+      iconSize: $("#icon-size").value,
+      addScreen: $("#add-screen").checked,
+      screenOpacity: $("#screen-opactiy").value
     },
     deviantart: {
       userFolder: $("#dev-user-folder").value,
@@ -327,6 +365,8 @@ function setOptions(options){
   $("#replace-spaces").checked = glob.replace;
   $("#use-saveas").checked     = glob.saveAs;
   $("#icon-size").value        = glob.iconSize;
+  $("#add-screen").checked     = glob.addScreen;
+  $("#screen-opactiy").value   = glob.screenOpacity;
 
   let dev = options.deviantart;
   $("#dev-user-folder").value = dev.userFolder;
@@ -363,9 +403,13 @@ function textareaResize(textarea){
 }
 
 function fixFormat(){
+  showScreenOptions();
   showStashOptions();
   for (let t of $$("textarea")){
     t.style.height = "1.6em";
     textareaResize(t);
+  }
+  for (nr of $$(".number-range")){
+    $(nr, "input[type=range]").value = $(nr, "input[type=number]").value;
   }
 }
