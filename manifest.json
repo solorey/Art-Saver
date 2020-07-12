@@ -16,6 +16,7 @@
 
   "background": {
     "scripts": [
+      "background/settings.js",
       "background/background.js"
     ]
   },

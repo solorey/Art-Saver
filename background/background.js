@@ -1,60 +1,28 @@
-const globaldefault = {
-  global: {
-    conflict: "overwrite",
-    replace:  true,
-    saveAs:   false,
-    iconSize: "16",
-    addScreen: false,
-    screenOpacity: 50
-  },
-  deviantart: {
-    userFolder: "Saved/{site}/{userName}/",
-    file:       "Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}",
-    larger:     false,
-    stash:      false,
-    stashFile:  "Saved/{site}/{userName}/{submissionId}_{title}/{stashTitle}_by_{stashUserName}_{stashUrlId}.{stashExt}",
-    moveFile:   false
-  },
-  pixiv: {
-    userFolder: "Saved/{site}/{userName}_{userId}/",
-    file:       "Saved/{site}/{userName}_{userId}/{submissionId}_{title}_by_{userName}.{ext}",
-    multiple:   "Saved/{site}/{userName}_{userId}/{submissionId}_{title}/{submissionId}_{title}_{page}_by_{userName}.{ext}",
-    ugoira:     "multiple"
-  },
-  furaffinity: {
-    userFolder: "Saved/{site}/{userLower}/",
-    file:       "Saved/{site}/{userLower}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
-  },
-  inkbunny: {
-    userFolder: "Saved/{site}/{userName}/",
-    file:       "Saved/{site}/{userName}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
-    multiple:   "Saved/{site}/{userName}/{submissionId}_{title}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
-  }
-};
-
 browser.runtime.onInstalled.addListener(details => {
-  setOptions();
-  if (details.reason === "install"){
-    browser.runtime.openOptionsPage();
-  }
+  getOptions().then(options => {
+    browser.storage.local.set({options});
+    if (details.reason === "install"){
+      browser.runtime.openOptionsPage();
+    }
+  });
 });
-
-async function setOptions(){
-  let options = await getOptions();
-  browser.storage.local.set({options});
-}
 
 async function getOptions(){
   let res = await browser.storage.local.get("options");
   return updateOptions(res.options || {});
 }
 
-function updateOptions(oldopt) {
-  let newopt = {};
-  for ([key, value] of Object.entries(globaldefault)) {
-    newopt[key] = Object.assign({}, value, oldopt[key] || {});
+//if new settings have been added
+function updateOptions(current) {
+  for (s of settingsList()){
+    if (!current[s.site]){
+      current[s.site] = {};
+    }
+    if (!current[s.site][s.option]){
+      current[s.site][s.option] = s.default;
+    }
   }
-  return newopt;
+  return current;
 }
 
 browser.runtime.onMessage.addListener(request => {
@@ -82,9 +50,6 @@ async function messageActions(request){
 
     case "getoptions":
       return getOptions();
-
-    case "getdefaultoptions":
-      return globaldefault;
 
     case "updateoptions":
       return updateOptions(request.newoptions);

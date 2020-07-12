@@ -1,5 +1,3 @@
-var globaldefault;
-
 addTable("dev-user-folder", tableMaker(["site", "userName"]));
 addTable("dev-file", tableMaker(["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext"]));
 addTable("dev-stash", tableMaker(["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt"]));
@@ -152,10 +150,7 @@ $("#reset-options").onclick = async () => {
   }
 
   let oldoptions = optionsInfo();
-  let options = await browser.runtime.sendMessage({
-    function: "getdefaultoptions"
-  });
-  setOptions(options);
+  setOptions("default");
   fixFormat();
 
   undo.style.display = "flex";
@@ -324,73 +319,35 @@ function saveOptions(){
 }
 
 function optionsInfo(){
-  return {
-    global: {
-      conflict: $("#conflict").value,
-      replace:  $("#replace-spaces").checked,
-      saveAs:   $("#use-saveas").checked,
-      iconSize: $("#icon-size").value,
-      addScreen: $("#add-screen").checked,
-      screenOpacity: $("#screen-opactiy").value
-    },
-    deviantart: {
-      userFolder: $("#dev-user-folder").value,
-      file:       $("#dev-file").value,
-      larger:     $("#dev-larger").checked,
-      stash:      $("#stash").checked,
-      stashFile:  $("#dev-stash").value,
-      moveFile:   $("#dev-move").checked
-    },
-    pixiv: {
-      userFolder: $("#pix-user-folder").value,
-      file:       $("#pix-file").value,
-      multiple:   $("#pix-multiple").value,
-      ugoira:     $("#ugoira").value
-    },
-    furaffinity: {
-      userFolder: $("#fur-user-folder").value,
-      file:       $("#fur-file").value
-    },
-    inkbunny: {
-      userFolder: $("#ink-user-folder").value,
-      file:       $("#ink-file").value,
-      multiple:   $("#ink-multiple").value
+  let currentoptions = {};
+  for (s of settingsList()){
+    if (!currentoptions[s.site]){
+      currentoptions[s.site] = {};
     }
-  };
+
+    let elem = $(s.location);
+    if (elem.getAttribute("type") == "checkbox"){
+      currentoptions[s.site][s.option] = elem.checked;
+    }
+    else {
+      currentoptions[s.site][s.option] = elem.value;
+    }
+  }
+  
+  return currentoptions;
 }
 
 function setOptions(options){
-  let glob = options.global;
-  $("#conflict").value         = glob.conflict;
-  $("#replace-spaces").checked = glob.replace;
-  $("#use-saveas").checked     = glob.saveAs;
-  $("#icon-size").value        = glob.iconSize;
-  $("#add-screen").checked     = glob.addScreen;
-  $("#screen-opactiy").value   = glob.screenOpacity;
-
-  let dev = options.deviantart;
-  $("#dev-user-folder").value = dev.userFolder;
-  $("#dev-file").value        = dev.file;
-  $("#dev-larger").checked    = dev.larger;
-  $("#stash").checked         = dev.stash;
-  $("#dev-stash").value       = dev.stashFile;
-  $("#dev-move").checked      = dev.moveFile;
-
-  let pix = options.pixiv;
-  $("#pix-user-folder").value = pix.userFolder;
-  $("#pix-file").value        = pix.file;
-  $("#pix-multiple").value    = pix.multiple;
-  $("#ugoira").value          = pix.ugoira;
-
-  let fur = options.furaffinity;
-  $("#fur-user-folder").value = fur.userFolder;
-  $("#fur-file").value        = fur.file;
-
-  let ink = options.inkbunny;
-  $("#ink-user-folder").value = ink.userFolder;
-  $("#ink-file").value        = ink.file;
-  $("#ink-multiple").value    = ink.multiple;
-
+  for (s of settingsList()){
+    let elem = $(s.location);
+    let value = (options == "default")? s.default : options[s.site][s.option];
+    if (elem.getAttribute("type") == "checkbox"){
+      elem.checked = value;
+    }
+    else {
+      elem.value = value;
+    }
+  }
   saveOptions();
 }
 
