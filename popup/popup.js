@@ -161,7 +161,7 @@ function userStats(request, options){
   $("#user-gallery").href = user.gallery;
 
   let userstats = $("#user-stats");
-  $$(userstats, ".header ~ .stat-row").forEach(row => removeElement(row));
+  $$(userstats, ".header ~ .stat-row").forEach(row => $remove(row));
 
   let userprofile = $("#user-profile");
 
@@ -170,13 +170,14 @@ function userStats(request, options){
   userprofile.style.flexDirection = hasstats ? "row" : "column";
   if (hasstats){
     for (let [stat, value] of user.stats.entries()){
-      let row = document.createElement("div");
+      let row = $insert(userstats, "div");
       row.className = "stat-row";
-      row.innerHTML = '<div></div><div><span class="badge"></span></div>';
-      row.firstElementChild.textContent = stat;
-      $(row, "span").textContent = value;
 
-      userstats.insertAdjacentElement("beforeend", row);
+      $insert(row, "div").textContent = stat;
+
+      let span = $insert($insert(row, "div"), "span");
+      span.className = "badge";
+      span.textContent = value;
     }
   }
 
@@ -257,7 +258,7 @@ function createVirtualList(sbox, values, linktype, linkstring){
   resize.observe(listholder);
 
   function refreshList(){
-    rows.forEach(r => removeElement(r));
+    rows.forEach(r => $remove(r));
     rows.clear();
 
     linklist.style.height = `${rh * listresult.length}px`;
@@ -271,16 +272,20 @@ function createVirtualList(sbox, values, linktype, linkstring){
 
   function rowElement(index){
     let i = listresult[index];
-    let a = document.createElement("a");
+
+    let a = $create("a");
     a.target = "_blank";
     a.rel = "noopener noreferrer";
-    a.innerHTML = '<li><span class="link-search"></span></li>';
-    let li = a.firstElementChild;
-    li.insertAdjacentText("afterbegin", i[1]);
-    li.insertAdjacentText("beforeend", i[i.length - 1]);
-    li.firstElementChild.textContent = i[2];
     a.href = linkstring.replace(RegExp(`{${linktype}}`, "g"), i[0]);
     a.style.top = `${index * rh}px`;
+
+    let span = $insert($insert(a, "li"), "span");
+    span.className = "link-search";
+    span.textContent = i[2];
+
+    span.insertAdjacentText("beforebegin", i[1]);
+    span.insertAdjacentText("afterend", i[i.length - 1]);
+    
     return a;
   }
 
@@ -292,7 +297,7 @@ function createVirtualList(sbox, values, linktype, linkstring){
 
     for (let [i, r] of rows.entries()){
       if (i < top || i > bottom){
-        removeElement(r);
+        $remove(r);
         rows.delete(i);
       }
     }

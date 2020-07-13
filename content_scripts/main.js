@@ -47,7 +47,7 @@ async function reCheck(){
   globalrunningobservers = [];
 
   $$("[data-checkstatus]").forEach(e => e.removeAttribute("data-checkstatus"));
-  $$(".artsaver-check, .artsaver-screen").forEach(e => removeElement(e));
+  $$(".artsaver-check, .artsaver-screen").forEach(e => $remove(e));
 
   let page = await getPage();
   as[page.site].check.startChecking();
@@ -107,13 +107,18 @@ async function fetcher(url, type, init = {}){
 //---------------------------------------------------------------------------------------------------------------------
 
 function createTooltip(){
-  removeElement($("artsaver-tip"));
+  $remove($("artsaver-tip"));
 
-  let tip = document.createElement("div");
+  let tip = $insert(document.body, "div");
   tip.className = "artsaver-tip";
-  tip.innerHTML = "<table><tr><td>User:</td><td></td></tr><tr><td>Id:</td><td></td></tr></table>";
-  document.body.appendChild(tip);
-
+  let table = $insert(tip, "table");
+  let tr1 = $insert(table, "tr");
+  $insert(tr1, "td").textContent = "User:";
+  $insert(tr1, "td");
+  let tr2 = $insert(table, "tr");
+  $insert(tr2, "td").textContent = "Id:";
+  $insert(tr2, "td");
+  
   tooltip = {tip};
 
   tooltip.show = function(){
@@ -140,7 +145,7 @@ function createTooltip(){
 }
 
 function createCheck(anchor, color, position, data){
-  let checkbutton = document.createElement("div");
+  let checkbutton = $insert(anchor, "div", position);
   checkbutton.className = "artsaver-check";
 
   checkbutton.setAttribute("data-color", color);
@@ -161,8 +166,6 @@ function createCheck(anchor, color, position, data){
     removeCheck(this, data);
     globaltooltip.fade();
   }, {once: true});
-
-  anchor.insertAdjacentElement(position, checkbutton);
 
   return checkbutton;
 }
@@ -185,32 +188,30 @@ async function removeCheck(checkbutton, data){
     await browser.storage.local.set({
       userlist: globaluserlist
     });
-    removeElement(checkbutton);
+    $remove(checkbutton);
     reCheck();
   }
   catch (err){}
 }
 
 function createDownload(site, anchor, url, position){
-  let downloadbutton = document.createElement("div");
-  downloadbutton.className = "artsaver-download";
+  let dlbutton = $insert(anchor, "div", position);
+  dlbutton.className = "artsaver-download";
 
-  downloadbutton.addEventListener("click", event => {
+  dlbutton.addEventListener("click", event => {
     event.preventDefault();
     event.stopPropagation();
 
-    as[site].download.startDownloading(url, createProgress(downloadbutton, [site, anchor, url, position]));
+    as[site].download.startDownloading(url, createProgress(dlbutton, [site, anchor, url, position]));
   }, {once: true});
-
-  anchor.insertAdjacentElement(position, downloadbutton);
 
   document.addEventListener("keypress", event => {
     if (anchor.matches(":hover") && event.key === "d"){
-      downloadbutton.click();
+      dlbutton.click();
     }
   });
 
-  return downloadbutton;
+  return dlbutton;
 }
 
 function addButton(site, user, subid, submission, anchor, url, position = "afterend", screen = true){
@@ -222,19 +223,16 @@ function addButton(site, user, subid, submission, anchor, url, position = "after
     submission.setAttribute("data-checkstatus", "checked");
 
     if (result.found){
-      $$(parent, "[class^=artsaver]").forEach(e => removeElement(e));
+      $$(parent, "[class^=artsaver]").forEach(e => $remove(e));
 
       button = createCheck(anchor, result.color, position, {site, user: result.user, id: subid});
 
       if (globaloptions.addScreen && screen){
-        let cover = document.createElement("div");
+        let cover = $insert(button, "div", "beforebegin");
         cover.className = "artsaver-screen";
         cover.style.opacity = `${globaloptions.screenOpacity}%`;
 
-        let icon = document.createElement("div");
-
-        cover.insertAdjacentElement("afterbegin", icon);
-        button.insertAdjacentElement("afterend", cover);
+        $insert(cover, "div");
       }
     }
   }
@@ -272,15 +270,18 @@ function checkUserList(site, user, id){
   return {found, user: founduser, color};
 }
 
-function createProgress(downloadbutton, rebuild){
-  downloadbutton.className = "artsaver-loading";
+function createProgress(dlbutton, rebuild){
+  dlbutton.className = "artsaver-loading";
 
-  let p = document.createElement("div");
+  let p = $insert(dlbutton, "div", "beforebegin");
   p.className = "artsaver-progress";
-  p.innerHTML = '<div class="artsaver-bar"><div class="artsaver-bar-text"></div></div>';
-  downloadbutton.insertAdjacentElement("beforebegin", p);
 
-  let progress = {button: downloadbutton, element: p};
+  let asbar = $insert(p, "div");
+  asbar.className = "artsaver-bar";
+
+  $insert(asbar, "div").className = "artsaver-bar-text";
+
+  let progress = {button: dlbutton, element: p};
 
   progress.bar = progress.element.firstChild;
 
@@ -298,8 +299,8 @@ function createProgress(downloadbutton, rebuild){
     this.say(`Saving${multiple[0]} file${multiple[1]}`);
   }
   progress.remove = function(){
-    removeElement(this.element);
-    removeElement(this.button);
+    $remove(this.element);
+    $remove(this.button);
   }
   progress.reset = function(){
     this.remove();
@@ -307,12 +308,12 @@ function createProgress(downloadbutton, rebuild){
   }
   progress.error = function(){
     this.button.className = "artsaver-error";
-    removeElement(this.element);
+    $remove(this.element);
     this.button.addEventListener("click", function(event){
       event.preventDefault();
       event.stopPropagation();
 
-      removeElement(this);
+      $remove(this);
       createDownload(...rebuild);
     }, {once: true});
   }

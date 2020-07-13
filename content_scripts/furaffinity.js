@@ -27,7 +27,7 @@ function pageInfo(){
   else if (["view", "full"].includes(page.page)){
     page.userLower = $(".classic-submission-title a, .submission-id-avatar a").href.split("/")[4];
   }
-  else if (page.page == "journal"){
+  else if (page.page === "journal"){
     page.userLower = $(".maintable .avatar-box a, .user-nav .current").href.split("/")[4];
   }
 
@@ -93,7 +93,7 @@ as.furaffinity.check.startChecking = function(){
   let observer = new MutationObserver((mutationsList, observer) => {
     let changed = [...mutationsList].filter(m => m.attributeName === "id").map(m => m.target);
     //remove art saver buttons
-    changed.flatMap(c => $$(c, ".artsaver-check, .artsaver-download")).forEach(e => removeElement(e));
+    changed.flatMap(c => $$(c, ".artsaver-check, .artsaver-download")).forEach(e => $remove(e));
     //remove attribute indicating the submission has already been checked
     changed.forEach(e => $(e, "img").removeAttribute("data-checkstatus"));
 
@@ -139,11 +139,8 @@ as.furaffinity.check.getThumbnails = function(){
     previews.push(profile);
 
     if (!$(profile, ".artsaver-holder")){
-      let div = document.createElement("div");
-      div.className = "artsaver-holder";
-      let img = $(profile, "img");
-      img.insertAdjacentElement("beforebegin", div);
-      div.insertAdjacentElement("afterbegin", img);
+      let holder = $insert($(profile, "img"), "div", "parent");
+      holder.className = "artsaver-holder";
     }
   }
 
@@ -194,21 +191,18 @@ as.furaffinity.check.checkSubmission = function(user, url, modern){
   }
     //checkSubmission(submission.parentElement);
   if (!submission.matches(".artsaver-holder *")){
-    let holder = document.createElement("div");
+    let holder = $insert(submission, "div", "parent");
     holder.className = "artsaver-holder";
-
-    submission.insertAdjacentElement("beforebegin", holder);
 
     if (modern){
       holder.style.margin = "10px 0";
       holder.style.display = "inline-table";
-      holder.insertAdjacentElement("afterbegin", submission);
       submission.style.margin = "0";
     }
     else {
       holder.style.maxWidth = "99%";
-      holder.innerHTML = '<div style="display:flex;"></div>';
-      holder.firstElementChild.insertAdjacentElement("afterbegin", submission);
+      let flex = $insert(submission, "div", "parent");
+      flex.style.display = "flex";
       submission.style.maxWidth = "100%";
     }
   }

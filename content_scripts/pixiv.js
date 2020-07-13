@@ -97,7 +97,7 @@ as.pixiv.check.startChecking = function(){
     let newnodes = mutationsList.flatMap(m => [...m.addedNodes]).filter(n => n.nodeType === 1);
 
     if (page.page === "artwork" && newnodes.some(n => n.matches(".artsaver-holder ~ *"))){
-      removeElement($('div[role="presentation"] .artsaver-holder'));
+      $remove($('div[role="presentation"] .artsaver-holder'));
       this.checkPage(page);
     }
     else if (newnodes.some(n => $(n, 'a[href*="/artworks/"], canvas') || n.nodeName === "IMG")){
@@ -217,10 +217,8 @@ as.pixiv.check.checkSubmission = function(user, url){
 
     let holder = $(presentation, ".artsaver-holder");
     if (!holder){
-      holder = document.createElement("div");
+      holder = $insert(submission, "div", "beforebegin");
       holder.className = "artsaver-holder";
-
-      submission.insertAdjacentElement("beforebegin", holder);
     }
 
     holder.style = `position:absolute; width:${submission.width}px; height:${submission.height}px;`;
@@ -386,7 +384,7 @@ async function convertUgoira(type, blobs, width, height, delays, progress){
 
   let imgbitmaps = await fileWorker("bitmaps", {blobs, width, height});
 
-  let canvas = document.createElement("canvas");
+  let canvas = $create("canvas");
   canvas.width  = width;
   canvas.height = height;
   let ctx = canvas.getContext("2d");
@@ -411,11 +409,10 @@ async function recordUgoira(type, blobs, width, height, delays, progress){
   let imgbitmaps = await fileWorker("bitmaps", {blobs, width, height});
   let frames = imgbitmaps.map((bm, i) => ({img: bm, delay: delays[i]}));
 
-  let canvas = document.createElement("canvas");
+  let canvas = $insert(document.body, "canvas");
   canvas.width  = width;
   canvas.height = height;
   canvas.style.display = "none";
-  document.body.appendChild(canvas);
   let ctx = canvas.getContext("2d");
 
   progress.width(100);
@@ -443,7 +440,7 @@ async function recordUgoira(type, blobs, width, height, delays, progress){
 
   return await new Promise((resolve, reject) => {
     recorder.ondataavailable = data => {
-      removeElement(canvas);
+      $remove(canvas);
       resolve(new Blob([data.data], {type: `video/${type}`}));
     };
   });

@@ -137,10 +137,8 @@ as.inkbunny.check.checkSubmission = function(user, url){
 
     let holder = $(contentbox, ".artsaver-holder");
     if (!holder){
-      holder = document.createElement("div");
+      holder = $insert(submission, "div", "parent");
       holder.className = "artsaver-holder";
-      submission.insertAdjacentElement("beforebegin", holder);
-      holder.insertAdjacentElement("afterbegin", submission);
     }
 
     addButton("inkbunny", user, subid, submission, holder, url, "beforeend", false);

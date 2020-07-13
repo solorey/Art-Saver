@@ -1,17 +1,17 @@
-addTable("dev-user-folder", tableMaker(["site", "userName"]));
-addTable("dev-file", tableMaker(["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext"]));
-addTable("dev-stash", tableMaker(["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt"]));
+addTable("#dev-user-folder", ["site", "userName"]);
+addTable("#dev-file", ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext"]);
+addTable("#dev-stash", ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt"]);
 
-addTable("pix-user-folder", tableMaker(["site", "userName", "userId"]));
-addTable("pix-file", tableMaker(["site", "userName", "userId", "title", "submissionId", "fileName", "ext"]));
-addTable("pix-multiple", tableMaker(["site", "userName", "userId", "title", "submissionId", "fileName", "page", "ext"]));
+addTable("#pix-user-folder", ["site", "userName", "userId"]);
+addTable("#pix-file", ["site", "userName", "userId", "title", "submissionId", "fileName", "ext"]);
+addTable("#pix-multiple", ["site", "userName", "userId", "title", "submissionId", "fileName", "page", "ext"]);
 
-addTable("fur-user-folder", tableMaker(["site", "userName", "userLower"]));
-addTable("fur-file", tableMaker(["site", "userName", "userLower", "title", "submissionId", "fileName", "fileId", "ext"]));
+addTable("#fur-user-folder", ["site", "userName", "userLower"]);
+addTable("#fur-file", ["site", "userName", "userLower", "title", "submissionId", "fileName", "fileId", "ext"]);
 
-addTable("ink-user-folder", tableMaker(["site", "userName", "userId"]));
-addTable("ink-file", tableMaker(["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "ext"]));
-addTable("ink-multiple", tableMaker(["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "page", "ext"]));
+addTable("#ink-user-folder", ["site", "userName", "userId"]);
+addTable("#ink-file", ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "ext"]);
+addTable("#ink-multiple", ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "page", "ext"]);
 
 //restore options on page load
 document.addEventListener("DOMContentLoaded", async () => {
@@ -73,7 +73,7 @@ $("#export-list").onclick = async () => {
 
 $("#reset-list").onclick = async () => {
   let undo = $("#userlist-undo");
-  if (undo.style.display == "flex"){
+  if (undo.style.display === "flex"){
     return;
   }
 
@@ -145,7 +145,7 @@ showStashOptions();
 
 $("#reset-options").onclick = async () => {
   let undo = $("#options-undo");
-  if (undo.style.display == "flex"){
+  if (undo.style.display === "flex"){
     return;
   }
 
@@ -216,10 +216,6 @@ for (let t of $$("textarea")){
   };
 }
 
-function addTable(selector, table){
-  $(`#${selector} ~ button`).insertAdjacentElement("afterend", table);
-}
-
 function getJSON(file){
   return new Promise((resolve, reject) => {
     let reader = new FileReader();
@@ -235,7 +231,7 @@ async function userlistDetails(){
   let list = res.userlist;
   let savedtable = $("#saved-table");
 
-  $$(savedtable, "tr:nth-child(n+2)").forEach(row => removeElement(row));
+  $$(savedtable, "tr:nth-child(n+2)").forEach(row => $remove(row));
 
   if (!list || Object.keys(list).length === 0){
     savedtable.style.display = "none";
@@ -251,14 +247,17 @@ async function userlistDetails(){
       continue;
     }
 
-    let row = document.createElement("tr");
-    row.innerHTML = '<td></td><td><span class="badge"></span></td><td><span class="badge"></span></td>';
-    row.firstElementChild.textContent = s[0].toUpperCase() + s.slice(1);  //site
-    let badges = $$(row, "span");
-    badges[0].textContent = new Set(Object.keys(list[s])).size;           //total users
-    badges[1].textContent = new Set(Object.values(list[s]).flat()).size;  //total saved submissions
+    let row = $insert(tbody, "tr");
 
-    tbody.insertAdjacentElement("beforeend", row)
+    $insert(row, "td").textContent = s[0].toUpperCase() + s.slice(1);  //site
+
+    let span1 = $insert($insert(row, "td"), "span")
+    span1.className = "badge";
+    span1.textContent = new Set(Object.keys(list[s])).size;           //total users
+
+    let span2 = $insert($insert(row, "td"), "span");
+    span2.className = "badge";
+    span2.textContent = new Set(Object.values(list[s]).flat()).size;  //total saved submissions
   }
 
   savedtable.removeAttribute("style");
@@ -285,8 +284,8 @@ function showStashOptions(){
   textareaResize($("#dev-stash"));
 }
 
-function tableMaker(tablemetas){
-  metas = {
+function addTable(location, tablemetas){
+  let metas = {
     site:              "The name of the website. 'pixiv', 'deviantart', etc.",
     userName:          "The user name of the artist.",
     title:             "Title of the submission.",
@@ -306,10 +305,13 @@ function tableMaker(tablemetas){
     userLower:          "The way the user name appears in the url bar."
   };
 
-  let table = document.createElement("table");
-  table.innerHTML = tablemetas.reduce((acc, m) => `${acc}<tr><td><li><strong>{${m}}</strong></li></td><td>${metas[m]}</td></tr>`, "");
+  let table = $insert($(`${location} ~ button`), "table", "afterend");
 
-  return table;
+  for (tm of tablemetas){
+    let tr = $insert(table, "tr");
+    $insert($insert($insert(tr, "td"), "li"), "strong").textContent = tm;
+    $insert(tr, "td").textContent = metas[tm];
+  }
 }
 
 function saveOptions(){
@@ -326,7 +328,7 @@ function optionsInfo(){
     }
 
     let elem = $(s.location);
-    if (elem.getAttribute("type") == "checkbox"){
+    if (elem.getAttribute("type") === "checkbox"){
       currentoptions[s.site][s.option] = elem.checked;
     }
     else {
@@ -340,8 +342,8 @@ function optionsInfo(){
 function setOptions(options){
   for (s of settingsList()){
     let elem = $(s.location);
-    let value = (options == "default")? s.default : options[s.site][s.option];
-    if (elem.getAttribute("type") == "checkbox"){
+    let value = (options === "default")? s.default : options[s.site][s.option];
+    if (elem.getAttribute("type") === "checkbox"){
       elem.checked = value;
     }
     else {

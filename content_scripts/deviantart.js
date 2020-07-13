@@ -97,7 +97,7 @@ as.deviantart.check.startChecking = function(){
     if (page.page === "art" && page.eclipse && diffpage){
       let submission = $("[data-hook=art_stage]");
       $$(submission, "[data-checkstatus]").forEach(e => e.removeAttribute("data-checkstatus"));
-      $$(submission, "[class^=artsaver]").forEach(e => removeElement(e));
+      $$(submission, "[class^=artsaver]").forEach(e => $remove(e));
 
       this.checkPage(page);
     }
@@ -155,11 +155,8 @@ as.deviantart.check.getThumbnails = function(){
     }
     //devations in texts
     else if (thumb.matches(".shadow > *") && !$(thumb, ".artsaver-holder")){
-      let div = document.createElement("div");
-      div.className = "artsaver-holder";
-      let img = $(thumb, "img");
-      img.insertAdjacentElement("beforebegin", div);
-      div.insertAdjacentElement("afterbegin", img);
+      let holder = $insert($(thumb, "img"), "div", "parent");
+      holder.className = "artsaver-holder";
     }
 
     thumbnails.push(thumb);
@@ -186,6 +183,7 @@ as.deviantart.check.checkThumbnails = function(thumbnails){
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//Depreciated
 
 as.deviantart.check.checkSubmission = function(user, url){
   let submissions = $$("div.dev-view-deviation");
@@ -197,7 +195,7 @@ as.deviantart.check.checkSubmission = function(user, url){
   try {
     let holder = $(view, ".artsaver-holder");
     if (!holder){
-      holder = document.createElement("div");
+      holder = $create("div");
       holder.className = "artsaver-holder";
       holder.onclick = function(){this.style.display = "table"};
 
@@ -249,7 +247,7 @@ as.deviantart.check.checkThumbnailsEclipse = function(thumbnails){
       let sub = $(thumb, "img");
       let user = ($(thumb, ".user-link") || thumb).getAttribute("title").split(" ").pop();
 
-      let anchor = (thumb.nodeName == "A") ? thumb : $(thumb, "a");
+      let anchor = (thumb.nodeName === "A") ? thumb : $(thumb, "a");
       addButton("deviantart", user, subid, sub, anchor, url, "beforeend");
     }
     catch (err){}
@@ -367,9 +365,14 @@ as.deviantart.download.getMeta = async function(r, options, progress){
   info.savedUser = meta.userName;
   info.savedId = meta.submissionId;
 
-  let desc = document.createElement("div");
-  desc.innerHTML = r.extended.description;
-  info.stash = [...new Set($$(desc , 'a[href^="https://sta.sh/"]').map(su => su.href))];
+  //find stash in description
+  let stashreg = /"(https:\/\/sta\.sh\/.+?)"/g;
+  let stashresult;
+  let stashurls = [];
+  while ((stashresult = stashreg.exec(r.extended.description)) !== null) {
+    stashurls.push(stashresult[1]);
+  }
+  info.stash = [...new Set(stashurls)];
 
   if (r.isDownloadable){ //the user is cool; downloading full resolution is easy
     info.downloadurl = r.extended.download.url;
@@ -379,9 +382,9 @@ as.deviantart.download.getMeta = async function(r, options, progress){
     //type.c = image
     //type.s = swf
     //type.b = mp4, gif
-    let type = r.media.types.filter(m => m.f && (m.t == "fullview" || m.s || m.b)).pop();
+    let type = r.media.types.filter(m => m.f && (m.t === "fullview" || m.s || m.b)).pop();
 
-    let url = (type.t == "fullview") ? type.c ? `${r.media.baseUri}/${type.c}` : r.media.baseUri : type.s || type.b;
+    let url = (type.t === "fullview") ? type.c ? `${r.media.baseUri}/${type.c}` : r.media.baseUri : type.s || type.b;
 
     if (r.media.prettyName){
       url = url.replace(/<prettyName>/g, r.media.prettyName);

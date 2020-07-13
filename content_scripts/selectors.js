@@ -7,8 +7,24 @@ function $$(arg1, arg2){
   return [...nodes];
 }
 
-function removeElement(element){
+function $remove(element){
   if (element){
     element.parentElement.removeChild(element);
   }
+}
+
+function $create(element){
+  return document.createElement(element);
+}
+
+function $insert(elem1, elem2, position = "beforeend"){
+  let newelem = $create(elem2);
+  if (position === "parent"){
+    elem1.insertAdjacentElement("beforebegin", elem2);
+    elem2.insertAdjacentElement("beforeend", elem1);
+  }
+  else {
+    elem1.insertAdjacentElement(position, newelem);
+  }
+  return newelem;
 }
