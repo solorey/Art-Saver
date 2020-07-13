@@ -358,6 +358,27 @@ h3{
 }
 .option-range {
   margin: 0 .25rem;
+
+  input {
+    $bar-height: .25rem;
+    -webkit-appearance: none;
+    background: $grey-dark;
+    height: $bar-height;
+    border-radius: $bar-height / 2;
+
+    &::-moz-range-thumb {
+      cursor: pointer;
+      height: 1rem;
+      width: 1rem;
+      border-radius: .5rem;
+      background-color: $blue;
+      border: none;
+
+      &:hover {
+        background-color: $blue-hover;
+      }
+    }
+  }
 }
 
 #settings-buttons{
