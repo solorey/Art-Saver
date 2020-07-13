@@ -118,7 +118,7 @@ function createTooltip(){
   let tr2 = $insert(table, "tr");
   $insert(tr2, "td").textContent = "Id:";
   $insert(tr2, "td");
-  
+
   tooltip = {tip};
 
   tooltip.show = function(){

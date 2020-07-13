@@ -92,7 +92,7 @@ $("#reset-list").onclick = async () => {
   }
 };
 
-for (n of $$(".custom-number")){
+for (let n of $$(".custom-number")){
   let range;
   if (n.matches(".number-range .custom-number")){
     range = $(n.parentElement.parentElement.parentElement, "input[type=range]");
@@ -123,7 +123,7 @@ function numberIncrement(num, elem, n, range){
   };
 }
 
-for (nr of $$(".number-range")){
+for (let nr of $$(".number-range")){
   let number = $(nr, "input[type=number]");
   let range = $(nr, "input[type=range]");
   range.value = number.value;
@@ -307,7 +307,7 @@ function addTable(location, tablemetas){
 
   let table = $insert($(`${location} ~ button`), "table", "afterend");
 
-  for (tm of tablemetas){
+  for (let tm of tablemetas){
     let tr = $insert(table, "tr");
     $insert($insert($insert(tr, "td"), "li"), "strong").textContent = tm;
     $insert(tr, "td").textContent = metas[tm];
@@ -322,7 +322,7 @@ function saveOptions(){
 
 function optionsInfo(){
   let currentoptions = {};
-  for (s of settingsList()){
+  for (let s of settingsList()){
     if (!currentoptions[s.site]){
       currentoptions[s.site] = {};
     }
@@ -340,7 +340,7 @@ function optionsInfo(){
 }
 
 function setOptions(options){
-  for (s of settingsList()){
+  for (let s of settingsList()){
     let elem = $(s.location);
     let value = (options === "default")? s.default : options[s.site][s.option];
     if (elem.getAttribute("type") === "checkbox"){
@@ -368,7 +368,7 @@ function fixFormat(){
     t.style.height = "1.6em";
     textareaResize(t);
   }
-  for (nr of $$(".number-range")){
+  for (let nr of $$(".number-range")){
     $(nr, "input[type=range]").value = $(nr, "input[type=number]").value;
   }
 }

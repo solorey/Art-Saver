@@ -285,7 +285,7 @@ function createVirtualList(sbox, values, linktype, linkstring){
 
     span.insertAdjacentText("beforebegin", i[1]);
     span.insertAdjacentText("afterend", i[i.length - 1]);
-    
+
     return a;
   }
 

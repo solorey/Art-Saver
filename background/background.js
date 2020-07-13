@@ -14,7 +14,7 @@ async function getOptions(){
 
 //if new settings have been added
 function updateOptions(current) {
-  for (s of settingsList()){
+  for (let s of settingsList()){
     if (!current[s.site]){
       current[s.site] = {};
     }
@@ -116,7 +116,7 @@ function sanitize(text){
 
 //create filename by replacing every {info} in the options filename with appropriate meta
 function createFilename(meta, path, replace){
-  for (key in meta){
+  for (let key in meta){
     let metavalue = sanitize(`${meta[key]}`); //make sure it is a filesafe string
     if (replace){
       metavalue = metavalue.replace(/\s/g, "_");
