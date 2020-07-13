@@ -1,8 +1,8 @@
-html{
+html {
   font-size: 75%;
 }
 
-body{
+body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
@@ -19,36 +19,36 @@ $blue-active: $blue-hover;
 $border-style: $px1 solid $grey-dark;
 $round: .25rem;
 
-#options-container{
+#options-container {
   margin: 0 auto;
   max-width: 75rem;
   width: 100%;
 }
 
-table{
+table {
   border-collapse: collapse;
   border-spacing: 0;
 }
 
-caption{
+caption {
   text-align: center;
   padding: .5rem 0;
 }
 
-td{
+td {
   padding: .75rem 1.5rem;
 }
 
-th{
+th {
   background-color: $grey;
   padding: .5rem 1.5rem;
 }
 
-tr{
+tr {
   border-top: $border-style;
 }
 
-#saved-table{
+#saved-table {
   margin: 0 auto;
   width: auto;
 
@@ -56,7 +56,7 @@ tr{
     border: none;
   }
 
-  tr > :first-child{
+  tr > :first-child {
     text-align: left;
   }
 
@@ -69,7 +69,7 @@ i[class^=icon] {
   margin-right: .5rem;
 }
 
-.badge{
+.badge {
   background-color: $grey;
   border-radius: $round;
   padding: .25rem .5rem;
@@ -77,11 +77,11 @@ i[class^=icon] {
   font-weight: 600;
 }
 
-form{
+form {
   margin: 1rem 0;
 }
 
-button{
+button {
   font-family: inherit;
   font-size: 1rem;
   padding: .5rem .5rem;
@@ -91,7 +91,7 @@ button{
   text-align: center;
 }
 
-h3{
+h3 {
   font-size: 1.25rem;
   padding: 1rem;
   margin: 1.75rem 0 .5rem 0;
@@ -99,7 +99,7 @@ h3{
   font-weight: 600;
 }
 
-.question{
+.question {
   text-decoration: none;
   margin-left: .5rem;
   display: inline-block;
@@ -126,34 +126,34 @@ h3{
   margin: .75rem 0;
 }
 
-%blue-button{
+%blue-button {
   color: #fff;
   background-color: $blue;
 
-  &:hover{
+  &:hover {
     background-color: $blue-hover;
   }
 
-  &:active{
+  &:active {
     background-color: $blue-active;
   }
 }
 
-%optionlabel{
+%optionlabel {
   display: block;
   margin-bottom: .25rem;
 }
 
-#userlist-input{ 
-  > label{
+#userlist-input { 
+  > label {
     @extend %optionlabel;
   }
 
-  .input-bar{
+  .input-bar {
     position: relative;
     display: flex;
 
-    button{
+    button {
       @extend %blue-button;
       border-radius: 0;
       width: 7rem;
@@ -165,18 +165,18 @@ h3{
   }
 }
 
-.custom-input{
+.custom-input {
   position: relative;
   flex: 1;
   overflow: hidden;
 
-  input{
+  input {
     width: 100%;
     height: 100%;
     opacity: 0;
   }
 
-  label{
+  label {
     position: absolute;
     top: 0;
     left: 0;
@@ -188,7 +188,7 @@ h3{
     border: $border-style;
     border-radius: $round 0 0 $round;
 
-    .before{
+    .before {
       background-color: $grey;
       padding: (.5rem - $px1) 1rem;
       border-right: $border-style;
@@ -196,17 +196,17 @@ h3{
   }
 }
 
-#filename{
+#filename {
   flex: 1;
   padding: (.5rem - $px1) 1rem;
 }
 
-.option-textarea{
-  label{
+.option-textarea {
+  label {
     @extend %optionlabel;
   }
 
-  textarea{
+  textarea {
     font-size: 1rem;
     width: 100%;
     padding: .5rem;
@@ -217,34 +217,34 @@ h3{
     resize: vertical;
   }
 
-  table{
+  table {
     display: none;
   }
 }
 
-.help-button{
+.help-button {
   width: 6.5rem;
   background-color: $grey;
 
-  &:hover{
+  &:hover {
     background-color: $grey-dark;
   }
 }
 
-.option-toggle{
+.option-toggle {
   display: table;
   
-  input{
+  input {
     display: none;
   }
 
-  label{
+  label {
     display: flex;
     cursor: pointer;
   }
 }
 
-.switch{
+.switch {
   $width: 2.5rem;
   $height: 1.5rem;
   $diameter: 1rem;
@@ -272,7 +272,7 @@ h3{
     background-color: $blue-hover;
   }
 
-  &::after{
+  &::after {
     content: "";
     position: absolute;
     width: $diameter;
@@ -284,16 +284,16 @@ h3{
     transition: .2s;
   }
 
-  input:checked + &::after{
+  input:checked + &::after {
     left: $width - ($diameter + $space);
   }
 }
 
-.option-select{
+.option-select {
   display: flex;
   align-items: center;
 
-  select{
+  select {
     margin-left: .5rem;
     font-family: inherit;
     font-size: 1rem;
@@ -301,20 +301,28 @@ h3{
     border: $border-style;
     border-radius: $round;
     -moz-appearance: none;
-    background: url("/icons/selection.svg") no-repeat right .5rem center / (2rem/3) 1rem;
+    background: {
+      image: url("/icons/selection.svg");
+      repeat: no-repeat;
+      position: {
+        x: right .5rem;
+        y: center;
+      }
+      size: (2rem/3) 1rem;
+    }
     cursor: pointer;
   }
 }
 
-.option-number{
+.option-number {
   display: flex;
   align-items: center;
   margin: 0 .25rem;
 
-  .custom-number{
+  .custom-number {
     display: inline-flex;
   
-    input{
+    input {
       width: 3rem;
       font-family: inherit;
       font-size: 1rem;
@@ -326,26 +334,32 @@ h3{
     }
   }
 
-  .number-buttons{
+  .number-buttons {
     display: flex;
     flex-direction: column;
 
-    button{
+    button {
       height: 50%;
       width: 1.25rem;
       padding: 0;
-      background: $grey url("/icons/selection.svg") no-repeat center / (2rem/3) 1rem;
+      background: {
+        color: $grey;
+        image: url("/icons/selection.svg");
+        repeat: no-repeat;
+        position-x: center;
+        size: (2rem/3) 1rem;
+      }
 
-      &:hover{
+      &:hover {
         background-color: $grey-dark;
       }
 
-      &.increase{
+      &.increase {
         border-radius: 0 $round 0 0;
         background-position-y: .45rem;
       }
 
-      &.decrease{
+      &.decrease {
         border-radius: 0 0 $round 0;
         background-position-y: -.45rem;
       }
@@ -381,13 +395,13 @@ h3{
   }
 }
 
-#settings-buttons{
+#settings-buttons {
   text-align: center;
   margin-top: 2rem;
   display: flex;
   justify-content: center;
 
-  > button{
+  > button {
     margin: 0 ($px1*2);
     width: 12rem;
 
@@ -400,7 +414,7 @@ h3{
   overflow: hidden;
 }
 
-.undo-bar{
+.undo-bar {
   width: max-content;
   display: none;
   background-color: #fff3cd;
@@ -408,14 +422,14 @@ h3{
   padding: .5rem 2rem;
   margin: 0 auto;
 
-  .undo-button{
+  .undo-button {
     width: 2.5rem;
     margin-left: 2rem;
     text-decoration: underline;
     text-align: center;
     cursor: pointer;
 
-    &:hover, &:active{
+    &:hover, &:active {
       font-weight: bold;
       color: #856404;
     }

@@ -248,7 +248,11 @@ input:checked + .switch::after {
   border: 0.0833333333rem solid #e0e0e0;
   border-radius: 0.25rem;
   -moz-appearance: none;
-  background: url("/icons/selection.svg") no-repeat right 0.5rem center/0.6666666667rem 1rem;
+  background-image: url("/icons/selection.svg");
+  background-repeat: no-repeat;
+  background-position-x: right 0.5rem;
+  background-position-y: center;
+  background-size: 0.6666666667rem 1rem;
   cursor: pointer;
 }
 
@@ -278,7 +282,11 @@ input:checked + .switch::after {
   height: 50%;
   width: 1.25rem;
   padding: 0;
-  background: #f0f0f0 url("/icons/selection.svg") no-repeat center/0.6666666667rem 1rem;
+  background-color: #f0f0f0;
+  background-image: url("/icons/selection.svg");
+  background-repeat: no-repeat;
+  background-position-x: center;
+  background-size: 0.6666666667rem 1rem;
 }
 .option-number .number-buttons button:hover {
   background-color: #e0e0e0;

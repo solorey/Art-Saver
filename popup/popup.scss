@@ -6,7 +6,7 @@ html {
 //6px = .5rem
 //12px = 1rem
 
-body{
+body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   padding: 0px;
   overflow: hidden;
@@ -17,7 +17,7 @@ body{
   box-sizing: border-box;
 }
 
-button{
+button {
   cursor: pointer;
 }
 
@@ -50,17 +50,17 @@ $horz-button-pad: .5rem;
 
 $base-button-padding: $vert-button-pad $horz-button-pad;
 
-#popup-container{
+#popup-container {
   //display: table;
   min-width: 250px;
   max-width: 800px;
   max-height: 600px;
 }
 
-.tabs{
+.tabs {
   display: flex;
 
-  > :last-child{
+  > :last-child {
     margin-left: auto;
   }
 
@@ -86,45 +86,45 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   }
 }
 
-.tab-content{
+.tab-content {
   display: none;
 }
 
-.header{
+.header {
   background-color: $grey;
   border-top: $border-style;
   padding: $base-padding;
 }
 
-#stats-site{
+#stats-site {
   text-transform: capitalize;
 }
 
-.stat-row{
+.stat-row {
   border-top: $border-style;
   padding: $base-padding;
 
   display: flex;
   flex: 1;
 
-  > div{
+  > div {
     white-space: nowrap;
   }
 
-  > :first-child{
+  > :first-child {
     margin: auto auto auto 0;
   }
 
-  > :last-child{
+  > :last-child {
     margin: auto 0 auto $horz-pad;
   }
 }
 
-#user-profile{
+#user-profile {
   display: flex;
 }
 
-#user-stats{
+#user-stats {
   border-left: $border-style;
   display: none;
   min-width: $stat-width;
@@ -132,7 +132,7 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   flex: 1;
 }
 
-#profile-cover{
+#profile-cover {
   background-color: $grey;
   padding: $vert-pad;
   text-align: center;
@@ -143,18 +143,20 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   justify-content: center;
   min-width: 110px;
 
-  > div{
+  > div {
     margin: .25rem auto;
   }
 }
 
 #profile-pic {
   max-width: 50px;
-  object-fit: cover;
-  object-position: top center;
+  object: {
+    fit: cover;
+    position: top center;
+  }
 }
 
-.img-thumbnail{
+.img-thumbnail {
   background-color: $white;
   border: $border-style;
   border-radius: $radius;
@@ -164,7 +166,7 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   padding: $vert-button-pad;
 }
 
-@keyframes rotation{
+@keyframes rotation {
   0% {
     transform: rotate(0deg);
   }
@@ -178,9 +180,11 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   animation-iteration-count: infinite;
 }
 
-#user-name{
-  font-weight: 600;
-  font-size: 1.25rem;
+#user-name {
+  font: {
+    weight: 600;
+    size: 1.25rem;
+  }
   white-space: nowrap;
 }
 
@@ -204,54 +208,56 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   margin: 0 2px;
   display: flex;
 
-  > i{
+  > i {
     margin: auto;
   }
 
-  &:hover{
+  &:hover {
     background-color: $grey;
   }
 
-  &#user-folder{
+  &#user-folder {
     display: none;
   }
 }
 
-.badge{
+.badge {
   background-color: $grey;
   border-radius: $radius;
   padding: $base-button-padding;
   font-weight: 600;
 }
 
-.search-box{
+.search-box {
   display: none;
   border-top: $border-style;
   width: 100%;
 
-  .search{
+  .search {
     padding: calc(.25rem - 1px) $horz-pad;
     background-color: $grey;
     display: flex;
 
-    button{
+    button {
       border-radius: 0 $radius $radius 0;
       border-left: none;
       margin: 0;
     }
   
-    input{
+    input {
       background-color: $white;
       border: $border-style;
       border-radius: $radius 0 0 $radius;
       padding: $base-button-padding;
       width: 100%;
-      font-size: inherit;
-      font-family: inherit;
+      font: {
+        size: inherit;
+        family: inherit;
+      }
     }
   }
 
-  .list{
+  .list {
     border-top: $border-style;
     position: relative;
     overflow: auto;
@@ -263,7 +269,7 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
     top: 0;
     width: 100%;
 
-    > a{
+    > a {
       position: absolute;
       display: block;
       text-decoration: none;
@@ -274,27 +280,27 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
       overflow: hidden;
       width: 100%;
 
-      &:hover{
+      &:hover {
         background-color: $grey;
         padding-left: 1.75rem + .5rem;
       }
 
-      .link-search{
+      .link-search {
         font-weight: 700;
       }
     }
   }
 }
 
-#total-saved{
+#total-saved {
   display: none;
 }
 
-.stat-button{
+.stat-button {
   cursor: pointer;
   white-space: nowrap;
 
-  &:hover{
+  &:hover {
     background-color: $grey;
   }
 }
@@ -305,30 +311,30 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   transition: height 0.5s;
 }
 
-.input-holder{
+.input-holder {
   flex: 1;
 }
 
-.button-stat{
+.button-stat {
   padding: $base-button-padding;;
   border-radius: $radius;
   background-color: $white;
 }
 
-#recheck{
+#recheck {
   background-color: $green;
   color: $white;
   border: 0;
 
-  .button-stat{
+  .button-stat {
     color: $green;
   }
 
-  &:hover{
+  &:hover {
     background-color: $green-hover;
   }
 
-  &:active{
+  &:active {
     background-color: $green-active;
   }
 }
@@ -339,26 +345,26 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   color: $white;
   border: 0;
 
-  &:hover{
+  &:hover {
     background-color: $blue-hover;
   }
 
-  &:active{
+  &:active {
     background-color: $blue-active;
   }
 }
   
-#download-all{
-  .button-stat{
+#download-all {
+  .button-stat {
     color: $blue;
   }
 
-  &[disabled]{
+  &[disabled] {
     background-color: $grey;
     pointer-events: none;
     color: scale-color($grey, $lightness: -50%);
 
-    .button-stat{
+    .button-stat {
       color: inherit;
     }
   }
@@ -372,79 +378,85 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   }
 }
 
-#found-stats{
+#found-stats {
   border-top: $border-style;
   display: flex;
   flex: 1;
 }
 
-.flex-button{
+.flex-button {
   display: flex;
   flex: 1;
-  font-size: inherit;
-  font-family: inherit;
-  font-weight: 600;
+  font: {
+    size: inherit;
+    family: inherit;
+    weight: 600;
+  }
   padding: $base-padding;
 
-  > :last-child{
+  > :last-child {
     margin: auto 0 auto $horz-pad;
   }
 
-  .label-1{
+  .label-1 {
     margin: auto;
     display: block;
   }
-  .label-2{
+  .label-2 {
     margin: auto;
     display: none;
   }
 
-  &:hover{
-    .label-1{
+  &:hover {
+    .label-1 {
       display: none;
     }
-    .label-2{
+    .label-2 {
       display: block;
     }
   }
 }
 
-#unsupported-page{
+#unsupported-page {
   border-top: $border-style;
   background-color: #fff3cd;
   color: #856404;
 
-  .linebreak{
+  .linebreak {
     border-top: 1px solid #856404;
     margin: .5rem 0rem;
   }
 }
 
-#unsupported-info{
+%information{
   width: 250px;
   padding: .75rem 1.25rem;
   margin: auto;
 }
 
-#getting-info{
-  width: 250px;
-  padding: .75rem 1.25rem;
-  margin: auto;
+#unsupported-info {
+  @extend %information;
+}
+
+#getting-info {
+  @extend %information;
   display: flex;
 
-  > div{
+  > div {
     margin: auto;
   }
 }
 
-#getting-page{
+#getting-page {
   border-top: $border-style;
   background-color: $grey;
 }
 
-#link-tester{
-  padding-left: $horz-pad + .5rem;
-  padding-right: $horz-pad;
+#link-tester {
+  padding: {
+    left: $horz-pad + .5rem;
+    right: $horz-pad;
+  }
   position: absolute;
   top: 0;
   opacity: 0;

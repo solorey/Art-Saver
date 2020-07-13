@@ -345,16 +345,13 @@ button {
   margin: 0.5rem 0rem;
 }
 
-#unsupported-info {
+#getting-info, #unsupported-info {
   width: 250px;
   padding: 0.75rem 1.25rem;
   margin: auto;
 }
 
 #getting-info {
-  width: 250px;
-  padding: 0.75rem 1.25rem;
-  margin: auto;
   display: flex;
 }
 #getting-info > div {
