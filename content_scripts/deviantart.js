@@ -254,6 +254,8 @@ as.deviantart.check.checkThumbnailsEclipse = function(thumbnails){
   }
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 as.deviantart.check.checkPopupEclipse = function(popup){
   let user = $(popup, "[data-hook=user_link]").title;
   for (let thumb of $$(popup, "[data-hook=deviation_link]")){
