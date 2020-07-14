@@ -41,10 +41,10 @@ function pageInfo(){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 as.deviantart.userInfo = async function(user, page, savedlist){
-  let userresponse = await fetcher(`https://www.deviantart.com/_napi/da-user-profile/api/init/gallery?username=${user.name}`, "response", {credentials: "omit"});
+  let userresponse = await fetcher(`https://www.deviantart.com/_napi/da-user-profile/api/init/gallery?username=${user.name}`);
 
   let userstats;
-  if (userresponse.status === 200){
+  if (userresponse.ok){
     userstats = await userresponse.json();
 
     user.icon = userstats.pageData.gruser.usericon;
@@ -286,12 +286,9 @@ as.deviantart.check.checkSubmissionEclipse = function(user, url){
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
-//apis when the user has eclipse activated. Update: may be usable without eclipse activated
 //submission - https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch?deviationid=<sumbissionId>&type=art&include_session=false
 //user       - https://www.deviantart.com/_napi/da-user-profile/api/init/gallery?username=<userName>
-//gallery    - https://www.deviantart.com/_napi/da-user-profile/api/gallery/contents?username=<userName>&offset=0&limit=24&all_folder=true&mode=newest
-//             - 24 is max
-
+//gallery    - https://www.deviantart.com/_napi/da-user-profile/api/gallery/contents?username=<userName>&offset=0&limit=24&all_folder=true&mode=newest //24 is max
 //rss        - https://backend.deviantart.com/rss.xml?q=+sort:time+by:<userName>+-in:journals&type=deviation
 
 
@@ -311,20 +308,21 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
 
     let downloads = [{url: info.downloadurl, meta, filename: options.deviantart.file}];
 
+    let stashworker;
     if (options.deviantart.stash && info.stash.length > 0){
-      progress.say("Getting stash");
-      let fileworker = new Worker(browser.runtime.getURL("/workers/stashworker.js"));
-      fileworker.postMessage(info.stash);
+      progress.say("Getting stash meta");
+      stashworker = new Worker(browser.runtime.getURL("/workers/stashworker.js"));
+      stashworker.postMessage({function: "getstash", stashurls: info.stash});
 
       let stashes = await new Promise((resolve, reject) => {
-        fileworker.onmessage = message => {
-          fileworker.terminate();
-          resolve(message.data);
+        stashworker.onmessage = m => {
+          if (m.data.message === "gotstash"){
+            resolve(m.data.stash);
+          }
         }
       });
 
       let stashdownloads = stashes.map(s => ({
-        blob: s.info.blob,
         url: s.info.downloadurl,
         meta: {...meta, ...s.meta},
         filename: options.deviantart.stashFile
@@ -333,7 +331,7 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
       downloads = downloads.concat(stashdownloads);
     }
 
-    let results = await this.handleDownloads(downloads, options, progress);
+    let results = await this.handleDownloads(downloads, options, progress, stashworker);
     if (results.some(r => r === "Success")){
       progress.say("Updating");
       await updateList(info.savedSite, info.savedUser, info.savedId);
@@ -384,7 +382,7 @@ as.deviantart.download.getMeta = async function(r, options, progress){
     //type.b = mp4, gif
     let type = r.media.types.filter(m => m.f && (m.t === "fullview" || m.s || m.b)).pop();
 
-    let url = (type.t === "fullview") ? type.c ? `${r.media.baseUri}/${type.c}` : r.media.baseUri : type.s || type.b;
+    let url = (type.t === "fullview") ? (type.c ? `${r.media.baseUri}/${type.c}` : r.media.baseUri) : type.s || type.b;
 
     if (r.media.prettyName){
       url = url.replace(/<prettyName>/g, r.media.prettyName);
@@ -423,7 +421,7 @@ as.deviantart.download.getMeta = async function(r, options, progress){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.deviantart.download.handleDownloads = async function(downloads, options, progress){
+as.deviantart.download.handleDownloads = async function(downloads, options, progress, stashworker){
   if (options.deviantart.moveFile && downloads.length > 1){
     let stashfolder = /.*\//.exec(options.deviantart.stashFile);
     let newf = options.deviantart.file.split("/").pop();
@@ -436,9 +434,32 @@ as.deviantart.download.handleDownloads = async function(downloads, options, prog
 
   let blobs = await fetchBlobsProgress([downloads[0]], progress);
 
-  if (downloads.length > 1){
-    downloads[0] = blobs[0];
-    blobs = downloads;
+  if (stashworker){
+    progress.start();
+    progress.say("Starting stash download");
+
+    stashworker.postMessage({function: "downloadstash", stashdownloads: downloads.slice(1)});
+
+    let stashblobs = await new Promise((resolve, reject) => {
+      stashworker.onmessage = m => {
+        switch (m.data.message){
+          case "progress":
+            if (m.data.say){
+              progress.say(m.data.say);
+            }
+            if (m.data.width){
+              progress.width(m.data.width);
+            }
+            break;
+
+          case "gotblobs":
+            stashworker.terminate();
+            resolve(m.data.blobs);
+        }
+      }
+    });
+
+    blobs = blobs.concat(stashblobs);
   }
 
   progress.saving(blobs.length);
@@ -472,7 +493,7 @@ async function getImage(imgsrc){
   };
 
   async function imgSize(src){
-    let imgres = await fetcher(src, "response");
+    let imgres = await fetcher(src);
     return (imgres.ok) ? parseInt(imgres.headers.get("content-length"), 10) : 0;
   }
 

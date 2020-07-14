@@ -1,37 +1,137 @@
-addTable("#dev-user-folder", ["site", "userName"]);
-addTable("#dev-file", ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext"]);
-addTable("#dev-stash", ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt"]);
-
-addTable("#pix-user-folder", ["site", "userName", "userId"]);
-addTable("#pix-file", ["site", "userName", "userId", "title", "submissionId", "fileName", "ext"]);
-addTable("#pix-multiple", ["site", "userName", "userId", "title", "submissionId", "fileName", "page", "ext"]);
-
-addTable("#fur-user-folder", ["site", "userName", "userLower"]);
-addTable("#fur-file", ["site", "userName", "userLower", "title", "submissionId", "fileName", "fileId", "ext"]);
-
-addTable("#ink-user-folder", ["site", "userName", "userId"]);
-addTable("#ink-file", ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "ext"]);
-addTable("#ink-multiple", ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "page", "ext"]);
-
 //restore options on page load
 document.addEventListener("DOMContentLoaded", async () => {
   let options = await browser.runtime.sendMessage({
     function: "getoptions"
   });
   setOptions(options);
-
-  fixFormat();
 });
 
 window.addEventListener("resize", () => {
   fixFormat();
 });
 
+function getJSON(file){
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader();
+    reader.onload = loaded => {
+      resolve(JSON.parse(loaded.target.result));
+    };
+    reader.readAsText(file);
+  });
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// Help
+//---------------------------------------------------------------------------------------------------------------------
+
+for (let b of $$("button.help-button")){
+  b.onclick = function(){
+    toggleHelpButton(this);
+  };
+}
+
+function toggleHelpButton(button){
+  let table = button.nextElementSibling;
+  if (button.textContent === "Show Help"){
+    table.style.display = "block";
+    button.textContent = "Hide Help";
+  }
+  else if (button.textContent === "Hide Help"){
+    table.removeAttribute("style");
+    button.textContent = "Show Help";
+  }
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function addTable(location, tablemetas){
+  let metas = {
+    site:              "The name of the website. 'pixiv', 'deviantart', etc.",
+    userName:          "The user name of the artist.",
+    title:             "Title of the submission.",
+    submissionId:      "Id of the submission. Different according to each site.",
+    submissionId36:    "submissionId in base 36 format.",
+    fileName:          "Original site filename of the submission. Does not include extension.",
+    ext:               "File extension. 'jpg', 'png', 'gif', etc.",
+    stashUrlId:        "The digits and letters at the end of a the stash url.",
+    stashUserName:     "The user name of the artist of the stash submission.",
+    stashTitle:        "Title of the stash submission.",
+    stashSubmissionId: "Id of the stash submission.",
+    stashFileName:     "The original file name of the stash submission. Does not include extension.",
+    stashExt:          "File extension of the stash submission.",
+    userId:            "The user Id of the artist.",
+    page:              "The page number of the file in the submission set. Pages start at 1.",
+    fileId:            "Id of the submission file.",
+    userLower:          "The way the user name appears in the url bar."
+  };
+
+  let table = $insert($(`${location} ~ button`), "table", "afterend");
+
+  for (let tm of tablemetas){
+    let tr = $insert(table, "tr");
+    $insert($insert($insert(tr, "td"), "li"), "strong").textContent = tm;
+    $insert(tr, "td").textContent = metas[tm];
+  }
+}
+
+for (let s of settingsList()){
+  if (!s.metas){
+    continue;
+  }
+
+  addTable(s.location, s.metas);
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// User list
+//---------------------------------------------------------------------------------------------------------------------
+
+async function userlistDetails(){
+  let res = await browser.storage.local.get("userlist");
+  let list = res.userlist;
+  let savedtable = $("#saved-table");
+
+  $$(savedtable, "tr:nth-child(n+2)").forEach(row => $remove(row));
+
+  if (!list || Object.keys(list).length === 0){
+    savedtable.style.display = "none";
+    return;
+  }
+
+  let sites = ["deviantart", "pixiv", "furaffinity", "inkbunny"];
+
+  let tbody = $(savedtable,  "tbody");
+
+  for (let s of sites){
+    if (!list[s]){
+      continue;
+    }
+
+    let row = $insert(tbody, "tr");
+
+    $insert(row, "td").textContent = `${s[0].toUpperCase()}${s.slice(1)}`;  //site
+
+    let span1 = $insert($insert(row, "td"), "span");
+    span1.className = "badge";
+    span1.textContent = new Set(Object.keys(list[s])).size;           //total users
+
+    let span2 = $insert($insert(row, "td"), "span");
+    span2.className = "badge";
+    span2.textContent = new Set(Object.values(list[s]).flat()).size;  //total saved submissions
+  }
+
+  savedtable.removeAttribute("style");
+}
+
 userlistDetails();
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $("#userlist").oninput = function(){
   $("#filename").textContent = this.files[0].name;
 };
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $("#submit-list").onclick = async () => {
   try {
@@ -60,6 +160,8 @@ function cleanUserList(userlist){
   return userlist;
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 $("#export-list").onclick = async () => {
   let res = await browser.storage.local.get("userlist");
   let blob = new Blob([JSON.stringify(res.userlist)], {type : "application/json"});
@@ -70,6 +172,8 @@ $("#export-list").onclick = async () => {
     saveAs: true
   });
 };
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $("#reset-list").onclick = async () => {
   let undo = $("#userlist-undo");
@@ -91,6 +195,10 @@ $("#reset-list").onclick = async () => {
     undo.removeAttribute("style");
   }
 };
+
+//---------------------------------------------------------------------------------------------------------------------
+// Custom number and range input
+//---------------------------------------------------------------------------------------------------------------------
 
 for (let n of $$(".custom-number")){
   let range;
@@ -123,6 +231,8 @@ function numberIncrement(num, elem, n, range){
   };
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 for (let nr of $$(".number-range")){
   let number = $(nr, "input[type=number]");
   let range = $(nr, "input[type=range]");
@@ -137,11 +247,9 @@ for (let nr of $$(".number-range")){
   };
 }
 
-$("#add-screen").oninput = () => showScreenOptions();
-showScreenOptions();
-
-$("#stash").oninput = () => showStashOptions();
-showStashOptions();
+//---------------------------------------------------------------------------------------------------------------------
+// Options buttons
+//---------------------------------------------------------------------------------------------------------------------
 
 $("#reset-options").onclick = async () => {
   let undo = $("#options-undo");
@@ -151,16 +259,16 @@ $("#reset-options").onclick = async () => {
 
   let oldoptions = optionsInfo();
   setOptions("default");
-  fixFormat();
 
   undo.style.display = "flex";
 
   $(undo, ".undo-button").onclick = () => {
     setOptions(oldoptions);
-    fixFormat();
     undo.removeAttribute("style");
   }
 };
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $("#export-options").onclick = () => {
   let blob = new Blob([JSON.stringify(optionsInfo())], {type : "application/json"});
@@ -172,6 +280,8 @@ $("#export-options").onclick = () => {
   });
 };
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 $("#import-options").oninput = async function(){
   let jsonfile = await getJSON(this.files[0]);
   let newoptions = await browser.runtime.sendMessage({
@@ -179,31 +289,76 @@ $("#import-options").oninput = async function(){
     newoptions: jsonfile
   });
   setOptions(newoptions);
-  fixFormat();
 };
 
 $("#click-import").onclick = () => {
   $("#import-options").click();
 };
 
+//---------------------------------------------------------------------------------------------------------------------
+// Form functions
+//---------------------------------------------------------------------------------------------------------------------
+
 $("form").onsubmit = s => s.preventDefault();
 $("form").oninput = () => saveOptions();
 
-for (let b of $$("button.help-button")){
-  b.onclick = function(){
-    toggleHelpButton(this);
-  };
+//---------------------------------------------------------------------------------------------------------------------
+// Options functions
+//---------------------------------------------------------------------------------------------------------------------
+
+function saveOptions(){
+  browser.storage.local.set({
+    options: optionsInfo()
+  });
 }
 
-function toggleHelpButton(button){
-  let table = button.nextElementSibling;
-  if (button.textContent === "Show Help"){
-    table.style.display = "block";
-    button.textContent = "Hide Help";
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function optionsInfo(){
+  let currentoptions = {};
+  for (let s of settingsList()){
+    if (!currentoptions[s.site]){
+      currentoptions[s.site] = {};
+    }
+
+    let elem = $(s.location);
+    if (elem.getAttribute("type") === "checkbox"){
+      currentoptions[s.site][s.option] = elem.checked;
+    }
+    else {
+      currentoptions[s.site][s.option] = elem.value;
+    }
   }
-  else if (button.textContent === "Hide Help"){
-    table.removeAttribute("style");
-    button.textContent = "Show Help";
+
+  return currentoptions;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function setOptions(options){
+  for (let s of settingsList()){
+    let elem = $(s.location);
+    let value = (options === "default")? s.default : options[s.site][s.option];
+    if (elem.getAttribute("type") === "checkbox"){
+      elem.checked = value;
+    }
+    else {
+      elem.value = value;
+    }
+  }
+  saveOptions();
+  fixFormat();
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// Page format functions
+//---------------------------------------------------------------------------------------------------------------------
+
+function textareaResize(textarea){
+  let height = 0;
+  while (textarea.clientHeight < textarea.scrollHeight){
+    textarea.style.height = `${textarea.scrollHeight + height}px`;
+    height += 1;
   }
 }
 
@@ -216,52 +371,13 @@ for (let t of $$("textarea")){
   };
 }
 
-function getJSON(file){
-  return new Promise((resolve, reject) => {
-    let reader = new FileReader();
-    reader.onload = loaded => {
-      resolve(JSON.parse(loaded.target.result));
-    };
-    reader.readAsText(file);
-  });
-}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-async function userlistDetails(){
-  let res = await browser.storage.local.get("userlist");
-  let list = res.userlist;
-  let savedtable = $("#saved-table");
+$("#add-screen").oninput = () => showScreenOptions();
+showScreenOptions();
 
-  $$(savedtable, "tr:nth-child(n+2)").forEach(row => $remove(row));
-
-  if (!list || Object.keys(list).length === 0){
-    savedtable.style.display = "none";
-    return;
-  }
-
-  let sites = ["deviantart", "pixiv", "furaffinity", "inkbunny"];
-
-  let tbody = $(savedtable,  "tbody");
-
-  for (let s of sites){
-    if (!list[s]){
-      continue;
-    }
-
-    let row = $insert(tbody, "tr");
-
-    $insert(row, "td").textContent = s[0].toUpperCase() + s.slice(1);  //site
-
-    let span1 = $insert($insert(row, "td"), "span")
-    span1.className = "badge";
-    span1.textContent = new Set(Object.keys(list[s])).size;           //total users
-
-    let span2 = $insert($insert(row, "td"), "span");
-    span2.className = "badge";
-    span2.textContent = new Set(Object.values(list[s]).flat()).size;  //total saved submissions
-  }
-
-  savedtable.removeAttribute("style");
-}
+$("#stash").oninput = () => showStashOptions();
+showStashOptions();
 
 function showScreenOptions(){
   let screenoptions = $("div.screen-options");
@@ -284,82 +400,7 @@ function showStashOptions(){
   textareaResize($("#dev-stash"));
 }
 
-function addTable(location, tablemetas){
-  let metas = {
-    site:              "The name of the website. 'pixiv', 'deviantart', etc.",
-    userName:          "The user name of the artist.",
-    title:             "Title of the submission.",
-    submissionId:      "Id of the submission. Different according to each site.",
-    submissionId36:    "submissionId in base 36 format.",
-    fileName:          "Original site filename of the submission. Does not include extension.",
-    ext:               "File extension. 'jpg', 'png', 'gif', etc.",
-    stashUrlId:        "The digits and letters at the end of a the stash url.",
-    stashUserName:     "The user name of the artist of the stash submission.",
-    stashTitle:        "Title of the stash submission.",
-    stashSubmissionId: "Id of the stash submission.",
-    stashFileName:     "The original file name of the stash submission. Does not include extension.",
-    stashExt:          "File extension of the stash submission.",
-    userId:            "The user Id of the artist.",
-    page:              "The page number of the file in the submission set. Pages start at 1.",
-    fileId:            "Id of the submission file.",
-    userLower:          "The way the user name appears in the url bar."
-  };
-
-  let table = $insert($(`${location} ~ button`), "table", "afterend");
-
-  for (let tm of tablemetas){
-    let tr = $insert(table, "tr");
-    $insert($insert($insert(tr, "td"), "li"), "strong").textContent = tm;
-    $insert(tr, "td").textContent = metas[tm];
-  }
-}
-
-function saveOptions(){
-  browser.storage.local.set({
-    options: optionsInfo()
-  });
-}
-
-function optionsInfo(){
-  let currentoptions = {};
-  for (let s of settingsList()){
-    if (!currentoptions[s.site]){
-      currentoptions[s.site] = {};
-    }
-
-    let elem = $(s.location);
-    if (elem.getAttribute("type") === "checkbox"){
-      currentoptions[s.site][s.option] = elem.checked;
-    }
-    else {
-      currentoptions[s.site][s.option] = elem.value;
-    }
-  }
-
-  return currentoptions;
-}
-
-function setOptions(options){
-  for (let s of settingsList()){
-    let elem = $(s.location);
-    let value = (options === "default")? s.default : options[s.site][s.option];
-    if (elem.getAttribute("type") === "checkbox"){
-      elem.checked = value;
-    }
-    else {
-      elem.value = value;
-    }
-  }
-  saveOptions();
-}
-
-function textareaResize(textarea){
-  let height = 0;
-  while (textarea.clientHeight < textarea.scrollHeight){
-    textarea.style.height = `${textarea.scrollHeight + height}px`;
-    height += 1;
-  }
-}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function fixFormat(){
   showScreenOptions();

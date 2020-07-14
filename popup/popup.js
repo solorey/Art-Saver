@@ -1,8 +1,9 @@
 var globalopened = false;
 var globalrunningobservers = [];
 
-openTab("getting-page");
-getPageInfo();
+//---------------------------------------------------------------------------------------------------------------------
+// page information
+//---------------------------------------------------------------------------------------------------------------------
 
 async function getPageInfo(){
   let tabs = await browser.tabs.query({
@@ -16,6 +17,12 @@ async function getPageInfo(){
   $("#download-all").onclick = () => send(id, "downloadall");
   $("#recheck").onclick = () => send(id, "recheck");
 }
+
+getPageInfo();
+
+//---------------------------------------------------------------------------------------------------------------------
+// message send/listen functions
+//---------------------------------------------------------------------------------------------------------------------
 
 function send(id, message){
   browser.tabs.sendMessage(id, {
@@ -47,6 +54,10 @@ async function messageActions(request){
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+// tabs
+//---------------------------------------------------------------------------------------------------------------------
+
 function openTab(tab){
   $$(".tabs > button").forEach(t => t.classList.remove("active"));
   $$(".tab-content").forEach(t => t.removeAttribute("style"));
@@ -58,9 +69,17 @@ function openTab(tab){
   $(`#${tab}`).style.display = "block";
 }
 
+openTab("getting-page");
+
 for (let t of $$(".tabs > button[data-tab]")){
   t.onclick = function(){ openTab(this.getAttribute("data-tab")); };
 }
+
+$("#settings-tab").onclick = () => browser.runtime.openOptionsPage();
+
+//---------------------------------------------------------------------------------------------------------------------
+// download all button
+//---------------------------------------------------------------------------------------------------------------------
 
 function toggleDownload(){
   let lock = $("#download-lock");
@@ -80,18 +99,9 @@ function toggleDownload(){
 
 $("#download-lock").onclick = () => toggleDownload();
 
-$("#settings-tab").onclick = () => browser.runtime.openOptionsPage();
-
-function showSavedList(stat, list){
-  if (stat.getAttribute("data-toggle") === "closed"){
-    stat.setAttribute("data-toggle", "open");
-    list.style.display =  "block"; //`${$(list, ".search-box").offsetHeight}px`;
-  }
-  else {
-    stat.setAttribute("data-toggle", "closed");
-    list.removeAttribute("style");
-  }
-}
+//---------------------------------------------------------------------------------------------------------------------
+// stats
+//---------------------------------------------------------------------------------------------------------------------
 
 function siteStats(request, sitelist){
   globalrunningobservers.forEach(ob => ob.disconnect());
@@ -144,6 +154,8 @@ function siteStats(request, sitelist){
     globalopened = true;
   }
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function userStats(request, options){
   let user = request.user;
@@ -209,6 +221,23 @@ function userStats(request, options){
     });
   };
 }
+
+//---------------------------------------------------------------------------------------------------------------------
+// list functions
+//---------------------------------------------------------------------------------------------------------------------
+
+function showSavedList(stat, list){
+  if (stat.getAttribute("data-toggle") === "closed"){
+    stat.setAttribute("data-toggle", "open");
+    list.style.display =  "block"; //`${$(list, ".search-box").offsetHeight}px`;
+  }
+  else {
+    stat.setAttribute("data-toggle", "closed");
+    list.removeAttribute("style");
+  }
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createVirtualList(sbox, values, linktype, linkstring){
   let linklist = $(sbox, ".link-list");
@@ -315,6 +344,8 @@ function createVirtualList(sbox, values, linktype, linkstring){
   }
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 //assumes list is already in descending order
 function searchResult(sbox, list){
   let input = $(sbox, "input").value;
@@ -333,6 +364,8 @@ function searchResult(sbox, list){
 
   return results;
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function toggleListSort(sbox){
   let sorticon = $(sbox, ".search button i");

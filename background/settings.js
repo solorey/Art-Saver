@@ -28,11 +28,13 @@ const globalsettings = {
   deviantart: {
     userFolder: {
       location: "#dev-user-folder",
-      default: "Saved/{site}/{userName}/"
+      default: "Saved/{site}/{userName}/",
+      metas: ["site", "userName"]
     },
     file: {
       location: "#dev-file",
-      default: "Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}"
+      default: "Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}",
+      metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext"]
     },
     larger: {
       location: "#dev-larger",
@@ -44,7 +46,8 @@ const globalsettings = {
     },
     stashFile: {
       location: "#dev-stash",
-      default: "Saved/{site}/{userName}/{submissionId}_{title}/{stashTitle}_by_{stashUserName}_{stashUrlId}.{stashExt}"
+      default: "Saved/{site}/{userName}/{submissionId}_{title}/{stashTitle}_by_{stashUserName}_{stashUrlId}.{stashExt}",
+      metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt"]
     },
     moveFile: {
       location: "#dev-move",
@@ -54,15 +57,18 @@ const globalsettings = {
   pixiv: {
     userFolder: {
       location: "#pix-user-folder",
-      default: "Saved/{site}/{userName}_{userId}/"
+      default: "Saved/{site}/{userName}_{userId}/",
+      metas: ["site", "userName", "userId"]
     },
     file: {
       location: "#pix-file",
-      default: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}_by_{userName}.{ext}"
+      default: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}_by_{userName}.{ext}",
+      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "ext"]
     },
     multiple: {
       location: "#pix-multiple",
-      default: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}/{submissionId}_{title}_{page}_by_{userName}.{ext}"
+      default: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}/{submissionId}_{title}_{page}_by_{userName}.{ext}",
+      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "page", "ext"]
     },
     ugoira: {
       location: "#ugoira",
@@ -72,25 +78,30 @@ const globalsettings = {
   furaffinity: {
     userFolder: {
       location: "#fur-user-folder",
-      default: "Saved/{site}/{userLower}/"
+      default: "Saved/{site}/{userLower}/",
+      metas: ["site", "userName", "userLower"]
     },
     file: {
       location: "#fur-file",
-      default: "Saved/{site}/{userLower}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
+      default: "Saved/{site}/{userLower}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
+      metas: ["site", "userName", "userLower", "title", "submissionId", "fileName", "fileId", "ext"]
     }
   },
   inkbunny: {
     userFolder: {
       location: "#ink-user-folder",
-      default: "Saved/{site}/{userName}/"
+      default: "Saved/{site}/{userName}/",
+      metas: ["site", "userName", "userId"]
     },
     file: {
       location: "#ink-file",
-      default: "Saved/{site}/{userName}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
+      default: "Saved/{site}/{userName}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
+      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "ext"]
     },
     multiple: {
       location: "#ink-multiple",
-      default: "Saved/{site}/{userName}/{submissionId}_{title}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}"
+      default: "Saved/{site}/{userName}/{submissionId}_{title}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
+      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "page", "ext"]
     }
   }
 };

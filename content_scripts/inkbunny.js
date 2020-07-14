@@ -40,6 +40,8 @@ function pageInfo(){
   return page;
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 as.inkbunny.userInfo = async function(user, page, savedlist){
   let userpage = await fetcher(`https://inkbunny.net/${user.name}`, "document");
 

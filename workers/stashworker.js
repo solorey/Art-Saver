@@ -1,6 +1,18 @@
+//var stashes;
+
 onmessage = async function(m){
   try {
-    postMessage(await getStash(m.data));
+    switch (m.data.function){
+      case "getstash":
+        let stash = await getStash(m.data.stashurls);
+        postMessage({message: "gotstash", stash});
+        break;
+
+      case "downloadstash":
+        let blobs = await fetchBlobsProgress(m.data.stashdownloads);
+        postMessage({message: "gotblobs", blobs});
+    }
+
   }
   catch (err){
     postMessage(err);
@@ -23,50 +35,44 @@ async function fetcher(url, type){
 }
 
 async function getStash(urls){
-  let handleStash = async (sr, url) => {
-    if (/sta.sh\/2/.test(url)){
-      let thumbreg = /gmi-stashid(?:.|\n)+?<\//g;
-      let result;
-      let stashthumbs = [];
-      while ((result = thumbreg.exec(sr)) !== null) {
-        stashthumbs.push(result[0]);
-      }
+  let totalurls = await navigateStacks(urls);
+  let stashresponses = await Promise.all(totalurls.map(u => fetcher(u, "text")));
 
-      let surls = [];
-      for (thumb of stashthumbs){
-        let hrefreg = /<a.+?href="(.+?)"/.exec(thumb);
-        if (hrefreg){
-          surls.push(hrefreg[1]);
-        }
-        else {
-          surls.push(decodeStash(/gmi-stashid="(.+?)"/.exec(thumb)[1]));
-        }
-      }
+  let allstashes = await Promise.all(totalurls.map((url, i) => getStashMeta(stashresponses[i], url)));
+  return allstashes.filter(s => s);
+}
 
-      return await navigateStashUrls([...new Set(surls)]);
+async function navigateStacks(urls){
+  function stackUrls(sr){
+    let thumbreg = /gmi-stashid(?:.|\n)+?<\//g;
+    let result;
+    let stashthumbs = [];
+    while ((result = thumbreg.exec(sr)) !== null) {
+      stashthumbs.push(result[0]);
     }
-    //download button on a stash page
-    else if (/dev-page-download/.test(sr)){
-      return await getStashMeta(sr, url);
+
+    let surls = [];
+    for (thumb of stashthumbs){
+      let hrefreg = /<a.+?href="(.+?)"/.exec(thumb);
+      if (hrefreg){
+        surls.push(hrefreg[1]);
+      }
+      else {
+        surls.push(decodeStash(/gmi-stashid="(.+?)"/.exec(thumb)[1]));
+      }
     }
-    return;
+    return surls;
   }
 
-  async function navigateStashUrls(urls){
-    let responses = await Promise.all(urls.map(u => fetcher(u, "text")));
-    let downloads = await Promise.all(responses.map((r, i) => handleStash(r, urls[i])));
+  let urlslist = urls;
+  let stacks;
+  while((stacks = urlslist.filter(u => /\/2/.test(u))).length > 0){
+    let responses = await Promise.all(stacks.map(g => fetcher(g, "text")));
+    let stackurls = responses.map(r => stackUrls(r));
 
-    return downloads.flat(Infinity).filter(d => d);
+    urlslist = [urlslist.filter(u => !/\/2/.test(u)), stackurls].flat(Infinity).filter(s => s);
   }
-
-  let stashes = await navigateStashUrls(urls);
-  //filter out duplicate stashes
-  let stashlist = {};
-  for (s of stashes){
-    stashlist[s.meta.stashUrlId] = s;
-  }
-
-  return Object.values(stashlist);
+  return [...new Set(urlslist)];
 }
 
 async function getStashMeta(sr, url){
@@ -90,6 +96,7 @@ async function getStashMeta(sr, url){
     }
     info.downloadurl = full[1];
   }
+
   info.blob = await fetcher(info.downloadurl, "blob");
 
   let reg = /(?:''|\/)([^\/?]+)\.(\w+)(?:\?token=.+)?$/.exec(attachment || fileres.url);
@@ -99,7 +106,7 @@ async function getStashMeta(sr, url){
 
     return {info, meta};
   }
-  
+
   let preview = /"dev-view-deviation(?:.|\n)+?src="(.+?)"/.exec(sr)[1];
   if (/\/v1\//.test(preview)){
     reg = /\.(\w+)\/v1\/.+?(\w+)-\w+\.\w+\?/.exec(preview);
@@ -117,17 +124,83 @@ async function getStashMeta(sr, url){
 
 function decodeStash(num){
   num = parseInt(num, 10);
-  
+
   let link = "";
   let chars = "0123456789abcdefghijklmnopqrstuvwxyz";
   let base = chars.length;
   while (num){
     remainder = num % base;
     quotient = Math.trunc(num / base);
-    
+
     num = quotient;
     link = `${chars[remainder]}${link}`;
   }
 
   return `https://sta.sh/2${link}`;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+async function fetchBlobsProgress(downloads){
+  let allprogress = Array(downloads.length);
+
+  return await Promise.all(downloads.map((dl, i) => getBlob(dl, i)));
+
+  async function getBlob(dl, i){
+    let response = await fetcher(dl.url);
+
+    if (!response.ok){
+      let err = new Error(dl.url);
+      err.name = `Error ${response.status}`;
+      throw err;
+    }
+
+    let loaded = 0;
+    let total = parseInt(response.headers.get("Content-Length"), 10);
+    let computable = total ? true : false;
+
+    let reader = response.body.getReader();
+    let chunks = [];
+
+    while (true){
+      let {done, value} = await reader.read();
+      if (done){
+        break;
+      }
+      chunks.push(value);
+      loaded += value.length;
+
+      allprogress[i] = {computable, total, loaded};
+
+      blobProgress(allprogress);
+    }
+
+    dl.blob = new Blob(chunks);
+    return dl;
+  }
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function blobProgress(allprogress){
+  let current = allprogress.flat();
+
+  let [total, loaded] = current.reduce((acc, c) => [c.total + acc[0], c.loaded + acc[1]], [0, 0]);
+
+  if (current.some(d => !d.computable)){
+    postMessage({message: "progress", say: `... ${fileSize(loaded)}`, width: 100});
+  }
+  else {
+    let percent = (loaded / total * 100) * (current.length / allprogress.length);
+    postMessage({message: "progress", say: `${fileSize(loaded)} ${Math.floor(percent)}%`, width: percent});
+  }
+}
+
+function fileSize(bytes){
+  for (let size of ["bytes", "KB", "MB", "GB", "TB"]){
+    if (bytes < 1024 || size === "TB"){
+      return `${bytes.toFixed(2)} ${size}`;
+    }
+    bytes = bytes / 1024;
+  }
 }

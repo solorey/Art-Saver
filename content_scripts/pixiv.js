@@ -90,7 +90,7 @@ as.pixiv.check.startChecking = function(){
   this.checkPage(page);
 
   let observer = new MutationObserver((mutationsList, observer) => {
-    if (page.url !== window.location.href || (page.page === "artwork" && page.user != $('a[href*="/users/"]:nth-of-type(2)').textContent)){
+    if (page.url !== window.location.href || (page.page === "artwork" && page.user !== $('a[href*="/users/"]:nth-of-type(2)').textContent)){
       page = pageInfo();
     }
 

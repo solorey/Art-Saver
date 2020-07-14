@@ -7,6 +7,10 @@ browser.runtime.onInstalled.addListener(details => {
   });
 });
 
+//---------------------------------------------------------------------------------------------------------------------
+// options functions
+//---------------------------------------------------------------------------------------------------------------------
+
 async function getOptions(){
   let res = await browser.storage.local.get("options");
   return updateOptions(res.options || {});
@@ -24,6 +28,10 @@ function updateOptions(current) {
   }
   return current;
 }
+
+//---------------------------------------------------------------------------------------------------------------------
+// message functions
+//---------------------------------------------------------------------------------------------------------------------
 
 browser.runtime.onMessage.addListener(request => {
   return messageActions(request);
@@ -55,6 +63,10 @@ async function messageActions(request){
       return updateOptions(request.newoptions);
   }
 }
+
+//---------------------------------------------------------------------------------------------------------------------
+// update saved userlist
+//---------------------------------------------------------------------------------------------------------------------
 
 var updating = false;
 
@@ -98,6 +110,10 @@ function isUpdating(){
   });
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+// filename creation
+//---------------------------------------------------------------------------------------------------------------------
+
 //remove illegal filename characters
 function sanitize(text){
   return text
@@ -129,6 +145,10 @@ function createFilename(meta, path, replace){
   return path;
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+// downloading functions
+//---------------------------------------------------------------------------------------------------------------------
+
 var currentdownloads = new Map();
 
 async function startDownload(url, filename, meta){
@@ -144,6 +164,8 @@ async function startDownload(url, filename, meta){
     return {response: "Failure", url, filename};
   }
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function handleChanged(delta){
   if (!delta.state || delta.state.current !== "complete"){
@@ -166,6 +188,8 @@ function handleChanged(delta){
 }
 
 browser.downloads.onChanged.addListener(handleChanged);
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var folderfiles = new Map();
 

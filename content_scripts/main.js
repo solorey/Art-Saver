@@ -16,6 +16,15 @@ async function main(){
   as[page.site].check.startChecking();
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+async function getOptions(){
+  let res = await browser.storage.local.get("options");
+  return res.options;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 async function setList(){
   let item = await browser.storage.local.get("userlist");
   //console.log(item);
@@ -29,6 +38,8 @@ async function setList(){
   }
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 function getPage(){
   return new Promise((resolve, reject) => {
     try {
@@ -39,6 +50,8 @@ function getPage(){
     }
   });
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function reCheck(){
   await setList();
@@ -56,8 +69,8 @@ async function reCheck(){
 //---------------------------------------------------------------------------------------------------------------------
 // quality of life functions
 //---------------------------------------------------------------------------------------------------------------------
-
 //themed console log
+
 function asLog(...texts){
   let log = ["%c[art saver]%c", "color: #006efe", ""];
   if (typeof(texts[0]) === "string"){
@@ -66,8 +79,10 @@ function asLog(...texts){
   console.log(...log.concat(texts));
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //simpler fetch function with document support
-async function fetcher(url, type, init = {}){
+
+async function fetcher(url, type = "response", init = {}){
   init = {
     credentials: "include",
     referrer: window.location.href,
@@ -83,9 +98,6 @@ async function fetcher(url, type, init = {}){
   }
 
   switch (type){
-    case "response":
-      return response;
-
     case "document":
       let html = await response.text();
       let parser = new DOMParser();
@@ -98,7 +110,7 @@ async function fetcher(url, type, init = {}){
       return await response.blob();
 
     default:
-      return await response.text();
+      return response;
   }
 }
 
@@ -144,6 +156,8 @@ function createTooltip(){
   return tooltip;
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 function createCheck(anchor, color, position, data){
   let checkbutton = $insert(anchor, "div", position);
   checkbutton.className = "artsaver-check";
@@ -170,6 +184,8 @@ function createCheck(anchor, color, position, data){
   return checkbutton;
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 async function removeCheck(checkbutton, data){
   checkbutton.className = "artsaver-loading";
   try {
@@ -194,6 +210,8 @@ async function removeCheck(checkbutton, data){
   catch (err){}
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 function createDownload(site, anchor, url, position){
   let dlbutton = $insert(anchor, "div", position);
   dlbutton.className = "artsaver-download";
@@ -213,6 +231,8 @@ function createDownload(site, anchor, url, position){
 
   return dlbutton;
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function addButton(site, user, subid, submission, anchor, url, position = "afterend", screen = true){
   let parent = ["afterend", "beforebegin"].includes(position) ? anchor.parentElement : anchor;
@@ -244,6 +264,8 @@ function addButton(site, user, subid, submission, anchor, url, position = "after
   return button;
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 function checkUserList(site, user, id){
   let found = false;
   let founduser = user;
@@ -269,6 +291,8 @@ function checkUserList(site, user, id){
 
   return {found, user: founduser, color};
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createProgress(dlbutton, rebuild){
   dlbutton.className = "artsaver-loading";
@@ -326,11 +350,6 @@ function createProgress(dlbutton, rebuild){
 // functions used when downloading a submission
 //---------------------------------------------------------------------------------------------------------------------
 
-async function getOptions(){
-  let res = await browser.storage.local.get("options");
-  return res.options;
-}
-
 async function fetchBlobsProgress(downloads, progress){
   progress.say("Starting download");
 
@@ -339,7 +358,7 @@ async function fetchBlobsProgress(downloads, progress){
   return await Promise.all(downloads.map((dl, i) => getBlob(dl, i)));
 
   async function getBlob(dl, i){
-    let response = await fetcher(dl.url, "response");
+    let response = await fetcher(dl.url);
 
     if (!response.ok){
       let err = new Error(dl.url);
@@ -372,6 +391,8 @@ async function fetchBlobsProgress(downloads, progress){
   }
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 function blobProgress(allprogress, progress){
   let current = allprogress.flat();
 
@@ -397,6 +418,8 @@ function fileSize(bytes){
   }
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 async function downloadBlobs(blobs){
   let results = [];
   for (let blob of blobs){
@@ -410,6 +433,8 @@ async function downloadBlobs(blobs){
   return results;
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 function handleResponse(message){
   if (message.response === "Success"){
     asLog("%cDownloading:", "color: #006efe", message.filename);
@@ -418,6 +443,8 @@ function handleResponse(message){
     asLog("%cFailed to download:", "color: #d70022", message.filename);
   }
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function updateList(site, user, id){
   let message = await browser.runtime.sendMessage({function: "updatelist", site, user, id});
@@ -449,9 +476,13 @@ browser.runtime.onMessage.addListener(message => {
   }
 });
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 function downloadAll(){
   $$(".artsaver-download").forEach(d => d.click());
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function sendStats(){
   let downloads = $$(".artsaver-download").length;
@@ -480,6 +511,8 @@ function sendStats(){
     userInfo(page);
   }
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function userInfo(page){
   let user = {
