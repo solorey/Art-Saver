@@ -47,7 +47,7 @@ async function navigateStacks(urls){
     let thumbreg = /gmi-stashid(?:.|\n)+?<\//g;
     let result;
     let stashthumbs = [];
-    while ((result = thumbreg.exec(sr)) !== null) {
+    while ((result = thumbreg.exec(sr)) !== null){
       stashthumbs.push(result[0]);
     }
 
@@ -66,7 +66,7 @@ async function navigateStacks(urls){
 
   let urlslist = urls;
   let stacks;
-  while((stacks = urlslist.filter(u => /\/2/.test(u))).length > 0){
+  while ((stacks = urlslist.filter(u => /\/2/.test(u))).length > 0){
     let responses = await Promise.all(stacks.map(g => fetcher(g, "text")));
     let stackurls = responses.map(r => stackUrls(r));
 
@@ -80,7 +80,7 @@ async function getStashMeta(sr, url){
   meta.stashSubmissionId = /gmi-deviationid="(\d+)"/.exec(sr)[1];
   meta.stashTitle = /<a class="title".+?>([^<]+)/.exec(sr)[1];
   meta.stashUserName = /username".+?>(.+?)</.exec(sr)[1];
-  meta.stashUrlId = url.split("/").pop();
+  meta.stashUrlId = url.split("/0").pop();
 
   info.downloadurl = /dev-page-download(?:.|\n)+?href="(.+?)"/.exec(sr)[1].replace("amp;","");
 
@@ -96,8 +96,6 @@ async function getStashMeta(sr, url){
     }
     info.downloadurl = full[1];
   }
-
-  info.blob = await fetcher(info.downloadurl, "blob");
 
   let reg = /(?:''|\/)([^\/?]+)\.(\w+)(?:\?token=.+)?$/.exec(attachment || fileres.url);
   if (reg){
