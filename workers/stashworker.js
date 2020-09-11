@@ -82,7 +82,7 @@ async function getStashMeta(sr, url){
   meta.stashUserName = /username".+?>(.+?)</.exec(sr)[1];
   meta.stashUrlId = url.split("/0").pop();
 
-  info.downloadurl = /dev-page-download(?:.|\n)+?href="(.+?)"/.exec(sr)[1].replace("amp;","");
+  info.downloadurl = /dev-page-download(?:.|\n)+?href="(.+?)"/.exec(sr)[1].replace(/&amp;/g, "&");
 
   let fileres = await fetcher(info.downloadurl);
   let attachment;

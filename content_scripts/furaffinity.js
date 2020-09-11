@@ -259,7 +259,7 @@ as.furaffinity.download.getMeta = function(r, url, progress){
   meta.site = "furaffinity";
   meta.userName = /([^ ]+)(?: -- )/.exec($(r, "title").textContent)[1];
 
-  info.downloadurl = decodeURI($(r, 'a[href^="//d.facdn.net/art/"]').href);
+  info.downloadurl = decodeURI($(r, 'a[href^="//d2.facdn.net/art/"]').href);
   let reg = /\/((\d+)\.([^_]+)[^\/]+)\.(\w+)$/.exec(info.downloadurl);
   meta.fileName = reg[1];
   meta.fileId = reg[2];
