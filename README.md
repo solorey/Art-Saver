@@ -24,7 +24,7 @@ View the [Supported Sites][sites].
 ## Features
 - Custom filenames
 - Download full image resolution
-- Export and restore what you have saved
+- Export and restore the information on what you saved
 
 ## Credits
 Inspired by:
