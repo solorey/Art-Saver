@@ -217,8 +217,7 @@ as.pixiv.check.checkSubmission = function(user, url){
 
     let holder = $(presentation, ".artsaver-holder");
     if (!holder){
-      holder = $insert(submission, "div", "beforebegin");
-      holder.className = "artsaver-holder";
+      holder = $insert(submission, "div", {position: "beforebegin", class: "artsaver-holder"});
     }
 
     holder.style = `position:absolute; width:${submission.width}px; height:${submission.height}px;`;
@@ -253,19 +252,36 @@ as.pixiv.download.startDownloading = async function(pageurl, progress){
     let downloads = this.createDownloads(info, meta, options);
 
     let results = await this.handleDownloads(downloads, info, options, progress);
-    if (results.some(r => r === "Success")){
+    if (results.some(r => r.response === "Success")){
       progress.say("Updating");
       await updateList(info.savedSite, info.savedUser, info.savedId);
     }
 
     progress.remove();
     reCheck();
+
+    return {
+      status: "Success",
+      submission: {
+        url: pageurl,
+        user: downloads[0].meta.userName,
+        id: info.savedId,
+        title: downloads[0].meta.title
+      },
+      files: results
+    };
   }
   catch (err){
     asLog(err);
     progress.error();
+
+    return {
+      status: "Failure",
+      error: err,
+      url: pageurl,
+      progress
+    };
   }
-  return;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

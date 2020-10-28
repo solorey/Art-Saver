@@ -17,14 +17,30 @@ function $create(element){
   return document.createElement(element);
 }
 
-function $insert(elem1, elem2, position = "beforeend"){
+function $insert(elem1, elem2, attrs = {}){
+  attrs = {
+    position: "beforeend",
+    ...attrs
+  };
+
   let newelem = $create(elem2);
-  if (position === "parent"){
+
+  if (attrs.class){
+    newelem.className = attrs.class;
+  }
+  if (attrs.text){
+    newelem.textContent = attrs.text;
+  }
+  if (attrs.id){
+    newelem.id = attrs.id;
+  }
+
+  if (attrs.position === "parent"){
     elem1.insertAdjacentElement("beforebegin", newelem);
     newelem.insertAdjacentElement("beforeend", elem1);
   }
   else {
-    elem1.insertAdjacentElement(position, newelem);
+    elem1.insertAdjacentElement(attrs.position, newelem);
   }
   return newelem;
 }

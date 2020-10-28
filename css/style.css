@@ -1,3 +1,44 @@
+.artsaver-tip, .artsaver-bar-text, .artsaver-infobar {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 12px;
+}
+
+.artsaver-infobar #list-files .list-bar .switch {
+  position: relative;
+  width: 2.6666666667em;
+  height: 1.5em;
+  border-radius: 0.75em;
+  background-color: #f0f0f0;
+  margin-right: 0.5em;
+  transition: 0.2s;
+  flex-shrink: 0;
+}
+label:hover .artsaver-infobar #list-files .list-bar .switch, .artsaver-infobar #list-files .list-bar label:hover .switch {
+  background-color: #e0e0e0;
+}
+.artsaver-infobar #list-files .list-bar input:checked + .switch {
+  background-color: #0a84ff;
+}
+label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .artsaver-infobar #list-files .list-bar label:hover input:checked + .switch {
+  background-color: #249cffff;
+}
+.artsaver-infobar #list-files .list-bar .switch::after {
+  content: "";
+  position: absolute;
+  width: 1em;
+  height: 1em;
+  left: 0.25em;
+  bottom: 0.25em;
+  border-radius: 0.5em;
+  background-color: #fff;
+  transition: 0.2s;
+}
+.artsaver-infobar #list-files .list-bar input:checked + .switch::after {
+  left: 1.4166666667em;
+}
+
 .artsaver-bar, .artsaver-progress, .artsaver-error, .artsaver-loading, .artsaver-download, .artsaver-check {
   position: absolute;
   top: 0;
@@ -14,16 +55,6 @@
   background-size: var(--as-icon-size) var(--as-icon-size);
   height: var(--as-icon-size);
   width: var(--as-icon-size);
-}
-
-.artsaver-bar, .artsaver-progress {
-  height: 16px;
-}
-
-.artsaver-bar-text, .artsaver-tip {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  font-style: normal;
-  font-weight: normal;
 }
 
 .artsaver-check[data-color=green] {
@@ -73,12 +104,10 @@
 }
 
 .artsaver-tip {
-  font-size: 12px;
-  line-height: 16px;
   top: 0;
-  background-color: #fff;
-  border-radius: 3px;
-  color: #4d555c;
+  background-color: white;
+  border-radius: 0.25em;
+  color: black;
   position: absolute;
   text-align: center;
   width: auto;
@@ -98,13 +127,13 @@
   border-spacing: 0;
 }
 .artsaver-tip table td {
-  padding: 2px 6px;
+  padding: 0.25em 0.5em;
 }
 .artsaver-tip table td:first-child {
   background-color: #f0f0f0;
 }
 .artsaver-tip table tr:last-child {
-  border-top: 1px solid #e0e0e0;
+  border-top: 0.0833333333em solid #e0e0e0;
 }
 
 .artsaver-holder {
@@ -116,7 +145,8 @@
 }
 
 .artsaver-progress {
-  border-radius: 4px;
+  height: 16px;
+  border-radius: 0.25em;
   overflow: hidden;
   width: 100%;
   background-color: #4d555c;
@@ -131,22 +161,22 @@
   }
 }
 .artsaver-bar {
+  height: 100%;
   animation: animate-stripes 1s linear infinite;
-  background-color: #006efe;
-  background-image: linear-gradient(135deg, #0a84ff 25%, transparent 25%, transparent 50%, #0a84ff 50%, #0a84ff 75%, transparent 75%, transparent);
+  background-color: #0a84ff;
+  background-image: linear-gradient(135deg, #249cffff 25%, transparent 25%, transparent 50%, #249cffff 50%, #249cffff 75%, transparent 75%, transparent);
   background-size: 32px 32px;
-  border-radius: 4px;
+  border-radius: 0.25em;
   box-sizing: border-box;
-  color: #fff;
+  color: white;
 }
 
 .artsaver-bar-text {
-  font-size: calc(16px - 4px);
-  line-height: 16px;
-  padding-left: calc(16px + 3px);
-  padding-right: 3px;
+  padding-left: calc(16px + 0.25em);
+  padding-right: 0.25em;
   text-align: right;
   white-space: nowrap;
+  line-height: normal;
 }
 
 .artsaver-screen {
@@ -155,7 +185,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  background-color: #808080;
+  background-color: gray;
   display: flex;
 }
 .artsaver-screen > div {
@@ -167,8 +197,260 @@
   width: 80%;
   height: 80%;
   object-fit: contain;
-  background-image: url("/icons/check_flat.svg");
+  background-image: url("/icons/flat/check_flat.svg");
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+}
+
+.artsaver-infobar {
+  position: fixed;
+  bottom: 8px;
+  left: 8px;
+  width: 350px;
+  border-radius: 0.25em;
+  box-shadow: 0px 2px 5px #0000000e;
+  min-width: 150px;
+  overflow: hidden;
+  resize: horizontal;
+  z-index: 1001;
+  background-color: white;
+  color: black;
+  visibility: visible;
+  opacity: 1;
+  transition-property: visibility, opacity, bottom;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-out;
+}
+.artsaver-infobar[data-display=hide] {
+  visibility: hidden;
+  opacity: 0;
+  bottom: 0;
+}
+.artsaver-infobar #infobar {
+  display: flex;
+}
+.artsaver-infobar #collapse {
+  padding: 0.5em 0.75em;
+  width: 1.3333333333em;
+  flex-shrink: 0;
+  background-position: center;
+  background-size: 1.3333333333em 1.3333333333em;
+  background-repeat: no-repeat;
+  background-image: url("/icons/flat/collapse.svg");
+  cursor: pointer;
+}
+.artsaver-infobar #collapse:hover {
+  background-color: #f0f0f0;
+}
+.artsaver-infobar #queue {
+  padding: 0.25em 0.5em;
+  background-color: #f0f0f0;
+  border-top: 0.0833333333em solid #e0e0e0;
+}
+.artsaver-infobar #queue-stats > div {
+  margin: 0 auto;
+  padding: 0 0.25em;
+}
+.artsaver-infobar .list-box {
+  border-bottom: 0.0833333333em solid #e0e0e0;
+}
+.artsaver-infobar .list-box .list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.artsaver-infobar .list-box .row {
+  display: flex;
+}
+.artsaver-infobar .list-box .row:not(:last-of-type) {
+  border-bottom: 0.0833333333em solid #e0e0e0;
+}
+.artsaver-infobar .list-box .row .row-text {
+  flex: 1;
+  display: flex;
+  padding: 0.25em 0.75em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.artsaver-infobar .list-box .row .row-text > div:nth-of-type(1) {
+  flex-basis: 25%;
+}
+.artsaver-infobar .list-box .row .row-text > div:nth-of-type(2) {
+  flex-basis: 25%;
+}
+.artsaver-infobar .list-box .row .row-text > div:nth-of-type(3) {
+  flex-basis: 10%;
+}
+.artsaver-infobar .list-box .row .row-text > div:nth-of-type(4) {
+  flex-basis: 40%;
+}
+.artsaver-infobar .list-box .row .row-text > div:not(:last-of-type) {
+  padding-right: 0.25em;
+}
+.artsaver-infobar .list-box .row .row-buttons {
+  line-height: 0;
+  display: flex;
+}
+.artsaver-infobar .list-box .row button, .artsaver-infobar .list-box .row a {
+  display: inline-block;
+  border: none;
+  line-height: inherit;
+  color: black !important;
+  box-sizing: border-box;
+  padding: 0;
+  width: 2em;
+  height: 100%;
+  font-size: inherit !important;
+  font-family: inherit;
+  background-color: #f0f0f0;
+  background-position: center;
+  background-size: 1em 1em;
+  background-repeat: no-repeat;
+}
+.artsaver-infobar .list-box .row button.link, .artsaver-infobar .list-box .row a.link {
+  background-image: url("/icons/flat/link.svg");
+}
+.artsaver-infobar .list-box .row button.folder, .artsaver-infobar .list-box .row a.folder {
+  background-image: url("/icons/flat/folder.svg");
+}
+.artsaver-infobar .list-box .row button:hover, .artsaver-infobar .list-box .row a:hover {
+  background-color: #e0e0e0;
+}
+.artsaver-infobar .list-box .list-bar {
+  padding: 0.5em 0.75em;
+  background-color: #f0f0f0;
+  border-top: 0.0833333333em solid #e0e0e0;
+}
+.artsaver-infobar #list-errors .row {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-bottom: none;
+}
+.artsaver-infobar #list-errors .row:not(:last-of-type) .row-text {
+  border-bottom: 0.0833333333em solid #f5c6cb;
+}
+.artsaver-infobar #list-errors .row:not(:last-of-type) .row-buttons {
+  border-bottom: 0.0833333333em solid #e0e0e0;
+}
+.artsaver-infobar #stat-errors {
+  color: #721c24;
+  background-color: #f8d7da;
+}
+.artsaver-infobar #stat-errors:hover, .artsaver-infobar #stat-errors .badge {
+  background-color: #f5c6cb;
+}
+.artsaver-infobar #history-stats {
+  flex: 1;
+}
+.artsaver-infobar #history-stats > div {
+  display: flex;
+  padding: 0.5em 0.75em;
+  white-space: nowrap;
+}
+.artsaver-infobar #history-stats > div.stat-button {
+  cursor: pointer;
+}
+.artsaver-infobar #history-stats > div.stat-button:hover:not(#stat-errors) {
+  background-color: #f0f0f0;
+}
+.artsaver-infobar #history-stats > div > :first-child {
+  margin: auto auto auto 0;
+}
+.artsaver-infobar #history-stats > div > :last-child {
+  margin: auto 0 auto 0.75em;
+}
+.artsaver-infobar #history-stats > div.expand {
+  flex: 1;
+}
+.artsaver-infobar #queue-stats, .artsaver-infobar #history-stats {
+  display: flex;
+  white-space: nowrap;
+}
+.artsaver-infobar #list-files.hide-folders .row-text > span:first-of-type {
+  display: none;
+}
+.artsaver-infobar #list-files .list-bar {
+  display: flex;
+}
+.artsaver-infobar #list-files .list-bar > div {
+  padding-right: 0.25em;
+}
+.artsaver-infobar #list-files .list-bar input {
+  display: none;
+}
+.artsaver-infobar #list-files .list-bar label {
+  display: flex;
+  margin: 0 auto;
+  cursor: pointer;
+}
+.artsaver-infobar #list-files .list-bar .switch {
+  margin-left: 0.5em;
+  margin-right: 0;
+  background-color: #e0e0e0;
+}
+.artsaver-infobar .hide {
+  display: none !important;
+}
+.artsaver-infobar .artsaver-progress {
+  margin-top: 0.25em;
+  position: relative;
+  height: 1.3333333333em;
+}
+.artsaver-infobar .artsaver-progress .artsaver-bar[style="width: 100%;"] {
+  background: #0a84ff;
+}
+.artsaver-infobar .artsaver-progress .artsaver-bar-text {
+  padding-left: 0.25em;
+}
+.artsaver-infobar .badge {
+  display: inline;
+  background-color: #f0f0f0;
+  border-radius: 0.25em;
+  padding: 0.25em 0.5em;
+  font-weight: 600;
+}
+
+.artsaver-show-infobar {
+  width: 6em;
+  height: 3em;
+  position: fixed;
+  bottom: 0;
+  left: calc(-1.5833333333em + 8px);
+  border-radius: 3em 3em 0 0;
+  overflow: hidden;
+  opacity: 0;
+  z-index: 1002;
+  font-size: 12px;
+}
+.artsaver-show-infobar:hover {
+  opacity: 1;
+}
+.artsaver-show-infobar #show-tab {
+  padding: 0.5em 0.75em;
+  width: 1.3333333333em;
+  flex-shrink: 0;
+  background-color: white;
+  height: 1.3333333333em;
+  bottom: -1.6666666667em;
+  position: relative;
+  margin: auto;
+  scale: -1;
+  border-radius: 0 0 0.25em 0.25em;
+  opacity: 0.5;
+  transition-property: opacity, bottom;
+  transition-duration: 0.1s;
+  transition-timing-function: ease-out;
+  box-shadow: 0px 2px 5px #0000000e;
+  background-position: center;
+  background-size: 1.3333333333em 1.3333333333em;
+  background-repeat: no-repeat;
+  background-image: url("/icons/flat/collapse.svg");
+  cursor: pointer;
+}
+.artsaver-show-infobar #show-tab:hover {
+  opacity: 1;
+  bottom: -1.1666666667em;
+}
+.artsaver-show-infobar.hide, .artsaver-show-infobar .hide {
+  display: none !important;
 }

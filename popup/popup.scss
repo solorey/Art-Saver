@@ -1,16 +1,16 @@
+@use "../css/template" as *;
+
+$stat-width: 140px;
+
 html {
-  font-size: 75%;
+  @extend %font;
 }
 
-//3px = .25rem
-//6px = .5rem
-//12px = 1rem
-
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  padding: 0px;
+  padding: 0;
   overflow: hidden;
   margin: 0;
+  color: $color-text;
 }
 
 *{
@@ -20,35 +20,6 @@ body {
 button {
   cursor: pointer;
 }
-
-$white: #fff;
-$grey: #f0f0f0;
-$grey-dark: #e0e0e0;
-
-$green: #07cc07;
-$green-hover: scale-color($green, $lightness: 5%);
-$green-active: scale-color($green, $lightness: 10%);
-
-//old blue #0786cf
-$blue: #0a84ff;
-$blue-hover: #249cffff;
-$blue-active: $blue-hover; 
-
-$border-style: 1px solid $grey-dark;
-
-$radius: .25rem;
-
-$stat-width: 140px;
-
-$vert-pad: .5rem;
-$horz-pad: .75rem;
-
-$base-padding: $vert-pad $horz-pad;
-
-$vert-button-pad: .25rem;
-$horz-button-pad: .5rem;
-
-$base-button-padding: $vert-button-pad $horz-button-pad;
 
 #popup-container {
   //display: table;
@@ -65,23 +36,27 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   }
 
   > button {
+    color: $color-text;
     background-color: inherit;
     border: none;
     outline: none;
     padding: $vert-pad $horz-pad*2;
-    transition: 0.3s;
-    font-size: 16px;
+    transition: {
+      property: background-color;
+      duration: .3s;
+    };
+    font-size: u(16);
 
     &:not(#settings-tab){
       display: none;
     }
 
     &:hover {
-      background-color: $grey;
+      background-color: $color-1;
     }
 
     &.active {
-      background-color: $grey-dark;
+      background-color: $color-2;
     }
   }
 }
@@ -91,8 +66,8 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 }
 
 .header {
-  background-color: $grey;
-  border-top: $border-style;
+  background-color: $color-1;
+  border-top: $style-border;
   padding: $base-padding;
 }
 
@@ -101,7 +76,7 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 }
 
 .stat-row {
-  border-top: $border-style;
+  border-top: $style-border;
   padding: $base-padding;
 
   display: flex;
@@ -125,7 +100,7 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 }
 
 #user-stats {
-  border-left: $border-style;
+  border-left: $style-border;
   display: none;
   min-width: $stat-width;
   flex-direction: column;
@@ -133,10 +108,10 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 }
 
 #profile-cover {
-  background-color: $grey;
+  background-color: $color-1;
   padding: $vert-pad;
   text-align: center;
-  border-top: $border-style;
+  border-top: $style-border;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -144,12 +119,14 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   min-width: 110px;
 
   > div {
-    margin: .25rem auto;
+    margin: u(3) auto;
   }
 }
 
 #profile-pic {
-  max-width: 50px;
+  width: u(50);
+  height: u(50);
+  
   object: {
     fit: cover;
     position: top center;
@@ -157,10 +134,10 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 }
 
 .img-thumbnail {
-  background-color: $white;
-  border: $border-style;
+  background-color: $color-0;
+  border: $style-border;
   border-radius: $radius;
-  font-size: 0px;
+  line-height: 0;
   display: table;
   margin: auto;
   padding: $vert-button-pad;
@@ -183,7 +160,7 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 #user-name {
   font: {
     weight: 600;
-    size: 1.25rem;
+    size: u(16);
   }
   white-space: nowrap;
 }
@@ -195,17 +172,17 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 }
 
 .icon-button {
-  background-color: $white;
-  border: $border-style;
+  background-color: $color-0;
+  border: $style-border;
   border-radius: $radius;
   padding: $base-button-padding;
 
   cursor: pointer;
-  color: rgb(20, 20, 20);
+  color: $color-text;
   font-size: 1rem;
   text-align: center;
   text-decoration: none;
-  margin: 0 2px;
+  margin: 0 u(2);
   display: flex;
 
   > i {
@@ -213,7 +190,7 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   }
 
   &:hover {
-    background-color: $grey;
+    background-color: $color-1;
   }
 
   &#user-folder {
@@ -222,7 +199,7 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 }
 
 .badge {
-  background-color: $grey;
+  background-color: $color-1;
   border-radius: $radius;
   padding: $base-button-padding;
   font-weight: 600;
@@ -230,12 +207,12 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 
 .search-box {
   display: none;
-  border-top: $border-style;
+  border-top: $style-border;
   width: 100%;
 
   .search {
-    padding: calc(.25rem - 1px) $horz-pad;
-    background-color: $grey;
+    padding: u(2) $horz-pad;
+    background-color: $color-1;
     display: flex;
 
     button {
@@ -245,8 +222,8 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
     }
   
     input {
-      background-color: $white;
-      border: $border-style;
+      background-color: $color-0;
+      border: $style-border;
       border-radius: $radius 0 0 $radius;
       padding: $base-button-padding;
       width: 100%;
@@ -258,7 +235,7 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   }
 
   .list {
-    border-top: $border-style;
+    border-top: $style-border;
     position: relative;
     overflow: auto;
     resize: vertical;
@@ -273,16 +250,16 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
       position: absolute;
       display: block;
       text-decoration: none;
-      color: rgb(20, 20, 20);
-      padding: 1px 1.75rem;
+      color: $color-text;
+      padding: u(1) u(21);
       transition: padding-left 0.2s;
       white-space: nowrap;
       overflow: hidden;
       width: 100%;
 
       &:hover {
-        background-color: $grey;
-        padding-left: 1.75rem + .5rem;
+        background-color: $color-1;
+        padding-left: u(27);
       }
 
       .link-search {
@@ -301,12 +278,12 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   white-space: nowrap;
 
   &:hover {
-    background-color: $grey;
+    background-color: $color-1;
   }
 }
 
 .search-holder {
-  height: 0px;
+  height: 0;
   overflow: hidden;
   transition: height 0.5s;
 }
@@ -318,12 +295,12 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 .button-stat {
   padding: $base-button-padding;;
   border-radius: $radius;
-  background-color: $white;
+  background-color: $color-0;
 }
 
 #recheck {
   background-color: $green;
-  color: $white;
+  color: $color-0;
   border: 0;
 
   .button-stat {
@@ -331,26 +308,26 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   }
 
   &:hover {
-    background-color: $green-hover;
+    background-color: $green-light-1;
   }
 
   &:active {
-    background-color: $green-active;
+    background-color: $green-light-2;
   }
 }
 
 
 #download-all, #download-lock {
   background-color: $blue;
-  color: $white;
+  color: $color-0;
   border: 0;
 
   &:hover {
-    background-color: $blue-hover;
+    background-color: $blue-light-1;
   }
 
   &:active {
-    background-color: $blue-active;
+    background-color: $blue-light-2;
   }
 }
   
@@ -360,9 +337,9 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   }
 
   &[disabled] {
-    background-color: $grey;
+    background-color: $color-1;
     pointer-events: none;
-    color: scale-color($grey, $lightness: -50%);
+    color: scale-color($color-1, $lightness: -50%);
 
     .button-stat {
       color: inherit;
@@ -379,7 +356,7 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 }
 
 #found-stats {
-  border-top: $border-style;
+  border-top: $style-border;
   display: flex;
   flex: 1;
 }
@@ -418,19 +395,19 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
 }
 
 #unsupported-page {
-  border-top: $border-style;
+  border-top: $style-border;
   background-color: #fff3cd;
   color: #856404;
 
   .linebreak {
-    border-top: 1px solid #856404;
-    margin: .5rem 0rem;
+    border-top: u(1) solid #856404;
+    margin: u(6) 0;
   }
 }
 
 %information{
-  width: 250px;
-  padding: .75rem 1.25rem;
+  width: u(250);
+  padding: u(9) u(15);
   margin: auto;
 }
 
@@ -442,19 +419,24 @@ $base-button-padding: $vert-button-pad $horz-button-pad;
   @extend %information;
   display: flex;
 
+  .loading-icon {
+    width: u(16);
+    height: u(16);
+  }
+
   > div {
     margin: auto;
   }
 }
 
 #getting-page {
-  border-top: $border-style;
-  background-color: $grey;
+  border-top: $style-border;
+  background-color: $color-1;
 }
 
 #link-tester {
   padding: {
-    left: $horz-pad + .5rem;
+    left: $horz-pad + u(6);
     right: $horz-pad;
   }
   position: absolute;

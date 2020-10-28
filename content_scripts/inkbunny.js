@@ -139,8 +139,7 @@ as.inkbunny.check.checkSubmission = function(user, url){
 
     let holder = $(contentbox, ".artsaver-holder");
     if (!holder){
-      holder = $insert(submission, "div", "parent");
-      holder.className = "artsaver-holder";
+      holder = $insert(submission, "div", {position: "parent", class: "artsaver-holder"});
     }
 
     addButton("inkbunny", user, subid, submission, holder, url, "beforeend", false);
@@ -169,19 +168,36 @@ as.inkbunny.download.startDownloading = async function(pageurl, progress){
     let downloads = await this.createDownloads(info, meta, options, progress);
 
     let results = await this.handleDownloads(downloads, progress);
-    if (results.some(r => r === "Success")){
+    if (results.some(r => r.response === "Success")){
       progress.say("Updating");
       await updateList(info.savedSite, info.savedUser, info.savedId);
     }
 
     progress.remove();
     reCheck();
+    
+    return {
+      status: "Success",
+      submission: {
+        url: pageurl,
+        user: info.savedUser,
+        id: info.savedId,
+        title: downloads[0].meta.title
+      },
+      files: results
+    };
   }
   catch (err){
     asLog(err);
     progress.error();
+
+    return {
+      status: "Failure",
+      error: err,
+      url: pageurl,
+      progress
+    };
   }
-  return;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -262,7 +278,7 @@ as.inkbunny.download.createDownloads = async function(info, meta, options, progr
     while (true){
       let page = await fetcher(`https://inkbunny.net/s/${meta.submissionId}-p${i}`, "document");
       if (page instanceof Error){
-        await timer(4000);
+        await timer(4); //seconds
       }
       else {
         results.push(page);
@@ -281,12 +297,6 @@ as.inkbunny.download.createDownloads = async function(info, meta, options, progr
   }
 
   return downloads;
-}
-
-async function timer(ms){
-  return await new Promise((resolve, reject) => {
-    setTimeout(resolve, ms);
-  });
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -1,12 +1,15 @@
 html {
-  font-size: 75%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 12px;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  padding: 0px;
+  padding: 0;
   overflow: hidden;
   margin: 0;
+  color: black;
 }
 
 * {
@@ -30,12 +33,14 @@ button {
   margin-left: auto;
 }
 .tabs > button {
+  color: black;
   background-color: inherit;
   border: none;
   outline: none;
-  padding: 0.5rem 1.5rem;
-  transition: 0.3s;
-  font-size: 16px;
+  padding: 0.5em 1.5em;
+  transition-property: background-color;
+  transition-duration: 0.3s;
+  font-size: 1.3333333333em;
 }
 .tabs > button:not(#settings-tab) {
   display: none;
@@ -53,8 +58,8 @@ button {
 
 .header {
   background-color: #f0f0f0;
-  border-top: 1px solid #e0e0e0;
-  padding: 0.5rem 0.75rem;
+  border-top: 0.0833333333em solid #e0e0e0;
+  padding: 0.5em 0.75em;
 }
 
 #stats-site {
@@ -62,8 +67,8 @@ button {
 }
 
 .stat-row {
-  border-top: 1px solid #e0e0e0;
-  padding: 0.5rem 0.75rem;
+  border-top: 0.0833333333em solid #e0e0e0;
+  padding: 0.5em 0.75em;
   display: flex;
   flex: 1;
 }
@@ -74,7 +79,7 @@ button {
   margin: auto auto auto 0;
 }
 .stat-row > :last-child {
-  margin: auto 0 auto 0.75rem;
+  margin: auto 0 auto 0.75em;
 }
 
 #user-profile {
@@ -82,7 +87,7 @@ button {
 }
 
 #user-stats {
-  border-left: 1px solid #e0e0e0;
+  border-left: 0.0833333333em solid #e0e0e0;
   display: none;
   min-width: 140px;
   flex-direction: column;
@@ -91,9 +96,9 @@ button {
 
 #profile-cover {
   background-color: #f0f0f0;
-  padding: 0.5rem;
+  padding: 0.5em;
   text-align: center;
-  border-top: 1px solid #e0e0e0;
+  border-top: 0.0833333333em solid #e0e0e0;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -101,23 +106,24 @@ button {
   min-width: 110px;
 }
 #profile-cover > div {
-  margin: 0.25rem auto;
+  margin: 0.25em auto;
 }
 
 #profile-pic {
-  max-width: 50px;
+  width: 4.1666666667em;
+  height: 4.1666666667em;
   object-fit: cover;
   object-position: top center;
 }
 
 .img-thumbnail {
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 0.25rem;
-  font-size: 0px;
+  background-color: white;
+  border: 0.0833333333em solid #e0e0e0;
+  border-radius: 0.25em;
+  line-height: 0;
   display: table;
   margin: auto;
-  padding: 0.25rem;
+  padding: 0.25em;
 }
 
 @keyframes rotation {
@@ -135,27 +141,27 @@ button {
 
 #user-name {
   font-weight: 600;
-  font-size: 1.25rem;
+  font-size: 1.3333333333em;
   white-space: nowrap;
 }
 
 #user-buttons {
-  margin-top: 0.25rem;
+  margin-top: 0.25em;
   display: none;
   justify-content: center;
 }
 
 .icon-button {
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 0.25rem;
-  padding: 0.25rem 0.5rem;
+  background-color: white;
+  border: 0.0833333333em solid #e0e0e0;
+  border-radius: 0.25em;
+  padding: 0.25em 0.5em;
   cursor: pointer;
-  color: #141414;
+  color: black;
   font-size: 1rem;
   text-align: center;
   text-decoration: none;
-  margin: 0 2px;
+  margin: 0 0.1666666667em;
   display: flex;
 }
 .icon-button > i {
@@ -170,37 +176,37 @@ button {
 
 .badge {
   background-color: #f0f0f0;
-  border-radius: 0.25rem;
-  padding: 0.25rem 0.5rem;
+  border-radius: 0.25em;
+  padding: 0.25em 0.5em;
   font-weight: 600;
 }
 
 .search-box {
   display: none;
-  border-top: 1px solid #e0e0e0;
+  border-top: 0.0833333333em solid #e0e0e0;
   width: 100%;
 }
 .search-box .search {
-  padding: calc(.25rem - 1px) 0.75rem;
+  padding: 0.1666666667em 0.75em;
   background-color: #f0f0f0;
   display: flex;
 }
 .search-box .search button {
-  border-radius: 0 0.25rem 0.25rem 0;
+  border-radius: 0 0.25em 0.25em 0;
   border-left: none;
   margin: 0;
 }
 .search-box .search input {
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 0.25rem 0 0 0.25rem;
-  padding: 0.25rem 0.5rem;
+  background-color: white;
+  border: 0.0833333333em solid #e0e0e0;
+  border-radius: 0.25em 0 0 0.25em;
+  padding: 0.25em 0.5em;
   width: 100%;
   font-size: inherit;
   font-family: inherit;
 }
 .search-box .list {
-  border-top: 1px solid #e0e0e0;
+  border-top: 0.0833333333em solid #e0e0e0;
   position: relative;
   overflow: auto;
   resize: vertical;
@@ -214,8 +220,8 @@ button {
   position: absolute;
   display: block;
   text-decoration: none;
-  color: #141414;
-  padding: 1px 1.75rem;
+  color: black;
+  padding: 0.0833333333em 1.75em;
   transition: padding-left 0.2s;
   white-space: nowrap;
   overflow: hidden;
@@ -223,7 +229,7 @@ button {
 }
 .search-box .link-list > a:hover {
   background-color: #f0f0f0;
-  padding-left: 2.25rem;
+  padding-left: 2.25em;
 }
 .search-box .link-list > a .link-search {
   font-weight: 700;
@@ -242,7 +248,7 @@ button {
 }
 
 .search-holder {
-  height: 0px;
+  height: 0;
   overflow: hidden;
   transition: height 0.5s;
 }
@@ -252,14 +258,14 @@ button {
 }
 
 .button-stat {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  background-color: #fff;
+  padding: 0.25em 0.5em;
+  border-radius: 0.25em;
+  background-color: white;
 }
 
 #recheck {
   background-color: #07cc07;
-  color: #fff;
+  color: white;
   border: 0;
 }
 #recheck .button-stat {
@@ -274,14 +280,14 @@ button {
 
 #download-all, #download-lock {
   background-color: #0a84ff;
-  color: #fff;
+  color: white;
   border: 0;
 }
 #download-all:hover, #download-lock:hover {
   background-color: #249cffff;
 }
 #download-all:active, #download-lock:active {
-  background-color: #249cffff;
+  background-color: #2fa1ff;
 }
 
 #download-all .button-stat {
@@ -297,14 +303,14 @@ button {
 }
 
 #download-lock {
-  padding: 0 0.5rem;
+  padding: 0 0.5em;
 }
 #download-lock i {
   font-size: 1rem;
 }
 
 #found-stats {
-  border-top: 1px solid #e0e0e0;
+  border-top: 0.0833333333em solid #e0e0e0;
   display: flex;
   flex: 1;
 }
@@ -315,10 +321,10 @@ button {
   font-size: inherit;
   font-family: inherit;
   font-weight: 600;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5em 0.75em;
 }
 .flex-button > :last-child {
-  margin: auto 0 auto 0.75rem;
+  margin: auto 0 auto 0.75em;
 }
 .flex-button .label-1 {
   margin: auto;
@@ -336,36 +342,40 @@ button {
 }
 
 #unsupported-page {
-  border-top: 1px solid #e0e0e0;
+  border-top: 0.0833333333em solid #e0e0e0;
   background-color: #fff3cd;
   color: #856404;
 }
 #unsupported-page .linebreak {
-  border-top: 1px solid #856404;
-  margin: 0.5rem 0rem;
+  border-top: 0.0833333333em solid #856404;
+  margin: 0.5em 0;
 }
 
 #getting-info, #unsupported-info {
-  width: 250px;
-  padding: 0.75rem 1.25rem;
+  width: 20.8333333333em;
+  padding: 0.75em 1.25em;
   margin: auto;
 }
 
 #getting-info {
   display: flex;
 }
+#getting-info .loading-icon {
+  width: 1.3333333333em;
+  height: 1.3333333333em;
+}
 #getting-info > div {
   margin: auto;
 }
 
 #getting-page {
-  border-top: 1px solid #e0e0e0;
+  border-top: 0.0833333333em solid #e0e0e0;
   background-color: #f0f0f0;
 }
 
 #link-tester {
-  padding-left: 1.25rem;
-  padding-right: 0.75rem;
+  padding-left: 1.25em;
+  padding-right: 0.75em;
   position: absolute;
   top: 0;
   opacity: 0;

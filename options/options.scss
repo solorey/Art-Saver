@@ -1,23 +1,8 @@
+@use "../css/template" as *;
+
 html {
-  font-size: 75%;
+  @extend %font;
 }
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-}
-
-$px1: 1rem/12;
-
-$grey: #f0f0f0;
-$grey-dark: #e0e0e0;
-
-//old blue #0786cf
-$blue: #0a84ff;
-$blue-hover: #249cffff;
-$blue-active: $blue-hover;
-
-$border-style: $px1 solid $grey-dark;
-$round: .25rem;
 
 #options-container {
   margin: 0 auto;
@@ -32,20 +17,20 @@ table {
 
 caption {
   text-align: center;
-  padding: .5rem 0;
+  padding: u(6) 0;
 }
 
 td {
-  padding: .75rem 1.5rem;
+  padding: u(9) u(18);
 }
 
 th {
-  background-color: $grey;
-  padding: .5rem 1.5rem;
+  background-color: $color-1;
+  padding: u(6) u(18);
 }
 
 tr {
-  border-top: $border-style;
+  border-top: $style-border;
 }
 
 #saved-table {
@@ -66,49 +51,50 @@ tr {
 }
 
 i[class^=icon] {
-  margin-right: .5rem;
+  margin-right: u(6);
 }
 
 .badge {
-  background-color: $grey;
-  border-radius: $round;
-  padding: .25rem .5rem;
-  color: black;
+  background-color: $color-1;
+  border-radius: $radius;
+  padding: u(3) u(6);
+  color: $color-text;
   font-weight: 600;
 }
 
 form {
-  margin: 1rem 0;
+  margin: u(12) 0;
 }
 
 button {
   font-family: inherit;
-  font-size: 1rem;
-  padding: .5rem .5rem;
+  font-size: inherit;
+  padding: u(6);
   border: 0;
-  border-radius: $round;
+  border-radius: $radius;
   cursor: pointer;
   text-align: center;
 }
 
 h3 {
-  font-size: 1.25rem;
-  padding: 1rem;
-  margin: 1.75rem 0 .5rem 0;
-  background-color: $grey;
+  font-size: u(15);
+  padding: u(12);
+  margin: u(21) 0 u(6) 0;
+  background-color: $color-1;
   font-weight: 600;
 }
 
 .question {
+  $diameter: u(15);
   text-decoration: none;
-  margin-left: .5rem;
+  margin-left: u(6);
   display: inline-block;
-  width: 1.25rem;
-  height: 1.25rem;
-  line-height: 1.25rem;
-  border-radius: .75rem;
-  color:white;
-  background-color:#888;
+  width: $diameter;
+  height: $diameter;
+  line-height: $diameter;
+  border-radius: $diameter / 2;
+  color: $color-progress-text;
+  background-color: $color-progress;
   cursor: help;
 
   text-align: center;
@@ -123,7 +109,7 @@ h3 {
 }
 
 [class^=option-]{
-  margin: .75rem 0;
+  margin: u(9) 0;
 }
 
 %blue-button {
@@ -131,17 +117,17 @@ h3 {
   background-color: $blue;
 
   &:hover {
-    background-color: $blue-hover;
+    background-color: $blue-light-1;
   }
 
   &:active {
-    background-color: $blue-active;
+    background-color: $blue-light-2;
   }
 }
 
 %optionlabel {
   display: block;
-  margin-bottom: .25rem;
+  margin-bottom: u(3);
 }
 
 #userlist-input { 
@@ -156,10 +142,11 @@ h3 {
     button {
       @extend %blue-button;
       border-radius: 0;
-      width: 7rem;
+      width: 15%;
+      max-width: u(96);
 
       &:nth-of-type(3){
-        border-radius: 0 $round $round 0;
+        border-radius: 0 $radius $radius 0;
       }
     }
   }
@@ -185,20 +172,20 @@ h3 {
     display: flex;
     overflow: hidden;
     cursor: pointer;
-    border: $border-style;
-    border-radius: $round 0 0 $round;
+    border: $style-border;
+    border-radius: $radius 0 0 $radius;
 
     .before {
-      background-color: $grey;
-      padding: (.5rem - $px1) 1rem;
-      border-right: $border-style;
+      background-color: $color-1;
+      padding: u(5) u(12);
+      border-right: $style-border;
     }
   }
 }
 
 #filename {
   flex: 1;
-  padding: (.5rem - $px1) 1rem;
+  padding: u(5) u(12);
 }
 
 .option-textarea {
@@ -207,11 +194,11 @@ h3 {
   }
 
   textarea {
-    font-size: 1rem;
+    font-size: inherit;
     width: 100%;
-    padding: .5rem;
-    border: $border-style;
-    border-radius: $round;
+    padding: u(6);
+    border: $style-border;
+    border-radius: $radius;
     box-sizing: border-box;
     margin-bottom: 0;
     resize: vertical;
@@ -223,11 +210,11 @@ h3 {
 }
 
 .help-button {
-  width: 6.5rem;
-  background-color: $grey;
+  width: u(78);
+  background-color: $color-1;
 
   &:hover {
-    background-color: $grey-dark;
+    background-color: $color-2;
   }
 }
 
@@ -242,50 +229,9 @@ h3 {
     display: flex;
     cursor: pointer;
   }
-}
 
-.switch {
-  $width: 2.5rem;
-  $height: 1.5rem;
-  $diameter: 1rem;
-
-  $space: ($height - $diameter) / 2;
-
-  position: relative;
-  width: $width;
-  height: $height;
-  border-radius: $height / 2;
-  background-color: $grey;
-  margin-right: .5rem;
-  transition: .2s;
-  flex-shrink: 0;
-
-  label:hover &{
-    background-color: $grey-dark;
-  }
-
-  input:checked + &{
-    background-color: $blue;
-  }
-  
-  label:hover input:checked + &{
-    background-color: $blue-hover;
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    width: $diameter;
-    height: $diameter;
-    left: $space;
-    bottom: $space;
-    border-radius: $diameter / 2;
-    background-color: #fff;
-    transition: .2s;
-  }
-
-  input:checked + &::after {
-    left: $width - ($diameter + $space);
+  .switch {
+    @extend %switch;
   }
 }
 
@@ -294,21 +240,21 @@ h3 {
   align-items: center;
 
   select {
-    margin-left: .5rem;
+    margin-left: u(6);
     font-family: inherit;
-    font-size: 1rem;
-    padding: .25rem 1.5rem .25rem .25rem;
-    border: $border-style;
-    border-radius: $round;
+    font-size: inherit;
+    padding: u(3) u(18) u(3) u(3);
+    border: $style-border;
+    border-radius: $radius;
     -moz-appearance: none;
     background: {
-      image: url("/icons/selection.svg");
+      image: $icon-selection;
       repeat: no-repeat;
       position: {
-        x: right .5rem;
+        x: right u(6);
         y: center;
       }
-      size: (2rem/3) 1rem;
+      size: u(8) u(12);
     }
     cursor: pointer;
   }
@@ -317,18 +263,20 @@ h3 {
 .option-number {
   display: flex;
   align-items: center;
-  margin: 0 .25rem;
+  margin: u(3);
+  white-space: nowrap;
 
   .custom-number {
     display: inline-flex;
   
     input {
-      width: 3rem;
+      width: u(36);
       font-family: inherit;
-      font-size: 1rem;
-      border: $border-style;
-      border-radius: $round 0 0 $round;
-      padding: .25rem .25rem .25rem .5rem;
+      font-size: inherit;
+      border: $style-border;
+      border-radius: $radius 0 0 $radius;
+      text-align: right;
+      padding: u(3) u(6) u(3) u(3);
       box-sizing: border-box;
       -moz-appearance: textfield;
     }
@@ -340,27 +288,27 @@ h3 {
 
     button {
       height: 50%;
-      width: 1.25rem;
+      width: u(15);
       padding: 0;
       background: {
-        color: $grey;
+        color: $color-1;
         image: url("/icons/selection.svg");
         repeat: no-repeat;
         position-x: center;
-        size: (2rem/3) 1rem;
+        size: u(8) u(12);
       }
 
       &:hover {
-        background-color: $grey-dark;
+        background-color: $color-2;
       }
 
       &.increase {
-        border-radius: 0 $round 0 0;
+        border-radius: 0 $radius 0 0;
         background-position-y: .45rem;
       }
 
       &.decrease {
-        border-radius: 0 0 $round 0;
+        border-radius: 0 0 $radius 0;
         background-position-y: -.45rem;
       }
     }
@@ -371,25 +319,25 @@ h3 {
   display: flex;
 }
 .option-range {
-  margin: 0 .25rem;
+  margin: auto u(3);
 
   input {
-    $bar-height: .25rem;
+    $bar-height: u(3);
     -webkit-appearance: none;
-    background: $grey-dark;
+    background: $color-2;
     height: $bar-height;
     border-radius: $bar-height / 2;
 
     &::-moz-range-thumb {
       cursor: pointer;
-      height: 1rem;
-      width: 1rem;
-      border-radius: .5rem;
+      height: u(12);
+      width: u(12);
+      border-radius: $radius * 2;
       background-color: $blue;
       border: none;
 
       &:hover {
-        background-color: $blue-hover;
+        background-color: $blue-light-1;
       }
     }
   }
@@ -397,13 +345,13 @@ h3 {
 
 #settings-buttons {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: u(24);
   display: flex;
   justify-content: center;
 
   > button {
-    margin: 0 ($px1*2);
-    width: 12rem;
+    margin: 0 u(2);
+    width: u(144);
 
     @extend %blue-button;
   }
@@ -419,12 +367,12 @@ h3 {
   display: none;
   background-color: #fff3cd;
   color: #856404;
-  padding: .5rem 2rem;
+  padding: u(6) u(24);
   margin: 0 auto;
 
   .undo-button {
-    width: 2.5rem;
-    margin-left: 2rem;
+    width: u(30);
+    margin-left: u(24);
     text-decoration: underline;
     text-align: center;
     cursor: pointer;

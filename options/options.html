@@ -100,7 +100,47 @@
               <input type="range" min="0" max="100" value="50" class="slider" id="myRange">
             </div>
           </div>
-
+        </div>
+        <div class="option-toggle">
+          <label for="use-queue">
+            <input id="use-queue" type="checkbox"/>
+            <div class="switch"></div>
+            <div>Download submissions using a queue</div>
+          </label>
+        </div>
+        <div class="queue-options">
+          <div class="option-number">
+            <label for="queue-concurrent">
+              Concurrent downloads
+              <div class="custom-number">
+                <input id="queue-concurrent" type="number" value="1" min="1" />
+                <div class="number-buttons">
+                  <button class="increase"></button>
+                  <button class="decrease"></button>
+                </div>
+              </div>
+            </label>
+          </div>
+          <div class="option-number">
+            <label for="queue-wait">
+              Wait time between downloads
+              <div class="custom-number">
+                <input id="queue-wait" type="number" value="0" min="0" />
+                <div class="number-buttons">
+                  <button class="increase"></button>
+                  <button class="decrease"></button>
+                </div>
+              </div>
+              seconds
+            </label>
+          </div>
+        </div>
+        <div class="option-toggle">
+          <label for="infobar">
+            <input id="infobar" type="checkbox"/>
+            <div class="switch"></div>
+            <div>Show page info bar</div>
+          </label>
         </div>
 
         <h3>Deviantart<a class="question" target="_blank" href="https://github.com/solorey/Art-Saver/wiki/DeviantArt">?</a></h3>

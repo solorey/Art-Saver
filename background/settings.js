@@ -1,3 +1,4 @@
+//Make sure to reload extension
 const globalsettings = {
   global: {
     conflict: {
@@ -24,6 +25,22 @@ const globalsettings = {
       location: "#screen-opacity",
       default: 50
     },
+    useQueue: {
+      location: "#use-queue",
+      default: false
+    },
+    queueConcurrent: {
+      location: "#queue-concurrent",
+      default: 1
+    },
+    queueWait: {
+      location: "#queue-wait",
+      default: 0
+    },
+    infoBar: {
+      location: "#infobar",
+      default: false
+    }
   },
   deviantart: {
     userFolder: {
@@ -115,3 +132,12 @@ function settingsList(){
   }
   return settingslist;
 }
+
+const popupState = {
+  tab: "user",
+  downloadLock: true
+};
+
+const infoBarState = {
+  showFolders: false
+};

@@ -1,5 +1,5 @@
-$icon-size: var(--as-icon-size);
-$bar-size: 16px;
+@use "sass:selector";
+@use "template" as *;
 
 %checktop{
   position: absolute;
@@ -16,44 +16,31 @@ $bar-size: 16px;
   border: 0 none;
   background: {
     repeat: no-repeat;
-    size: $icon-size $icon-size;
+    size: $size-icon $size-icon;
   }
-  height: $icon-size;
-  width: $icon-size;
-}
-
-%checkbar {
-  @extend %checktop;
-  height: $bar-size;
-}
-
-%font {
-  font: {
-    family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    style: normal;
-    weight: normal;
-  }
+  height: $size-icon;
+  width: $size-icon;
 }
 
 .artsaver-check{
   @extend %checkicon;
 
   &[data-color=green]{
-    background-image: url("/icons/check_green.svg");
+    background-image: $icon-check-green;
   }
 
   &[data-color=yellow]{
-    background-image: url("/icons/check_yellow.svg");
+    background-image: $icon-check-yellow;
   }
 
   &:hover, &:active{
-    background-image: url("/icons/remove.svg");
+    background-image: $icon-remove;
   }
 }
 
 .artsaver-download{
   @extend %checkicon;
-  background-image: url("/icons/download.svg");
+  background-image: $icon-download;
   display: none;
 
   :hover > &{
@@ -61,7 +48,7 @@ $bar-size: 16px;
   }
 
   &:hover, &:active{
-    background-image: url("/icons/download_hover.svg");
+    background-image: $icon-download-hover;
   }
 }
 
@@ -73,35 +60,30 @@ $bar-size: 16px;
 .artsaver-loading{
   @extend %checkicon;
   animation: rotation 0.5s steps(12, end) infinite;
-  background-image: url("/icons/loading.svg");
+  background-image: $icon-loading;
 
   .artsaver-progress + &{
-    background-size: $bar-size $bar-size;
-    height: $bar-size;
-    width: $bar-size;
+    background-size: $size-bar $size-bar;
+    height: $size-bar;
+    width: $size-bar;
   }
 }
 
 .artsaver-error{
   @extend %checkicon;
-  background-image: url("/icons/error.svg");
+  background-image: $icon-error;
 
   &:hover, &:active{
-    background-image: url("/icons/error.svg");
+    background-image: $icon-error;
   }
 }
 
-$grey: #f0f0f0;
-$grey-dark: #e0e0e0;
-
 .artsaver-tip {
   @extend %font;
-  font-size: 12px;
-  line-height: 16px;
   top: 0;
-	background-color: #fff;
-  border-radius: 3px;
-  color: #4d555c;
+	background-color: $color-0;
+  border-radius: $radius;
+  color: $color-text;
 	position: absolute;
 	text-align: center;
 	width: auto;
@@ -123,15 +105,15 @@ $grey-dark: #e0e0e0;
     border-spacing: 0;
 
     td{
-      padding: 2px 6px;
+      padding: $pad ($pad * 2);
 
       &:first-child{
-        background-color: $grey;
+        background-color: $color-1;
       }
     }
 
     tr:last-child{
-      border-top: 1px solid $grey-dark;
+      border-top: $style-border;
     }
   }
 }
@@ -145,54 +127,53 @@ $grey-dark: #e0e0e0;
 }
 
 .artsaver-progress {
-  @extend %checkbar;
-  border-radius: 4px;
+  @extend %checktop;
+  height: $size-bar;
+  border-radius: $radius;
   overflow: hidden;
   width: 100%;
-  background-color: #4d555c;
+  background-color: $color-progress;
 }
 
 @keyframes animate-stripes {
   0% { background-position: 0 0; }
-  100% { background-position: -64px 0; }
+  100% { background-position: ($size-bar * -4) 0; }
 }
 
 .artsaver-bar {
-  @extend %checkbar;
-
-  $blue: #0a84ff;
+  @extend %checktop;
+  height: 100%;
 
   animation: animate-stripes 1s linear infinite;
   background: {
-    color:#006efe;
+    color: $blue;
     image: 
       linear-gradient(
         135deg,
-        $blue 25%,
+        $blue-light-1 25%,
         transparent 25%,
         transparent 50%,
-        $blue 50%,
-        $blue 75%,
+        $blue-light-1 50%,
+        $blue-light-1 75%,
         transparent 75%,
         transparent
       );
-    size: 32px 32px;
+    size: ($size-bar * 2) ($size-bar * 2);
   }
-  border-radius: 4px;
+  border-radius: $radius;
   box-sizing: border-box;
-  color: #fff;
+  color: $color-progress-text;
 }
 
 .artsaver-bar-text{
   @extend %font;
-  font-size: calc(#{$bar-size} - 4px);
-  line-height: $bar-size;
   padding: {
-    left: calc(#{$bar-size} + 3px);
-    right: 3px;
+    left: calc(#{$size-bar} + #{$pad});
+    right: $pad;
   }
   text-align: right;
   white-space: nowrap;
+  line-height: normal;
 }
 
 .artsaver-screen {
@@ -202,7 +183,7 @@ $grey-dark: #e0e0e0;
   bottom: 0;
   left: 0;
 
-  background-color: #808080;
+  background-color: $color-screen;
   display: flex;
   
   > div {
@@ -220,10 +201,337 @@ $grey-dark: #e0e0e0;
     height: $scale;
     object-fit: contain;
     background: {
-      image: url("/icons/check_flat.svg");
+      image: $icon-check-flat;
       size: contain;
       repeat: no-repeat;
       position: center;
     }
+  }
+}
+
+.artsaver-infobar {
+  @extend %font;
+
+  position: fixed;
+  bottom: 8px;
+  left: 8px;
+  width: 350px;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  min-width: 150px;
+  overflow: hidden;
+  resize: horizontal;
+  z-index: 1001;
+  background-color: $color-0;
+  color: $color-text;
+  visibility: visible;
+  opacity: 1;
+
+  transition: {
+    property: visibility,opacity,bottom;
+    duration: .2s;
+    timing-function: ease-out;
+  };
+
+  &[data-display=hide] {
+    visibility: hidden;
+    opacity: 0;
+    bottom: 0;
+  }
+  
+  #infobar {
+    display: flex;
+  }
+  
+  #collapse {
+    padding: $base-padding;
+    width: u(16);
+    flex-shrink: 0;
+
+    background: {
+      position: center;
+      size: u(16) u(16);
+      repeat: no-repeat;
+      image: $icon-collapse;
+    }
+    cursor: pointer;
+    
+    &:hover {
+      background-color: $color-1;
+    }
+  }
+  
+  #queue {
+    padding: $pad ($pad * 2);
+    background-color: $color-1;
+    border-top: $style-border;
+  
+    &-stats > div {
+      margin: 0 auto;
+      padding: 0 $pad; 
+    }
+  }
+  
+  
+  .list-box {
+    border-bottom: $style-border;
+
+    .list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .row {
+      display: flex;
+
+      &:not(:last-of-type) {
+        border-bottom: $style-border;
+      }
+
+      .row-text {
+        flex: 1;
+        display: flex;
+        padding: .25em .75em;
+        white-space: nowrap;
+        overflow: hidden;
+
+        > div {
+          &:nth-of-type(1){
+            flex-basis: 25%;
+          }
+          &:nth-of-type(2){
+            flex-basis: 25%;
+          }
+          &:nth-of-type(3){
+            flex-basis: 10%;
+          }
+          &:nth-of-type(4){
+            flex-basis: 40%;
+          }
+
+          &:not(:last-of-type) {
+            padding-right: u(3);
+          }
+        }
+      }
+
+      .row-buttons {
+        line-height: 0;
+        display: flex;
+      }
+
+      button, a {
+        display: inline-block;
+        border: none;
+        line-height: inherit;
+        color: $color-text !important;
+        box-sizing: border-box;
+        padding: 0;
+        width: u(24);
+        height: 100%;
+        font: {
+          size: inherit !important;
+          family: inherit;
+        }
+        background: {
+          color: $color-1;
+          position: center;
+          size: 1em 1em;
+          repeat: no-repeat;
+        }
+
+        &.link {
+          background-image: $icon-ex-link;
+        }
+        &.folder {
+          background-image: $icon-folder;
+        }
+
+        &:hover {
+          background-color: $color-2;
+        }
+      }
+    }
+
+    .list-bar {
+      padding: $base-padding;
+      background-color: $color-1;
+      border-top: $style-border;
+    }
+  }
+
+  #list-errors .row {
+    color: $color-error-text;
+    background-color: $color-error-1;
+    border-bottom: none;
+
+    &:not(:last-of-type) {
+      .row-text {
+        border-bottom: u(1) solid $color-error-2;
+      }
+      .row-buttons {
+        border-bottom: u(1) solid $color-2;
+      }
+    }
+  }
+
+  #stat-errors {
+    color: $color-error-text;
+    background-color: $color-error-1;
+
+    &:hover, .badge {
+      background-color: $color-error-2;
+    }
+  }
+  
+  #history-stats {
+    flex: 1;
+  
+    > div {
+      display: flex;
+      padding: $base-padding;
+      white-space: nowrap;
+
+      &.stat-button {
+        cursor: pointer;
+
+        &:hover:not(#stat-errors) {
+          background-color: $color-1;
+        }
+      }
+  
+      > :first-child {
+        margin: auto auto auto 0;
+      }
+    
+      > :last-child {
+        margin: auto 0 auto $horz-pad;
+      }
+  
+      &.expand {
+        flex: 1;
+      }
+    }
+  }
+  
+  #queue-stats, #history-stats {
+    display: flex;
+    white-space: nowrap;
+  }
+
+  #list-files {
+    &.hide-folders .row-text > span:first-of-type {
+      display: none;
+    }
+
+    .list-bar {
+      display: flex;
+
+      > div {
+        padding-right: u(3);
+      }
+
+      input {
+        display: none;
+      }
+    
+      label {
+        display: flex;
+        margin: 0 auto;
+        cursor: pointer;
+      }
+    
+      .switch {
+        @extend %switch;
+
+        margin: {
+          left: u(6);
+          right: 0
+        }
+        background-color: $color-2;
+      }
+    }
+  }
+
+  .hide {
+    display: none !important;
+  }
+    
+  .artsaver-progress {
+    margin-top: $pad;
+    position: relative;
+    height: u(16);
+
+    .artsaver-bar[style="width: 100%;"]{
+      background: $blue;
+    }
+  
+    .artsaver-bar-text {
+      padding-left: $pad;
+    }
+  }
+  
+  .badge {
+    display: inline;
+    background-color: $color-1;
+    border-radius: $radius;
+    padding: $base-button-padding;
+    font-weight: 600;
+  }
+}
+
+.artsaver-show-infobar {
+  $size: u(36);
+
+  width: $size * 2;
+  height: $size;
+  position: fixed;
+  bottom: 0;
+  left: calc(-#{u(19)} + 8px);
+  border-radius: $size $size 0 0;
+  overflow: hidden;
+  opacity: 0;
+  z-index: 1002;
+  font-size: 12px;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  #show-tab {
+    padding: $base-padding;
+    width: u(16);
+    flex-shrink: 0;
+    background-color: white;
+    height: u(16);
+    bottom: u(-20);
+    position: relative;
+    margin: auto;
+    scale: -1;
+    border-radius: 0 0 u(3) u(3);
+    opacity: .5;
+    transition: {
+      property: opacity,bottom;
+      duration: .1s;
+      timing-function: ease-out;
+    };
+    box-shadow: $shadow;
+
+    &:hover {
+      opacity: 1;
+      bottom: u(-14);
+    }
+
+    background: {
+      position: center;
+      size: u(16) u(16);
+      repeat: no-repeat;
+      image: $icon-collapse;
+    }
+    cursor: pointer;
+  }
+
+  &.hide, .hide {
+    display: none !important;
   }
 }

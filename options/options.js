@@ -65,12 +65,12 @@ function addTable(location, tablemetas){
     userLower:          "The way the user name appears in the url bar."
   };
 
-  let table = $insert($(`${location} ~ button`), "table", "afterend");
+  let table = $insert($(`${location} ~ button`), "table", {position: "afterend"});
 
   for (let tm of tablemetas){
     let tr = $insert(table, "tr");
-    $insert($insert($insert(tr, "td"), "li"), "strong").textContent = tm;
-    $insert(tr, "td").textContent = metas[tm];
+    $insert($insert($insert(tr, "td"), "li"), "strong", {text: tm});
+    $insert(tr, "td", {text: metas[tm]});
   }
 }
 
@@ -109,15 +109,13 @@ async function userlistDetails(){
 
     let row = $insert(tbody, "tr");
 
-    $insert(row, "td").textContent = `${s[0].toUpperCase()}${s.slice(1)}`;  //site
+    $insert(row, "td", {text: `${s[0].toUpperCase()}${s.slice(1)}`});  //site
 
-    let span1 = $insert($insert(row, "td"), "span");
-    span1.className = "badge";
-    span1.textContent = new Set(Object.keys(list[s])).size;           //total users
+    let totalusers = new Set(Object.keys(list[s])).size
+    let span1 = $insert($insert(row, "td"), "span", {class: "badge", text: totalusers});
 
-    let span2 = $insert($insert(row, "td"), "span");
-    span2.className = "badge";
-    span2.textContent = new Set(Object.values(list[s]).flat()).size;  //total saved submissions
+    let totalsubmissions = new Set(Object.values(list[s]).flat()).size;
+    let span2 = $insert($insert(row, "td"), "span", {class: "badge", text: totalsubmissions});
   }
 
   savedtable.removeAttribute("style");
@@ -373,38 +371,42 @@ for (let t of $$("textarea")){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#add-screen").oninput = () => showScreenOptions();
-showScreenOptions();
+let optiontoggles = [
+  {toggle:"#stash", opt: "div.stash-options"},
+  {toggle:"#add-screen", opt: "div.screen-options"},
+  {toggle:"#use-queue", opt: "div.queue-options"}
+];
 
-$("#stash").oninput = () => showStashOptions();
-showStashOptions();
+for (let {toggle, opt} of optiontoggles){
+  $(toggle).oninput = function(){ uncoverOptions(toggle, opt) };
+}
 
-function showScreenOptions(){
-  let screenoptions = $("div.screen-options");
-  if ($("input#add-screen").checked){
+function uncoverOptions(toggle, opt){
+  let screenoptions = $(opt);
+  if ($(toggle).checked){
     screenoptions.removeAttribute("style");
   }
   else {
     screenoptions.style.display = "none";
   }
+
+  if (toggle === "#stash"){
+    textareaResize($("#dev-stash"));
+  }
 }
 
-function showStashOptions(){
-  let stashoptions = $("div.stash-options");
-  if ($("input#stash").checked){
-    stashoptions.removeAttribute("style");
+function showOptions(){
+  for (let {toggle, opt} of optiontoggles){
+    uncoverOptions(toggle, opt);
   }
-  else {
-    stashoptions.style.display = "none";
-  }
-  textareaResize($("#dev-stash"));
 }
+
+showOptions();
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function fixFormat(){
-  showScreenOptions();
-  showStashOptions();
+  showOptions();
   for (let t of $$("textarea")){
     t.style.height = "1.6em";
     textareaResize(t);

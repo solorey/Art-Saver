@@ -2,12 +2,19 @@ var globaluserlist;
 var globalrunningobservers = [];
 var globaltooltip = createTooltip();
 var globaloptions;
+var globalqueue;
 
 main();
 
 async function main(){
   globaloptions = (await getOptions()).global;
   document.body.style.setProperty("--as-icon-size", `${globaloptions.iconSize}px`);
+
+  globalqueue = createPageQueue(globaloptions.useQueue, {
+    concurrent: globaloptions.queueConcurrent,
+    waittime: globaloptions.queueWait,
+    infobar: globaloptions.infoBar ? createPageInfoBar() : false
+  });
 
   await setList();
 
@@ -119,16 +126,15 @@ async function fetcher(url, type = "response", init = {}){
 //---------------------------------------------------------------------------------------------------------------------
 
 function createTooltip(){
-  $remove($("artsaver-tip"));
+  $remove($(".artsaver-tip"));
 
-  let tip = $insert(document.body, "div");
-  tip.className = "artsaver-tip";
+  let tip = $insert(document.body, "div", {class: "artsaver-tip"});
   let table = $insert(tip, "table");
   let tr1 = $insert(table, "tr");
-  $insert(tr1, "td").textContent = "User:";
+  $insert(tr1, "td", {text: "User:"});
   $insert(tr1, "td");
   let tr2 = $insert(table, "tr");
-  $insert(tr2, "td").textContent = "Id:";
+  $insert(tr2, "td", {text: "Id:"});
   $insert(tr2, "td");
 
   tooltip = {tip};
@@ -159,8 +165,7 @@ function createTooltip(){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createCheck(anchor, color, position, data){
-  let checkbutton = $insert(anchor, "div", position);
-  checkbutton.className = "artsaver-check";
+  let checkbutton = $insert(anchor, "div", {position, class: "artsaver-check"});
 
   checkbutton.setAttribute("data-color", color);
 
@@ -213,14 +218,14 @@ async function removeCheck(checkbutton, data){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createDownload(site, anchor, url, position){
-  let dlbutton = $insert(anchor, "div", position);
-  dlbutton.className = "artsaver-download";
+  let dlbutton = $insert(anchor, "div", {position, class: "artsaver-download"});
 
   dlbutton.addEventListener("click", event => {
     event.preventDefault();
     event.stopPropagation();
 
-    as[site].download.startDownloading(url, createProgress(dlbutton, [site, anchor, url, position]));
+    let bar = createProgress(dlbutton, [site, anchor, url, position]);
+    globalqueue.addDownload(site, url, bar);
   }, {once: true});
 
   document.addEventListener("keypress", event => {
@@ -236,7 +241,7 @@ function createDownload(site, anchor, url, position){
 
 function addButton(site, user, subid, submission, anchor, url, position = "afterend", screen = true){
   let parent = ["afterend", "beforebegin"].includes(position) ? anchor.parentElement : anchor;
-  let button = $(parent, ".artsaver-check, .artsaver-download");
+  let button = $(parent, ".artsaver-check, .artsaver-download, .artsaver-error");
 
   if (submission.getAttribute("data-checkstatus") !== "checked"){
     let result = checkUserList(site, user, subid);
@@ -248,8 +253,7 @@ function addButton(site, user, subid, submission, anchor, url, position = "after
       button = createCheck(anchor, result.color, position, {site, user: result.user, id: subid});
 
       if (globaloptions.addScreen && screen){
-        let cover = $insert(button, "div", "beforebegin");
-        cover.className = "artsaver-screen";
+        let cover = $insert(button, "div", {position: "beforebegin", class: "artsaver-screen"});
         cover.style.opacity = `${globaloptions.screenOpacity}%`;
 
         $insert(cover, "div");
@@ -297,13 +301,8 @@ function checkUserList(site, user, id){
 function createProgress(dlbutton, rebuild){
   dlbutton.className = "artsaver-loading";
 
-  let p = $insert(dlbutton, "div", "beforebegin");
-  p.className = "artsaver-progress";
-
-  let asbar = $insert(p, "div");
-  asbar.className = "artsaver-bar";
-
-  $insert(asbar, "div").className = "artsaver-bar-text";
+  let p = $insert(dlbutton, "div", {position: "beforebegin", class: "artsaver-progress"});
+  $insert($insert(p, "div", {class: "artsaver-bar"}), "div", {class: "artsaver-bar-text"});
 
   let progress = {button: dlbutton, element: p};
 
@@ -323,12 +322,18 @@ function createProgress(dlbutton, rebuild){
     this.say(`Saving${multiple[0]} file${multiple[1]}`);
   }
   progress.remove = function(){
-    $remove(this.element);
-    $remove(this.button);
+    try {
+      $remove(this.element);
+    }
+    catch (e){}
+    try {
+      $remove(this.button);
+    }
+    catch (e){}
   }
   progress.reset = function(){
     this.remove();
-    createDownload(...rebuild);
+    return createDownload(...rebuild).click();
   }
   progress.error = function(){
     this.button.className = "artsaver-error";
@@ -427,15 +432,15 @@ async function downloadBlobs(blobs){
       function: "blob",
       ...blob
     });
-    handleResponse(message);
-    results.push(message.response);
+    logDownloadResponse(message);
+    results.push(message);
   }
   return results;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function handleResponse(message){
+function logDownloadResponse(message){
   if (message.response === "Success"){
     asLog("%cDownloading:", "color: #006efe", message.filename);
   }
@@ -526,3 +531,294 @@ async function userInfo(page){
 
   browser.runtime.sendMessage({function: "userstats", user, submissionUrl: page.links.submissionUrl});
 }
+
+//---------------------------------------------------------------------------------------------------------------------
+// queue functions
+//---------------------------------------------------------------------------------------------------------------------
+
+async function timer(s){
+  return await new Promise((resolve, reject) => {
+    setTimeout(resolve, s * 1000); //seconds
+  });
+}
+
+function createPageQueue(usequeue, options){
+  let concurrent = usequeue ? options.concurrent || 1 : Infinity;
+  let waittime = usequeue ? options.waittime || 0 : 0;
+  let infobar = options.infobar;
+
+  let queue = {
+    list: [],
+    downloading: 0,
+    inprogress: 0,
+    threads: 0
+  };
+
+  queue.addDownload = function(site, url, bar){
+    this.list.push({site, url, bar});
+    this.downloading += 1;
+    this.updateDownloadInfo();
+
+    if (this.threads < concurrent){
+      this.addThread();
+    }
+  }
+
+  queue.addThread = async function(){
+    this.threads += 1;
+    while (this.list.length > 0){
+      await this.downloadNext();
+      if (waittime > 0){
+        await timer(waittime);
+      }
+    }
+    this.threads -= 1;
+
+    if (this.threads <= 0){
+      this.downloading = 0;
+    }
+
+    this.updateDownloadInfo();
+  }
+
+  queue.downloadNext = async function(){
+    this.inprogress += 1;
+    let {site, url, bar} = this.list.shift();
+    this.updateDownloadInfo();
+    try {
+      let result = await as[site].download.startDownloading(url, bar);
+
+      if (infobar){
+        if (result.status === "Success"){
+          infobar.addSaved(result);
+        }
+        else {
+          infobar.addError(result);
+        }
+      }
+    }
+    catch (err){
+      asLog("Uncaught download error", err);
+    }
+    this.inprogress -= 1;
+    this.updateDownloadInfo();
+    return;
+  }
+
+  queue.updateDownloadInfo = function(){
+    this.list.forEach((place, i) => {
+      place.bar.say(`In queue pos: ${i + 1}`);
+    });
+
+    if (infobar){
+      infobar.setProgress(this.downloading, this.inprogress, this.list.length);
+    }
+  }
+
+  return queue
+}
+
+function createPageInfoBar(){
+  $remove($(".artsaver-infobar"));
+  $remove($(".artsaver-show-infobar"));
+
+  //all this to avoid using innerHTML
+  let ib = $insert(document.body, "div", {class: "artsaver-infobar"});
+  ib.setAttribute("data-display","hide");
+
+  let l1 = $insert(ib, "div", {id: "list-recent", class: "list-box"});
+  $insert(l1, "div", {class: "list"});
+  $insert(l1, "div", {class: "list-bar", text: "Recent"});
+
+  let l2 = $insert(ib, "div", {id: "list-files", class: "list-box hide-folders"});
+  $insert(l2, "div", {class: "list"});
+  let l2b = $insert(l2, "div", {class: "list-bar"});
+  $insert(l2b, "div", {text: "Recent"});
+  let l2s = $insert(l2b, "label", {text: "Show folders"})
+  let l2si = $insert(l2s, "input");
+  l2si.type = "checkbox";
+  l2si.oninput = function(){
+    if (this.checked){
+      l2.classList.remove("hide-folders");
+    }
+    else {
+      l2.classList.add("hide-folders");
+    }
+  }
+  $insert(l2s, "div", {class: "switch"});
+
+  let l3 = $insert(ib, "div", {id: "list-errors", class: "list-box"});
+  $insert(l3, "div", {class: "list"});
+  $insert(l3, "div", {class: "list-bar", text: "Errors"});
+
+  let bar = $insert(ib, "div", {id: "infobar"});
+  let col = $insert(bar, "div", {id: "collapse"});
+
+  let his = $insert(bar, "div", {id: "history-stats"});
+
+  let hs1 = $insert(his, "div", {id: "stat-recent", class: "expand"});
+  $insert(hs1, "div", {text: "Recently saved"});
+  $insert($insert(hs1, "div"), "span", {class: "badge", text: "-"});
+
+  let hs2 = $insert(his, "div", {id: "stat-files", class: "expand"});
+  $insert(hs2, "div", {text: "Files"});
+  $insert($insert(hs2, "div"), "span", {class: "badge", text: "-"});
+
+  let hs3 = $insert(his, "div", {id: "stat-errors"});
+  $insert(hs3, "div", {text: "Errors"});
+  $insert($insert(hs3, "div"), "span", {class: "badge", text: "-"});
+
+  let q = $insert(ib, "div", {id: "queue"});
+  
+  let qs = $insert(q, "div", {id: "queue-stats"});
+  $insert($insert(qs, "div", {text: " downloading"}), "span", {position: "afterbegin", id: "stat-downloading", text: "-"});
+  $insert($insert(qs, "div", {text: " in progress"}), "span", {position: "afterbegin", id: "stat-progress", text: "-"});
+  $insert($insert(qs, "div", {text: " in queue"}), "span", {position: "afterbegin", id: "stat-queue", text: "-"});
+
+  $insert($insert($insert(q, "div", {class: "artsaver-progress"}), "div", {class: "artsaver-bar"}), "div", {class: "artsaver-bar-text"});
+
+  let sib = $insert(document.body, "div", {class: "artsaver-show-infobar"});
+  let st = $insert(sib, "div", {id: "show-tab"});
+
+  let infobar = {
+    element: ib,
+    tab: sib,
+    collapse: col,
+    expand: st,
+    saved: [],
+    errors: [],
+    state: "initial"
+  };
+
+  infobar.show = function(){
+    this.element.removeAttribute("data-display");
+    this.tab.classList.add("hide");
+  }
+
+  infobar.hide = function(){
+    this.element.addEventListener('transitionend', () => {
+      this.tab.classList.remove("hide");
+    }, {once: true});
+    this.element.setAttribute("data-display", "hide");
+  }
+
+  infobar.expand.onclick = () => {
+    infobar.show();
+    infobar.state = "show";
+  }
+  infobar.collapse.onclick = () => {
+    infobar.hide();
+    if (parseInt($(infobar.element, "#stat-downloading").textContent, 10) > 0){
+      infobar.state = "staydown";
+    } 
+  }
+
+  infobar.addSaved = function(saved){
+    this.saved.push(saved);
+    let recentrow = $insert($(this.element, "#list-recent .list"), "div", {class: "row"});
+    let recenttext = $insert(recentrow, "div", {class: "row-text"});
+    $insert(recenttext, "div", {text: saved.submission.user});
+    $insert(recenttext, "div", {text: saved.submission.id});
+    $insert(recenttext, "div", {text: `(${saved.files.length})`});
+    $insert(recenttext, "div", {text: saved.submission.title});
+
+    let link = $insert($insert(recentrow, "div", {class: "row-buttons"}), "a", {class: "link"});
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.href = saved.submission.url;
+
+    for (let f of saved.files){
+      let filerow = $insert($(this.element, "#list-files .list"), "div", {class: "row"});
+      let filetext = $insert(filerow, "div", {class: "row-text"});
+
+      let reg = /^(.*\/)?(.+)$/.exec(f.filename);
+      $insert(filetext, "span", {text: reg[1]});
+      $insert(filetext, "span", {text: reg[2]});
+
+      let folder = $insert($insert(filerow, "div", {class: "row-buttons"}), "button", {class: "folder"});
+      folder.onclick = () => {
+        browser.runtime.sendMessage({function: "showdownload", id: f.id});
+      }
+    }
+
+    this.updateHistoryInfo();
+  }
+
+  infobar.addError = function(error){
+    this.errors.push(error);
+    let errorrow = $insert($(this.element, "#list-errors .list"), "div", {class: "row"});
+    let errortext = $insert(errorrow, "div", {class: "row-text"});
+    $insert(errortext, "span", {text: error.url});
+
+    let buttonrow = $insert(errorrow, "div", {class: "row-buttons"});
+    let link = $insert(buttonrow, "a", {class: "link"});
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.href = error.url;
+
+    this.updateHistoryInfo();
+  }
+
+  infobar.updateHistoryInfo = function(){
+    let tsaved = this.saved.length;
+    let tfiles = this.saved.reduce((acc, s) => acc += s.files.length, 0);
+    let terrors = this.errors.length;
+
+    for (let [stat, name] of [[tsaved, "recent"], [tfiles, "files"], [terrors, "errors"]]){
+      let statrow = $(this.element, `#stat-${name}`);
+      $(statrow, ".badge").textContent = stat;
+      let statlist = $(this.element, `#list-${name}`);
+      if (stat > 0) {
+        statrow.classList.add("stat-button");
+        statrow.onclick = () => {
+          statlist.classList.toggle("hide");
+        };
+      }
+      else {
+        statrow.classList.remove("stat-button");
+        statlist.classList.add("hide");
+      }
+    }
+
+    let errorselem = $(this.element, `#stat-errors`);
+    if (terrors <= 0){
+      errorselem.classList.add("hide");
+    }
+    else {
+      errorselem.classList.remove("hide");
+    }
+  }
+
+  infobar.setProgress = function(downloading = 0, inprogress = 0, inqueue = 0){
+    let bar = $(this.element, "#queue");
+    if (downloading > 0){
+      if (this.state !== "staydown"){
+        this.show();
+      }
+      bar.classList.remove("hide");
+      let percent = (downloading - (inqueue + inprogress)) / downloading * 100;
+      $(this.element, ".artsaver-bar").style.width = `${percent}%`;
+      $(this.element, ".artsaver-bar-text").textContent = `${Math.floor(percent)}%`;
+    }
+    else {
+      bar.classList.add("hide");
+    }
+
+    $(this.element, "#stat-downloading").textContent = downloading;
+    $(this.element, "#stat-progress").textContent = inprogress;
+    $(this.element, "#stat-queue").textContent = inqueue;
+
+    let statqc = $(this.element, "#stat-queue").parentElement.classList;
+    if (inqueue > 0){
+      statqc.remove("hide");
+    }
+    else {
+      statqc.add("hide");
+    }
+  }
+
+  infobar.updateHistoryInfo();
+  infobar.setProgress();
+  return infobar;
+}
+

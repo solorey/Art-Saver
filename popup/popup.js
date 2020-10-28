@@ -1,5 +1,22 @@
 var globalopened = false;
 var globalrunningobservers = [];
+var globalpopupstate;
+
+//---------------------------------------------------------------------------------------------------------------------
+// state functions
+//---------------------------------------------------------------------------------------------------------------------
+
+browser.storage.local.get("popup").then(s => globalpopupstate = s.popup);
+
+function updateState(component, value){
+  globalpopupstate[component] = value;
+  browser.runtime.sendMessage({
+    function: "updatestate",
+    ui: "popup",
+    component,
+    value
+  });
+}
 
 //---------------------------------------------------------------------------------------------------------------------
 // page information
@@ -67,12 +84,28 @@ function openTab(tab){
     tabbutton.classList.add("active");
   }
   $(`#${tab}`).style.display = "block";
+
+  
 }
 
 openTab("getting-page");
 
 for (let t of $$(".tabs > button[data-tab]")){
-  t.onclick = function(){ openTab(this.getAttribute("data-tab")); };
+  t.onclick = function(){
+    let tab = this.getAttribute("data-tab");
+
+    openTab(tab);
+
+    switch (tab){
+      case "user-page":
+        updateState("tab", "user");
+        break;
+  
+      case "stats-page":
+        updateState("tab", "stats");
+        break;
+    }
+  };
 }
 
 $("#settings-tab").onclick = () => browser.runtime.openOptionsPage();
@@ -84,20 +117,25 @@ $("#settings-tab").onclick = () => browser.runtime.openOptionsPage();
 function toggleDownload(){
   let lock = $("#download-lock");
   let bolt = $("#download-bolt");
+  let dlall = $("#download-all");
 
   if (lock.getAttribute("data-toggle") === "closed"){
     lock.setAttribute("data-toggle", "open");
     bolt.className = "icon-lock_open";
-    $("#download-all").removeAttribute("disabled");
+    dlall.removeAttribute("disabled");
+    return false;
   }
   else {
     lock.setAttribute("data-toggle", "closed");
     bolt.className = "icon-lock_closed";
-    $("#download-all").setAttribute("disabled", true);
+    dlall.setAttribute("disabled", true);
+    return true;
   }
 }
 
-$("#download-lock").onclick = () => toggleDownload();
+$("#download-lock").onclick = () => {
+  updateState("downloadLock", toggleDownload());
+};
 
 //---------------------------------------------------------------------------------------------------------------------
 // stats
@@ -111,6 +149,11 @@ function siteStats(request, sitelist){
   $("#stats-site").textContent = request.site;
 
   $("#downloads-stat").textContent = request.total.downloads;
+  if (!globalpopupstate.downloadLock){
+    $("#download-lock").setAttribute("data-toggle", "open");
+    $("#download-bolt").className = "icon-lock_open";
+    $("#download-all").removeAttribute("disabled");
+  }
   $("#saved-stat").textContent = request.total.saved;
 
   let savedstats = {
@@ -150,7 +193,9 @@ function siteStats(request, sitelist){
 
   if (request.user && !globalopened){
     $("#user-tab").style.display = "block";
-    openTab("user-page");
+    if (globalpopupstate["tab"] === "user"){
+      openTab("user-page");
+    }
     globalopened = true;
   }
 }
@@ -182,14 +227,9 @@ function userStats(request, options){
   userprofile.style.flexDirection = hasstats ? "row" : "column";
   if (hasstats){
     for (let [stat, value] of user.stats.entries()){
-      let row = $insert(userstats, "div");
-      row.className = "stat-row";
-
-      $insert(row, "div").textContent = stat;
-
-      let span = $insert($insert(row, "div"), "span");
-      span.className = "badge";
-      span.textContent = value;
+      let row = $insert(userstats, "div", {class: "stat-row"});
+      $insert(row, "div", {text: stat});
+      $insert($insert(row, "div"), "span", {class: "badge", text: value});
     }
   }
 
@@ -308,10 +348,7 @@ function createVirtualList(sbox, values, linktype, linkstring){
     a.href = linkstring.replace(RegExp(`{${linktype}}`, "g"), i[0]);
     a.style.top = `${index * rh}px`;
 
-    let span = $insert($insert(a, "li"), "span");
-    span.className = "link-search";
-    span.textContent = i[2];
-
+    let span = $insert($insert(a, "li"), "span", {class: "link-search", text: i[2]});
     span.insertAdjacentText("beforebegin", i[1]);
     span.insertAdjacentText("afterend", i[i.length - 1]);
 

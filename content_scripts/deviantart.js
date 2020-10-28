@@ -155,7 +155,7 @@ as.deviantart.check.getThumbnails = function(){
     }
     //devations in texts
     else if (thumb.matches(".shadow > *") && !$(thumb, ".artsaver-holder")){
-      let holder = $insert($(thumb, "img"), "div", "parent");
+      let holder = $insert($(thumb, "img"), "div", {position: "parent"});
       holder.className = "artsaver-holder";
     }
 
@@ -334,19 +334,36 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
     }
 
     let results = await this.handleDownloads(downloads, options, progress, stashworker);
-    if (results.some(r => r === "Success")){
+    if (results.some(r => r.response === "Success")){
       progress.say("Updating");
       await updateList(info.savedSite, info.savedUser, info.savedId);
     }
 
     progress.remove();
     reCheck();
+    
+    return {
+      status: "Success",
+      submission: {
+        url: pageurl,
+        user: info.savedUser,
+        id: info.savedId,
+        title: downloads[0].meta.title
+      },
+      files: results
+    };
   }
   catch (err){
     asLog(err);
     progress.error();
+
+    return {
+      status: "Failure",
+      error: err,
+      url: pageurl,
+      progress
+    };
   }
-  return;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

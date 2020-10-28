@@ -1,0 +1,122 @@
+$base: 16px;
+$size-font: 12px;
+
+@function u($size){
+  @return (1em / 12) * $size; 
+}
+
+$size-icon: var(--as-icon-size);
+$size-bar: $base;
+
+$pad: u(3);
+
+$vert-pad: u(6);
+$horz-pad: u(9);
+
+$base-padding: $vert-pad $horz-pad;
+
+$vert-button-pad: u(3);
+$horz-button-pad: u(6);
+
+$base-button-padding: $vert-button-pad $horz-button-pad;
+
+$radius: u(3);
+
+$shadow: 0px 2px 5px#0000000e;
+
+$color-0: white;
+$color-1: #f0f0f0;
+$color-2: #e0e0e0;
+$color-text: black;
+
+$color-screen: gray;
+
+//old blue #0786cf
+$blue: #0a84ff;
+$blue-light-1: #249cffff;
+$blue-light-2: scale-color($blue-light-1, $lightness: 5%); 
+
+$green: #07cc07;
+$green-light-1: scale-color($green, $lightness: 5%);
+$green-light-2: scale-color($green, $lightness: 10%);
+
+$color-progress: #4d555c;
+$color-progress-text: white;
+
+$color-error-text: #721c24;
+$color-error-1: #f8d7da;
+$color-error-2: #f5c6cb;
+
+//$color-download-1: #0a84ff;
+//$color-download-2: #006efe;
+
+$style-border: u(1) solid $color-2;
+
+$icon-check-green: url("/icons/check_green.svg");
+$icon-check-yellow: url("/icons/check_yellow.svg");
+$icon-remove: url("/icons/remove.svg");
+$icon-loading: url("/icons/loading.svg");
+$icon-download: url("/icons/download.svg");
+$icon-download-hover: url("/icons/download_hover.svg");
+$icon-error: url("/icons/error.svg");
+
+$icon-check-flat: url("/icons/flat/check_flat.svg");
+$icon-ex-link: url("/icons/flat/link.svg");
+$icon-folder: url("/icons/flat/folder.svg");
+$icon-collapse: url("/icons/flat/collapse.svg");
+
+$icon-selection: url("/icons/selection.svg");
+
+%font {
+  font: {
+    family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    style: normal;
+    weight: normal;
+  }
+  font-size: $size-font;
+}
+
+%switch {
+  $width: u(32);
+  $height: u(18);
+  $diameter: u(12);
+
+  $space: ($height - $diameter) / 2;
+
+  position: relative;
+  width: $width;
+  height: $height;
+  border-radius: $height / 2;
+  background-color: $color-1;
+  margin-right: u(6);
+  transition: .2s;
+  flex-shrink: 0;
+
+  label:hover &{
+    background-color: $color-2;
+  }
+
+  input:checked + &{
+    background-color: $blue;
+  }
+  
+  label:hover input:checked + &{
+    background-color: $blue-light-1;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: $diameter;
+    height: $diameter;
+    left: $space;
+    bottom: $space;
+    border-radius: $diameter / 2;
+    background-color: #fff;
+    transition: .2s;
+  }
+
+  input:checked + &::after {
+    left: $width - ($diameter + $space);
+  }
+}

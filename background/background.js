@@ -5,6 +5,8 @@ browser.runtime.onInstalled.addListener(details => {
       browser.runtime.openOptionsPage();
     }
   });
+  setState("popup");
+  setState("infobar");
 });
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -17,7 +19,7 @@ async function getOptions(){
 }
 
 //if new settings have been added
-function updateOptions(current) {
+function updateOptions(current){
   for (let s of settingsList()){
     if (!current[s.site]){
       current[s.site] = {};
@@ -27,6 +29,36 @@ function updateOptions(current) {
     }
   }
   return current;
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// state functions
+//---------------------------------------------------------------------------------------------------------------------
+
+async function setState(ui){
+  let res = await browser.storage.local.get(ui);
+  let uistate = {};
+  let defaultstate;
+  switch (ui) {
+    case "popup":
+      defaultstate = popupState;
+      break;
+
+    case "infobar":
+      defaultstate = infoBarState;
+      break;
+
+    default:
+      return;
+  }
+  uistate[ui] = {...defaultstate, ...(res[ui] || {})};
+  browser.storage.local.set(uistate);
+}
+
+async function updateState(ui, component, value){
+  let uistate = await browser.storage.local.get(ui);
+  uistate[ui][component] = value;
+  browser.storage.local.set(uistate);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -61,6 +93,12 @@ async function messageActions(request){
 
     case "updateoptions":
       return updateOptions(request.newoptions);
+
+    case "showdownload":
+      return browser.downloads.show(request.id);
+
+    case "updatestate":
+      return updateState(request.ui, request.component, request.value);
   }
 }
 
@@ -158,7 +196,7 @@ async function startDownload(url, filename, meta){
     let opt = res.options.global;
     let dlid = await browser.downloads.download({url, filename, conflictAction: opt.conflict, saveAs: opt.saveAs});
     currentdownloads.set(dlid, url);
-    return {response: "Success", url, filename};
+    return {response: "Success", url, filename, id: dlid};
   }
   catch (err){
     return {response: "Failure", url, filename};

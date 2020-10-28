@@ -139,8 +139,7 @@ as.furaffinity.check.getThumbnails = function(){
     previews.push(profile);
 
     if (!$(profile, ".artsaver-holder")){
-      let holder = $insert($(profile, "img"), "div", "parent");
-      holder.className = "artsaver-holder";
+      $insert($(profile, "img"), "div", {position: "parent", class: "artsaver-holder"});
     }
   }
 
@@ -191,8 +190,7 @@ as.furaffinity.check.checkSubmission = function(user, url, modern){
   }
     //checkSubmission(submission.parentElement);
   if (!submission.matches(".artsaver-holder *")){
-    let holder = $insert(submission, "div", "parent");
-    holder.className = "artsaver-holder";
+    let holder = $insert(submission, "div", {position: "parent", class: "artsaver-holder"});
 
     if (modern){
       holder.style.margin = "10px 0";
@@ -201,7 +199,7 @@ as.furaffinity.check.checkSubmission = function(user, url, modern){
     }
     else {
       holder.style.maxWidth = "99%";
-      let flex = $insert(submission, "div", "parent");
+      let flex = $insert(submission, "div", {position: "parent"});
       flex.style.display = "flex";
       submission.style.maxWidth = "100%";
     }
@@ -236,19 +234,36 @@ as.furaffinity.download.startDownloading = async function(pageurl, progress){
     let downloads = [{url: info.downloadurl, meta, filename: options.furaffinity.file}];
 
     let results = await this.handleDownloads(downloads, progress);
-    if (results.some(r => r === "Success")){
+    if (results.some(r => r.response === "Success")){
       progress.say("Updating");
       await updateList(info.savedSite, info.savedUser, info.savedId);
     }
 
     progress.remove();
     reCheck();
+    
+    return {
+      status: "Success",
+      submission: {
+        url: pageurl,
+        user: info.savedUser,
+        id: info.savedId,
+        title: downloads[0].meta.title
+      },
+      files: results
+    };
   }
   catch (err){
     asLog(err);
     progress.error();
+
+    return {
+      status: "Failure",
+      error: err,
+      url: pageurl,
+      progress
+    };
   }
-  return;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
