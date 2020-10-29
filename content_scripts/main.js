@@ -219,18 +219,23 @@ async function removeCheck(checkbutton, data){
 
 function createDownload(site, anchor, url, position){
   let dlbutton = $insert(anchor, "div", {position, class: "artsaver-download"});
+  let activated = false;
 
   dlbutton.addEventListener("click", event => {
     event.preventDefault();
     event.stopPropagation();
 
+    activated = true;
     let bar = createProgress(dlbutton, [site, anchor, url, position]);
     globalqueue.addDownload(site, url, bar);
   }, {once: true});
 
+  
+
   document.addEventListener("keypress", event => {
-    if (anchor.matches(":hover") && event.key === "d"){
+    if (anchor.matches(":hover") && event.key === "d" && !activated){
       dlbutton.click();
+      activated = true;
     }
   });
 
@@ -241,7 +246,10 @@ function createDownload(site, anchor, url, position){
 
 function addButton(site, user, subid, submission, anchor, url, position = "afterend", screen = true){
   let parent = ["afterend", "beforebegin"].includes(position) ? anchor.parentElement : anchor;
-  let button = $(parent, ".artsaver-check, .artsaver-download, .artsaver-error");
+  if ($(parent, ".artsaver-error, .artsaver-loading")){
+    return;
+  }
+  let button = $(parent, ".artsaver-check, .artsaver-download");
 
   if (submission.getAttribute("data-checkstatus") !== "checked"){
     let result = checkUserList(site, user, subid);
