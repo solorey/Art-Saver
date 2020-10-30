@@ -75,14 +75,25 @@ async function navigateStacks(urls){
   return [...new Set(urlslist)];
 }
 
+function decodeHtml(str){
+  let map = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#039;': "'"
+  };
+  return str.replace(/&amp;|&lt;|&gt;|&quot;|&#039;/g, (m) => map[m]);
+}
+
 async function getStashMeta(sr, url){
   let info = {}, meta = {};
   meta.stashSubmissionId = /gmi-deviationid="(\d+)"/.exec(sr)[1];
-  meta.stashTitle = /<a class="title".+?>([^<]+)/.exec(sr)[1];
+  meta.stashTitle = decodeHtml(/<a class="title".+?>([^<]+)/.exec(sr)[1]);
   meta.stashUserName = /username".+?>(.+?)</.exec(sr)[1];
   meta.stashUrlId = url.split("/0").pop();
 
-  info.downloadurl = /dev-page-download(?:.|\n)+?href="(.+?)"/.exec(sr)[1].replace(/&amp;/g, "&");
+  info.downloadurl = decodeHtml(/dev-page-download(?:.|\n)+?href="(.+?)"/.exec(sr)[1]);
 
   let fileres = await fetcher(info.downloadurl);
   let attachment;
