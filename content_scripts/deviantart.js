@@ -293,7 +293,6 @@ as.deviantart.check.checkSubmissionEclipse = function(user, url){
 //gallery    - https://www.deviantart.com/_napi/da-user-profile/api/gallery/contents?username=<userName>&offset=0&limit=24&all_folder=true&mode=newest //24 is max
 //rss        - https://backend.deviantart.com/rss.xml?q=+sort:time+by:<userName>+-in:journals&type=deviation
 
-
 as.deviantart.download.startDownloading = async function(pageurl, progress){
   let options = await getOptions();
 
@@ -341,7 +340,7 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
 
     progress.remove();
     reCheck();
-    
+
     return {
       status: "Success",
       submission: {

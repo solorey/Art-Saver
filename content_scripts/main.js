@@ -230,8 +230,6 @@ function createDownload(site, anchor, url, position){
     globalqueue.addDownload(site, url, bar);
   }, {once: true});
 
-  
-
   document.addEventListener("keypress", event => {
     if (anchor.matches(":hover") && event.key === "d" && !activated){
       dlbutton.click();
@@ -626,6 +624,10 @@ function createPageQueue(usequeue, options){
   return queue
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+// Page Info Bar
+//---------------------------------------------------------------------------------------------------------------------
+
 function createPageInfoBar(){
   $remove($(".artsaver-infobar"));
   $remove($(".artsaver-show-infobar"));
@@ -677,7 +679,7 @@ function createPageInfoBar(){
   $insert($insert(hs3, "div"), "span", {class: "badge", text: "-"});
 
   let q = $insert(ib, "div", {id: "queue"});
-  
+
   let qs = $insert(q, "div", {id: "queue-stats"});
   $insert($insert(qs, "div", {text: " downloading"}), "span", {position: "afterbegin", id: "stat-downloading", text: "-"});
   $insert($insert(qs, "div", {text: " in progress"}), "span", {position: "afterbegin", id: "stat-progress", text: "-"});
@@ -718,7 +720,7 @@ function createPageInfoBar(){
     infobar.hide();
     if (parseInt($(infobar.element, "#stat-downloading").textContent, 10) > 0){
       infobar.state = "staydown";
-    } 
+    }
   }
 
   infobar.addSaved = function(saved){

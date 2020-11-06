@@ -84,8 +84,6 @@ function openTab(tab){
     tabbutton.classList.add("active");
   }
   $(`#${tab}`).style.display = "block";
-
-  
 }
 
 openTab("getting-page");
@@ -100,7 +98,7 @@ for (let t of $$(".tabs > button[data-tab]")){
       case "user-page":
         updateState("tab", "user");
         break;
-  
+
       case "stats-page":
         updateState("tab", "stats");
         break;

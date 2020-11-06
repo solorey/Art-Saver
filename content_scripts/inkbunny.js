@@ -175,7 +175,7 @@ as.inkbunny.download.startDownloading = async function(pageurl, progress){
 
     progress.remove();
     reCheck();
-    
+
     return {
       status: "Success",
       submission: {
