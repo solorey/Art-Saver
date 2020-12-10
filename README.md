@@ -18,13 +18,21 @@ Check the [Wiki][wiki] for additional information.
 
 View the [Supported Sites][sites].
 
-## Download
-[![For Firefox][amo]][addon]
+### Hotkeys
+- **D**: Download submission that is currently being hovered over.
 
 ## Features
 - Custom filenames
 - Download full image resolution
 - Export and restore the information on what you saved
+
+## Download
+[![For Firefox][amo]][addon]
+
+## Install Temporarily
+- Download repository anywhere on your computer.
+- Enter `about:debugging` in the URL bar and click `This Firefox`.
+- Click `Load Temporary Add-on...` and select the `manifest.json` file.
 
 ## Credits
 Inspired by:
