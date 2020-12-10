@@ -9,8 +9,8 @@ function pageInfo(){
     url: window.location.href,
     site: "pixiv",
     links: {
-      userUrl: "https://www.pixiv.net/users/{user}",
-      submissionUrl: "https://www.pixiv.net/artworks/{submission}"
+      userUrl: "https://www.pixiv.net/users/{1}",
+      submissionUrl: "https://www.pixiv.net/artworks/{1}"
     }
   };
 
@@ -25,7 +25,7 @@ function pageInfo(){
     page.page = reg2[1];
   }
 
-  if (["artworks", "illustrations", "manga", "novels", "user", "bookmarks"].includes(page.page)){
+  if (["artworks", "illustrations", "manga", "novels", "user", "bookmarks", "requests"].includes(page.page)){
     page.user = $("h1").textContent;
     page.userId = /\/(\d+)/.exec(page.url)[1];
   }
@@ -425,9 +425,7 @@ async function recordUgoira(type, blobs, width, height, delays, progress){
   let imgbitmaps = await fileWorker("bitmaps", {blobs, width, height});
   let frames = imgbitmaps.map((bm, i) => ({img: bm, delay: delays[i]}));
 
-  let canvas = $insert(document.body, "canvas");
-  canvas.width  = width;
-  canvas.height = height;
+  let canvas = $insert(document.body, "canvas", {width, height});
   canvas.style.display = "none";
   let ctx = canvas.getContext("2d");
 

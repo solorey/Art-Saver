@@ -185,6 +185,7 @@ label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .ar
   right: 0;
   bottom: 0;
   left: 0;
+  pointer-events: none;
   background-color: gray;
   display: flex;
 }

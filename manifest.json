@@ -84,7 +84,7 @@
         "*://*.pixiv.net/*"
       ],
       "js": [
-        "content_scripts/selectors.js",
+        "general_scripts/selectors.js",
         "content_scripts/main.js"
       ],
       "css": ["css/style.css"]

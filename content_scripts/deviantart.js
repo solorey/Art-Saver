@@ -9,8 +9,8 @@ function pageInfo(){
     url: window.location.href,
     site: "deviantart",
     links: {
-      userUrl: "https://www.deviantart.com/{user}",
-      submissionUrl: "https://www.deviantart.com/deviation/{submission}"
+      userUrl: "https://www.deviantart.com/{1}",
+      submissionUrl: "https://www.deviantart.com/deviation/{1}"
     }
   };
 
@@ -155,8 +155,7 @@ as.deviantart.check.getThumbnails = function(){
     }
     //devations in texts
     else if (thumb.matches(".shadow > *") && !$(thumb, ".artsaver-holder")){
-      let holder = $insert($(thumb, "img"), "div", {position: "parent"});
-      holder.className = "artsaver-holder";
+      let holder = $insert($(thumb, "img"), "div", {position: "parent", class: "artsaver-holder"});
     }
 
     thumbnails.push(thumb);

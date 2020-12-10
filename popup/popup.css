@@ -5,6 +5,88 @@ html {
   font-size: 12px;
 }
 
+.search-box {
+  display: none;
+  border-top: 0.0833333333em solid #e0e0e0;
+  width: 100%;
+}
+.search-box .search {
+  padding: 0.1666666667em 0.75em;
+  background-color: #f0f0f0;
+  display: flex;
+}
+.search-box .search button {
+  border-radius: 0 0.25em 0.25em 0;
+  border-left: none;
+  margin: 0;
+}
+.search-box .search .input-holder {
+  flex: 1;
+  display: flex;
+}
+.search-box .search input {
+  background-color: white;
+  border: 0.0833333333em solid #e0e0e0;
+  border-radius: 0.25em 0 0 0.25em;
+  padding: 0.25em 0.5em;
+  width: 100%;
+  font-size: inherit;
+  font-family: inherit;
+}
+.search-box .list {
+  border-top: 0.0833333333em solid #e0e0e0;
+  position: relative;
+  overflow: auto;
+  resize: vertical;
+}
+.search-box .link-list {
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+.search-box .link-list > a {
+  position: absolute;
+  display: block;
+  text-decoration: none;
+  color: black;
+  padding: 0.0833333333em 1.75em;
+  transition: padding-left 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+.search-box .link-list > a:hover {
+  background-color: #f0f0f0;
+  padding-left: 2.25em;
+}
+.search-box .link-list > a .link-search {
+  font-weight: 700;
+}
+
+.icon-button {
+  background-color: white;
+  border: 0.0833333333em solid #e0e0e0;
+  border-radius: 0.25em;
+  padding: 0.25em 0.5em;
+  cursor: pointer;
+  color: black;
+  font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
+  margin: 0 0.1666666667em;
+  display: flex;
+}
+.icon-button > i {
+  margin: auto;
+}
+.icon-button:hover {
+  background-color: #f0f0f0;
+}
+#user-folder.icon-button {
+  display: none;
+}
+
 body {
   padding: 0;
   overflow: hidden;
@@ -151,88 +233,11 @@ button {
   justify-content: center;
 }
 
-.icon-button {
-  background-color: white;
-  border: 0.0833333333em solid #e0e0e0;
-  border-radius: 0.25em;
-  padding: 0.25em 0.5em;
-  cursor: pointer;
-  color: black;
-  font-size: 1rem;
-  text-align: center;
-  text-decoration: none;
-  margin: 0 0.1666666667em;
-  display: flex;
-}
-.icon-button > i {
-  margin: auto;
-}
-.icon-button:hover {
-  background-color: #f0f0f0;
-}
-.icon-button#user-folder {
-  display: none;
-}
-
 .badge {
   background-color: #f0f0f0;
   border-radius: 0.25em;
   padding: 0.25em 0.5em;
   font-weight: 600;
-}
-
-.search-box {
-  display: none;
-  border-top: 0.0833333333em solid #e0e0e0;
-  width: 100%;
-}
-.search-box .search {
-  padding: 0.1666666667em 0.75em;
-  background-color: #f0f0f0;
-  display: flex;
-}
-.search-box .search button {
-  border-radius: 0 0.25em 0.25em 0;
-  border-left: none;
-  margin: 0;
-}
-.search-box .search input {
-  background-color: white;
-  border: 0.0833333333em solid #e0e0e0;
-  border-radius: 0.25em 0 0 0.25em;
-  padding: 0.25em 0.5em;
-  width: 100%;
-  font-size: inherit;
-  font-family: inherit;
-}
-.search-box .list {
-  border-top: 0.0833333333em solid #e0e0e0;
-  position: relative;
-  overflow: auto;
-  resize: vertical;
-}
-.search-box .link-list {
-  position: absolute;
-  top: 0;
-  width: 100%;
-}
-.search-box .link-list > a {
-  position: absolute;
-  display: block;
-  text-decoration: none;
-  color: black;
-  padding: 0.0833333333em 1.75em;
-  transition: padding-left 0.2s;
-  white-space: nowrap;
-  overflow: hidden;
-  width: 100%;
-}
-.search-box .link-list > a:hover {
-  background-color: #f0f0f0;
-  padding-left: 2.25em;
-}
-.search-box .link-list > a .link-search {
-  font-weight: 700;
 }
 
 #total-saved {
@@ -251,10 +256,6 @@ button {
   height: 0;
   overflow: hidden;
   transition: height 0.5s;
-}
-
-.input-holder {
-  flex: 1;
 }
 
 .button-stat {

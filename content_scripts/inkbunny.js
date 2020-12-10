@@ -9,8 +9,8 @@ function pageInfo(){
     url: window.location.href,
     site: "inkbunny",
     links: {
-      userUrl: "https://inkbunny.net/{user}",
-      submissionUrl: "https://inkbunny.net/s/{submission}"
+      userUrl: "https://inkbunny.net/{1}",
+      submissionUrl: "https://inkbunny.net/s/{1}"
     }
   };
 

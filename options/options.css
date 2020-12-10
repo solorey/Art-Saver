@@ -39,6 +39,88 @@ label:hover .option-toggle input:checked + .switch, .option-toggle label:hover i
   left: 1.4166666667em;
 }
 
+.search-box {
+  display: none;
+  border-top: 0.0833333333em solid #e0e0e0;
+  width: 100%;
+}
+.search-box .search {
+  padding: 0.1666666667em 0.75em;
+  background-color: #f0f0f0;
+  display: flex;
+}
+.search-box .search button {
+  border-radius: 0 0.25em 0.25em 0;
+  border-left: none;
+  margin: 0;
+}
+.search-box .search .input-holder {
+  flex: 1;
+  display: flex;
+}
+.search-box .search input {
+  background-color: white;
+  border: 0.0833333333em solid #e0e0e0;
+  border-radius: 0.25em 0 0 0.25em;
+  padding: 0.25em 0.5em;
+  width: 100%;
+  font-size: inherit;
+  font-family: inherit;
+}
+.search-box .list {
+  border-top: 0.0833333333em solid #e0e0e0;
+  position: relative;
+  overflow: auto;
+  resize: vertical;
+}
+.search-box .link-list {
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+.search-box .link-list > a {
+  position: absolute;
+  display: block;
+  text-decoration: none;
+  color: black;
+  padding: 0.0833333333em 1.75em;
+  transition: padding-left 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+.search-box .link-list > a:hover {
+  background-color: #f0f0f0;
+  padding-left: 2.25em;
+}
+.search-box .link-list > a .link-search {
+  font-weight: 700;
+}
+
+.search-box .icon-button {
+  background-color: white;
+  border: 0.0833333333em solid #e0e0e0;
+  border-radius: 0.25em;
+  padding: 0.25em 0.5em;
+  cursor: pointer;
+  color: black;
+  font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
+  margin: 0 0.1666666667em;
+  display: flex;
+}
+.search-box .icon-button > i {
+  margin: auto;
+}
+.search-box .icon-button:hover {
+  background-color: #f0f0f0;
+}
+.search-box #user-folder.icon-button {
+  display: none;
+}
+
 #options-container {
   margin: 0 auto;
   max-width: 75rem;
@@ -55,8 +137,19 @@ caption {
   padding: 0.5em 0;
 }
 
-td {
+.stat-row td {
   padding: 0.75em 1.5em;
+}
+.stat-row td:nth-child(n+2) {
+  cursor: pointer;
+  white-space: nowrap;
+}
+.stat-row td:nth-child(n+2):hover {
+  background-color: #f0f0f0;
+}
+
+.search-row td {
+  padding: 0;
 }
 
 th {
@@ -64,7 +157,7 @@ th {
   padding: 0.5em 1.5em;
 }
 
-tr {
+tr.stat-row {
   border-top: 0.0833333333em solid #e0e0e0;
 }
 
@@ -82,6 +175,9 @@ tr {
   text-align: right;
 }
 
+.search-box .input-holder {
+  flex: 1;
+}
 i[class^=icon] {
   margin-right: 0.5em;
 }

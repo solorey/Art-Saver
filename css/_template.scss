@@ -120,3 +120,100 @@ $icon-selection: url("/icons/selection.svg");
     left: $width - ($diameter + $space);
   }
 }
+
+%search-box {
+  display: none;
+  border-top: $style-border;
+  width: 100%;
+
+  .search {
+    padding: u(2) $horz-pad;
+    background-color: $color-1;
+    display: flex;
+
+    button {
+      border-radius: 0 $radius $radius 0;
+      border-left: none;
+      margin: 0;
+    }
+
+    .input-holder {
+      flex: 1;
+      display: flex;
+    }
+  
+    input {
+      background-color: $color-0;
+      border: $style-border;
+      border-radius: $radius 0 0 $radius;
+      padding: $base-button-padding;
+      width: 100%;
+      font: {
+        size: inherit;
+        family: inherit;
+      }
+    }
+  }
+
+  .list {
+    border-top: $style-border;
+    position: relative;
+    overflow: auto;
+    resize: vertical;
+  }
+  
+  .link-list {
+    position: absolute;
+    top: 0;
+    width: 100%;
+
+    > a {
+      position: absolute;
+      display: block;
+      text-decoration: none;
+      color: $color-text;
+      padding: u(1) u(21);
+      transition: padding-left 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 100%;
+      box-sizing: border-box;
+
+      &:hover {
+        background-color: $color-1;
+        padding-left: u(27);
+      }
+
+      .link-search {
+        font-weight: 700;
+      }
+    }
+  }
+}
+
+%icon-button {
+  background-color: $color-0;
+  border: $style-border;
+  border-radius: $radius;
+  padding: $base-button-padding;
+
+  cursor: pointer;
+  color: $color-text;
+  font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
+  margin: 0 u(2);
+  display: flex;
+
+  > i {
+    margin: auto;
+  }
+
+  &:hover {
+    background-color: $color-1;
+  }
+
+  &#user-folder {
+    display: none;
+  }
+}

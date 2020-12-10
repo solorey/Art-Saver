@@ -9,19 +9,19 @@ function pageInfo(){
     url: window.location.href,
     site: "furaffinity",
     links: {
-      userUrl: "https://www.furaffinity.net/user/{user}",
-      submissionUrl: "https://www.furaffinity.net/view/{submission}"
+      userUrl: "https://www.furaffinity.net/user/{1}",
+      submissionUrl: "https://www.furaffinity.net/view/{1}"
     }
   };
   let split = page.url.split("/");
   page.page = split[3];
   page.modern = $("#ddmenu") ? true : false;
 
-  if (["user", "journals", "journal", "gallery", "scraps", "favorites", "view", "full"].includes(page.page)){
+  if (["user", "journals", "journal", "gallery", "scraps", "favorites", "view", "full", "commissions"].includes(page.page)){
     page.user = /([^ ]+)(?: -- Fur |'s)/.exec($("title").textContent)[1];
   }
 
-  if (["user", "journals", "gallery", "scraps", "favorites"].includes(page.page)){
+  if (["user", "journals", "gallery", "scraps", "favorites", "commissions"].includes(page.page)){
     page.userLower = split[4];
   }
   else if (["view", "full"].includes(page.page)){
@@ -93,7 +93,7 @@ as.furaffinity.check.startChecking = function(){
   let observer = new MutationObserver((mutationsList, observer) => {
     let changed = [...mutationsList].filter(m => m.attributeName === "id").map(m => m.target);
     //remove art saver buttons
-    changed.flatMap(c => $$(c, ".artsaver-check, .artsaver-download")).forEach(e => $remove(e));
+    changed.flatMap(c => $$(c, ".artsaver-check, .artsaver-download, .artsaver-screen")).forEach(e => $remove(e));
     //remove attribute indicating the submission has already been checked
     changed.forEach(e => $(e, "img").removeAttribute("data-checkstatus"));
 
@@ -275,11 +275,11 @@ as.furaffinity.download.getMeta = function(r, url, progress){
   meta.userName = /([^ ]+)(?: -- )/.exec($(r, "title").textContent)[1];
 
   info.downloadurl = decodeURI($(r, 'a[href*="facdn.net/art/"]').href);
-  let reg = /\/((\d+)\.([^_]+)[^\/]+)\.(\w+)$/.exec(info.downloadurl);
-  meta.fileName = reg[1];
-  meta.fileId = reg[2];
-  meta.userLower = reg[3];
-  meta.ext = reg[4];
+  let reg = /\/art\/(.+?)\/(?:.+\/)*(\d+)\/((\d+)?(?:.+_(\d{10,}))?.+?)\.(\w+)$/.exec(info.downloadurl);
+  meta.userLower = reg[1];
+  meta.fileName = reg[3];
+  meta.fileId = reg[4] || reg[5] || reg[2];
+  meta.ext = reg[6];
 
   meta.submissionId = parseInt(url.split("/")[4], 10);
   meta.title = $(r, "div.classic-submission-title > h2, .submission-title p").textContent;

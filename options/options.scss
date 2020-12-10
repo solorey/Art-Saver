@@ -20,8 +20,21 @@ caption {
   padding: u(6) 0;
 }
 
-td {
+.stat-row td {
   padding: u(9) u(18);
+
+  &:nth-child(n+2) {
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: $color-1;
+    }
+  }
+}
+
+.search-row td {
+  padding: 0;
 }
 
 th {
@@ -29,7 +42,7 @@ th {
   padding: u(6) u(18);
 }
 
-tr {
+tr.stat-row {
   border-top: $style-border;
 }
 
@@ -47,6 +60,18 @@ tr {
 
   tr > :not(:first-child){
     text-align: right;
+  }
+}
+
+.search-box {
+  @extend %search-box;
+
+  .input-holder {
+    flex: 1;
+  }
+
+  .icon-button {
+    @extend %icon-button;
   }
 }
 

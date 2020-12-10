@@ -165,9 +165,7 @@ function createTooltip(){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createCheck(anchor, color, position, data){
-  let checkbutton = $insert(anchor, "div", {position, class: "artsaver-check"});
-
-  checkbutton.setAttribute("data-color", color);
+  let checkbutton = $insert(anchor, "div", {position, class: "artsaver-check", "data-color": color});
 
   if (tooltip){
     checkbutton.onmouseover = function(){
@@ -633,8 +631,7 @@ function createPageInfoBar(){
   $remove($(".artsaver-show-infobar"));
 
   //all this to avoid using innerHTML
-  let ib = $insert(document.body, "div", {class: "artsaver-infobar"});
-  ib.setAttribute("data-display","hide");
+  let ib = $insert(document.body, "div", {class: "artsaver-infobar", "data-display": "hide"});
 
   let l1 = $insert(ib, "div", {id: "list-recent", class: "list-box"});
   $insert(l1, "div", {class: "list"});
@@ -645,8 +642,7 @@ function createPageInfoBar(){
   let l2b = $insert(l2, "div", {class: "list-bar"});
   $insert(l2b, "div", {text: "Recent"});
   let l2s = $insert(l2b, "label", {text: "Show folders"})
-  let l2si = $insert(l2s, "input");
-  l2si.type = "checkbox";
+  let l2si = $insert(l2s, "input", {type: "checkbox"});
   l2si.oninput = function(){
     if (this.checked){
       l2.classList.remove("hide-folders");

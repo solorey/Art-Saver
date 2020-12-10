@@ -1,3 +1,5 @@
+let globalrunningobservers = [];
+
 //restore options on page load
 document.addEventListener("DOMContentLoaded", async () => {
   let options = await browser.runtime.sendMessage({
@@ -98,24 +100,54 @@ async function userlistDetails(){
     return;
   }
 
-  let sites = ["deviantart", "pixiv", "furaffinity", "inkbunny"];
+  let sites = {
+    deviantart: {
+      user: "https://www.deviantart.com/{1}",
+      submission: "https://www.deviantart.com/deviation/{1}"
+    },
+    pixiv: {
+      user: "https://www.pixiv.net/users/{1}",
+      submission: "https://www.pixiv.net/artworks/{1}"
+    },
+    furaffinity: {
+      user: "https://www.furaffinity.net/user/{1}",
+      submission: "https://www.furaffinity.net/view/{1}"
+    },
+    inkbunny: {
+      user: "https://inkbunny.net/{1}",
+      submission: "https://inkbunny.net/s/{1}"
+    }
+  };
 
   let tbody = $(savedtable,  "tbody");
 
-  for (let s of sites){
+  for (let s of Object.keys(sites)){
     if (!list[s]){
       continue;
     }
 
-    let row = $insert(tbody, "tr");
+    let savedstats = {
+      user: [...new Set(Object.keys(list[s]))].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: "base", numeric: true})),
+      submission: [...new Set(Object.values(list[s]).flat())].sort((a, b) => b - a)
+    };
+
+    let row = $insert(tbody, "tr", {class: "stat-row"});
 
     $insert(row, "td", {text: `${s[0].toUpperCase()}${s.slice(1)}`});  //site
 
-    let totalusers = new Set(Object.keys(list[s])).size
-    let span1 = $insert($insert(row, "td"), "span", {class: "badge", text: totalusers});
+    for (let [stat, list] of Object.entries(savedstats)){
+      let statbutton = $insert(row, "td", {"data-toggle": "closed"});
+      $insert(statbutton, "span", {class: "badge", text: list.length});
 
-    let totalsubmissions = new Set(Object.values(list[s]).flat()).size;
-    let span2 = $insert($insert(row, "td"), "span", {class: "badge", text: totalsubmissions});
+      let listelem = $insert($insert($insert(tbody, "tr", {class: "search-row"}), "td", {colspan: "3"}), "div", {id: `${stat}-list`, class: "search-box"});
+      let search = $insert(listelem, "div", {class: "search"});
+      $insert($insert(search, "div", {class: "input-holder"}), "input", {type: "text", placeholder: `Search ${stat[0].toUpperCase()}${stat.slice(1)}s`});
+      $insert($insert(search, "button", {class: "icon-button"}), "i", {class: "icon-descend"});
+      $insert($insert(listelem, "div", {class: "list"}), "div", {class: "link-list", "data-sort": "descend"});
+
+      createVirtualList(listelem, list, sites[s][stat]);
+      statbutton.onclick = function(){ showSavedList(this, listelem); };
+    }
   }
 
   savedtable.removeAttribute("style");
