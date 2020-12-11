@@ -67,7 +67,7 @@ function addTable(location, tablemetas){
     userLower:          "The way the user name appears in the url bar."
   };
 
-  let table = $insert($(`${location} ~ button`), "table", {position: "afterend"});
+  let table = $insert($(`${location} ~ button`), "table", {position: "afterend", class: "help-table"});
 
   for (let tm of tablemetas){
     let tr = $insert(table, "tr");

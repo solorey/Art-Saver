@@ -42,13 +42,23 @@ th {
   padding: u(6) u(18);
 }
 
-tr.stat-row {
-  border-top: $style-border;
+.help-table {
+  tr {
+    border-top: $style-border;
+  }
+
+  td {
+    padding: u(3) u(18);
+  }
 }
 
 #saved-table {
   margin: 0 auto;
   width: auto;
+
+  .stat-row {
+    border-top: $style-border;
+  }
 
   tr:nth-child(-n+2){
     border: none;

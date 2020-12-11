@@ -157,13 +157,19 @@ th {
   padding: 0.5em 1.5em;
 }
 
-tr.stat-row {
+.help-table tr {
   border-top: 0.0833333333em solid #e0e0e0;
+}
+.help-table td {
+  padding: 0.25em 1.5em;
 }
 
 #saved-table {
   margin: 0 auto;
   width: auto;
+}
+#saved-table .stat-row {
+  border-top: 0.0833333333em solid #e0e0e0;
 }
 #saved-table tr:nth-child(-n+2) {
   border: none;
