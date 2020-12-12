@@ -92,6 +92,7 @@ async function getStashMeta(sr, url){
   meta.stashTitle = decodeHtml(/<a class="title".+?>([^<]+)/.exec(sr)[1]);
   meta.stashUserName = /username".+?>(.+?)</.exec(sr)[1];
   meta.stashUrlId = url.split("/0").pop();
+  meta = {...meta, ...stashTimeParse( / ts="(.+?)"/.exec(sr)[1])};
 
   info.downloadurl = decodeHtml(/dev-page-download(?:.|\n)+?href="(.+?)"/.exec(sr)[1]);
 
@@ -211,5 +212,22 @@ function fileSize(bytes){
       return `${bytes.toFixed(2)} ${size}`;
     }
     bytes = bytes / 1024;
+  }
+}
+
+//timestring assumed to be number of seconds since January 1, 1970, 00:00:00 UTC
+function stashTimeParse(timestring){
+  let time = new Date();
+  time.setTime(`${timestring}000`); //set time by milliseconds
+
+  let pad = (n) => `${n}`.padStart(2, "0");
+
+  return {
+    stashYYYY: pad(time.getFullYear()),
+    stashMM: pad(time.getMonth() + 1),
+    stashDD: pad(time.getDate()),
+    stashhh: pad(time.getHours()),
+    stashmm: pad(time.getMinutes()),
+    stashss: pad(time.getSeconds())
   }
 }

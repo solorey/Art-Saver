@@ -256,6 +256,9 @@ as.pixiv.download.startDownloading = async function(pageurl, progress){
       progress.say("Updating");
       await updateList(info.savedSite, info.savedUser, info.savedId);
     }
+    else {
+      throw new Error("Files failed to download.");
+    }
 
     progress.remove();
     reCheck();
@@ -297,6 +300,7 @@ as.pixiv.download.getMeta = async function(r, url, options, progress){
   let reg = /\/(\d+_.+)\.(.+)$/.exec(info.downloadurl);
   meta.fileName = reg[1];
   meta.ext = reg[2];
+  meta = {...meta, ...timeParse(r.body.uploadDate)};
 
   info.savedSite = meta.site;
   info.savedUser = meta.userId;

@@ -238,6 +238,9 @@ as.furaffinity.download.startDownloading = async function(pageurl, progress){
       progress.say("Updating");
       await updateList(info.savedSite, info.savedUser, info.savedId);
     }
+    else {
+      throw new Error("Files failed to download.");
+    }
 
     progress.remove();
     reCheck();
@@ -283,6 +286,10 @@ as.furaffinity.download.getMeta = function(r, url, progress){
 
   meta.submissionId = parseInt(url.split("/")[4], 10);
   meta.title = $(r, "div.classic-submission-title > h2, .submission-title p").textContent;
+
+  let timeelem = $(r, ".popup_date");
+  let timestring = (/\d{4} \d{2}:\d{2}/.exec(timeelem.title)) ? timeelem.title : timeelem.textContent;
+  meta = {...meta, ...timeParse(timestring)};
 
   info.savedSite = meta.site;
   info.savedUser = meta.userLower;

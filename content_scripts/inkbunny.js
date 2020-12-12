@@ -172,6 +172,9 @@ as.inkbunny.download.startDownloading = async function(pageurl, progress){
       progress.say("Updating");
       await updateList(info.savedSite, info.savedUser, info.savedId);
     }
+    else {
+      throw new Error("Files failed to download.");
+    }
 
     progress.remove();
     reCheck();
@@ -214,6 +217,7 @@ as.inkbunny.download.getMeta = function(r, progress){
   catch (err){}
 
   meta.submissionId = parseInt(/\/(\d+)/.exec($(r, '[rel="canonical"]').href)[1], 10);
+  meta = {...meta, ...timeParse(/(.+) /.exec($("#submittime_exact").textContent)[1])};
 
   info.savedSite = meta.site;
   info.savedUser = meta.userName;

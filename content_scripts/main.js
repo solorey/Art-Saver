@@ -359,6 +359,23 @@ function createProgress(dlbutton, rebuild){
 // functions used when downloading a submission
 //---------------------------------------------------------------------------------------------------------------------
 
+function timeParse(timestring){
+  let time = new Date(timestring);
+
+  let pad = (n) => `${n}`.padStart(2, "0");
+
+  return {
+    YYYY: pad(time.getFullYear()),
+    MM: pad(time.getMonth() + 1),
+    DD: pad(time.getDate()),
+    hh: pad(time.getHours()),
+    mm: pad(time.getMinutes()),
+    ss: pad(time.getSeconds())
+  }
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 async function fetchBlobsProgress(downloads, progress){
   progress.say("Starting download");
 

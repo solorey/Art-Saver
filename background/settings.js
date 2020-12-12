@@ -51,7 +51,7 @@ const globalsettings = {
     file: {
       location: "#dev-file",
       default: "Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}",
-      metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext"]
+      metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
     },
     larger: {
       location: "#dev-larger",
@@ -64,7 +64,7 @@ const globalsettings = {
     stashFile: {
       location: "#dev-stash",
       default: "Saved/{site}/{userName}/{submissionId}_{title}/{stashTitle}_by_{stashUserName}_{stashUrlId}.{stashExt}",
-      metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt"]
+      metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt", "stashYYYY", "stashMM", "stashDD", "stashhh", "stashmm", "stashss"]
     },
     moveFile: {
       location: "#dev-move",
@@ -80,12 +80,12 @@ const globalsettings = {
     file: {
       location: "#pix-file",
       default: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}_by_{userName}.{ext}",
-      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "ext"]
+      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
     },
     multiple: {
       location: "#pix-multiple",
       default: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}/{submissionId}_{title}_{page}_by_{userName}.{ext}",
-      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "page", "ext"]
+      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "page", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
     },
     ugoira: {
       location: "#ugoira",
@@ -101,7 +101,7 @@ const globalsettings = {
     file: {
       location: "#fur-file",
       default: "Saved/{site}/{userLower}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
-      metas: ["site", "userName", "userLower", "title", "submissionId", "fileName", "fileId", "ext"]
+      metas: ["site", "userName", "userLower", "title", "submissionId", "fileName", "fileId", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
     }
   },
   inkbunny: {
@@ -113,12 +113,12 @@ const globalsettings = {
     file: {
       location: "#ink-file",
       default: "Saved/{site}/{userName}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
-      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "ext"]
+      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
     },
     multiple: {
       location: "#ink-multiple",
       default: "Saved/{site}/{userName}/{submissionId}_{title}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
-      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "page", "ext"]
+      metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "page", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
     }
   }
 };

@@ -336,6 +336,9 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
       progress.say("Updating");
       await updateList(info.savedSite, info.savedUser, info.savedId);
     }
+    else {
+      throw new Error("Files failed to download.");
+    }
 
     progress.remove();
     reCheck();
@@ -375,6 +378,7 @@ as.deviantart.download.getMeta = async function(r, options, progress){
   meta.userName = r.author.username;
   meta.submissionId = r.deviationId;
   meta.submissionId36 = r.deviationId.toString(36);
+  meta = {...meta, ...timeParse(r.publishedTime)};
 
   info.savedSite = meta.site;
   info.savedUser = meta.userName;

@@ -64,7 +64,19 @@ function addTable(location, tablemetas){
     userId:            "The user Id of the artist.",
     page:              "The page number of the file in the submission set. Pages start at 1.",
     fileId:            "Id of the submission file.",
-    userLower:          "The way the user name appears in the url bar."
+    userLower:         "The way the user name appears in the url bar.",
+    YYYY:              "The year the submission was posted",
+    MM:                "Month, 01 - 12",
+    DD:                "Day, 01 - 31",
+    hh:                "Hours, 00 - 23",
+    mm:                "Minutes, 00 - 59",
+    ss:                "Seconds, 00 - 59",
+    stashYYYY:         "The year the stash submission was posted",
+    stashMM:           "Month, 01 - 12",
+    stashDD:           "Day, 01 - 31",
+    stashhh:           "Hours, 00 - 23",
+    stashmm:           "Minutes, 00 - 59",
+    stashss:           "Seconds, 00 - 59"
   };
 
   let table = $insert($(`${location} ~ button`), "table", {position: "afterend", class: "help-table"});
