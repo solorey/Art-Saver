@@ -46,39 +46,39 @@ function toggleHelpButton(button){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function addTable(location, tablemetas){
-  let metas = {
-    site:              "The name of the website. 'pixiv', 'deviantart', etc.",
-    userName:          "The user name of the artist.",
-    title:             "Title of the submission.",
-    submissionId:      "Id of the submission. Different according to each site.",
-    submissionId36:    "submissionId in base 36 format.",
-    fileName:          "Original site filename of the submission. Does not include extension.",
-    ext:               "File extension. 'jpg', 'png', 'gif', etc.",
-    stashUrlId:        "The digits and letters at the end of a the stash url.",
-    stashUserName:     "The user name of the artist of the stash submission.",
-    stashTitle:        "Title of the stash submission.",
-    stashSubmissionId: "Id of the stash submission.",
-    stashFileName:     "The original file name of the stash submission. Does not include extension.",
-    stashExt:          "File extension of the stash submission.",
-    userId:            "The user Id of the artist.",
-    page:              "The page number of the file in the submission set. Pages start at 1.",
-    fileId:            "Id of the submission file.",
-    userLower:         "The way the user name appears in the url bar.",
-    YYYY:              "The year the submission was posted",
-    MM:                "Month, 01 - 12",
-    DD:                "Day, 01 - 31",
-    hh:                "Hours, 00 - 23",
-    mm:                "Minutes, 00 - 59",
-    ss:                "Seconds, 00 - 59",
-    stashYYYY:         "The year the stash submission was posted",
-    stashMM:           "Month, 01 - 12",
-    stashDD:           "Day, 01 - 31",
-    stashhh:           "Hours, 00 - 23",
-    stashmm:           "Minutes, 00 - 59",
-    stashss:           "Seconds, 00 - 59"
-  };
+const metas = {
+  site:              "The name of the website. 'pixiv', 'deviantart', etc.",
+  userName:          "The user name of the artist.",
+  title:             "Title of the submission.",
+  submissionId:      "Id of the submission. Different according to each site.",
+  submissionId36:    "submissionId in base 36 format.",
+  fileName:          "Original site filename of the submission. Does not include extension.",
+  ext:               "File extension. 'jpg', 'png', 'gif', etc.",
+  stashUrlId:        "The digits and letters at the end of a the stash url.",
+  stashUserName:     "The user name of the artist of the stash submission.",
+  stashTitle:        "Title of the stash submission.",
+  stashSubmissionId: "Id of the stash submission.",
+  stashFileName:     "The original file name of the stash submission. Does not include extension.",
+  stashExt:          "File extension of the stash submission.",
+  userId:            "The user Id of the artist.",
+  page:              "The page number of the file in the submission set. Pages start at 1.",
+  fileId:            "Id of the submission file.",
+  userLower:         "The way the user name appears in the url bar.",
+  YYYY:              "The year the submission was posted",
+  MM:                "Month, 01 - 12",
+  DD:                "Day, 01 - 31",
+  hh:                "Hours, 00 - 23",
+  mm:                "Minutes, 00 - 59",
+  ss:                "Seconds, 00 - 59",
+  stashYYYY:         "The year the stash submission was posted",
+  stashMM:           "Month, 01 - 12",
+  stashDD:           "Day, 01 - 31",
+  stashhh:           "Hours, 00 - 23",
+  stashmm:           "Minutes, 00 - 59",
+  stashss:           "Seconds, 00 - 59"
+};
 
+function addTable(location, tablemetas){
   let table = $insert($(`${location} ~ button`), "table", {position: "afterend", class: "help-table"});
 
   for (let tm of tablemetas){
@@ -106,6 +106,7 @@ async function userlistDetails(){
   let savedtable = $("#saved-table");
 
   $$(savedtable, "tr:nth-child(n+2)").forEach(row => $remove(row));
+  globalrunningobservers.forEach(ob => ob.disconnect());
 
   if (!list || Object.keys(list).length === 0){
     savedtable.style.display = "none";
@@ -416,9 +417,9 @@ for (let t of $$("textarea")){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 let optiontoggles = [
-  {toggle:"#stash", opt: "div.stash-options"},
-  {toggle:"#add-screen", opt: "div.screen-options"},
-  {toggle:"#use-queue", opt: "div.queue-options"}
+  {toggle: "#stash", opt: "div.stash-options"},
+  {toggle: "#add-screen", opt: "div.screen-options"},
+  {toggle: "#use-queue", opt: "div.queue-options"}
 ];
 
 for (let {toggle, opt} of optiontoggles){

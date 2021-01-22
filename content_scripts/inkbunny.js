@@ -217,7 +217,7 @@ as.inkbunny.download.getMeta = function(r, progress){
   catch (err){}
 
   meta.submissionId = parseInt(/\/(\d+)/.exec($(r, '[rel="canonical"]').href)[1], 10);
-  meta = {...meta, ...timeParse(/(.+) /.exec($("#submittime_exact").textContent)[1])};
+  meta = {...meta, ...timeParse(/(.+) /.exec($(r, "#submittime_exact").textContent)[1])};
 
   info.savedSite = meta.site;
   info.savedUser = meta.userName;

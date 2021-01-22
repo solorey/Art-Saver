@@ -89,7 +89,7 @@ $icon-selection: url("/icons/selection.svg");
   border-radius: $height / 2;
   background-color: $color-1;
   margin-right: u(6);
-  transition: .2s;
+  transition: background-color .2s;
   flex-shrink: 0;
 
   label:hover &{
@@ -113,7 +113,7 @@ $icon-selection: url("/icons/selection.svg");
     bottom: $space;
     border-radius: $diameter / 2;
     background-color: #fff;
-    transition: .2s;
+    transition: left .2s;
   }
 
   input:checked + &::after {
