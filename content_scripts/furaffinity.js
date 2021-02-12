@@ -277,7 +277,7 @@ as.furaffinity.download.getMeta = function(r, url, progress){
   meta.site = "furaffinity";
   meta.userName = /([^ ]+)(?: -- )/.exec($(r, "title").textContent)[1];
 
-  info.downloadurl = decodeURI($(r, 'a[href*="facdn.net/art/"]').href);
+  info.downloadurl = decodeURI($(r, 'a[href*="facdn.net/art/"], a[href*="d.furaffinity.net/art/"]').href);
   let reg = /\/art\/(.+?)\/(?:.+\/)*(\d+)\/((\d+)?(?:.+_(\d{10,}))?.+?)\.(\w+)$/.exec(info.downloadurl);
   meta.userLower = reg[1];
   meta.fileName = reg[3];

@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Art Saver",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Easily download and track downloads in supported art gallery websites.",
 
   "browser_specific_settings": {
@@ -37,7 +37,7 @@
     "*://*.deviantart.net/*",
     "*://*.deviantart.com/*",
     "*://d.facdn.net/*",
-    "*://d2.facdn.net/*",
+    "*://*.furaffinity.net/*",
     "*://*.ib.metapix.net/*"
   ],
 
