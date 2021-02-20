@@ -287,9 +287,7 @@ as.furaffinity.download.getMeta = function(r, url, progress){
   meta.submissionId = parseInt(url.split("/")[4], 10);
   meta.title = $(r, "div.classic-submission-title > h2, .submission-title p").textContent;
 
-  let timeelem = $(r, ".popup_date");
-  let timestring = (/\d{4} \d{2}:\d{2}/.exec(timeelem.title)) ? timeelem.title : timeelem.textContent;
-  meta = {...meta, ...timeParse(timestring)};
+  meta = {...meta, ...timeParse(parseInt(`${meta.fileId}000`, 10))};
 
   info.savedSite = meta.site;
   info.savedUser = meta.userLower;
