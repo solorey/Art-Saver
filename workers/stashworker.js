@@ -37,7 +37,6 @@ async function fetcher(url, type){
 async function getStash(urls){
   let totalurls = await navigateStacks(urls);
   let stashresponses = await Promise.all(totalurls.map(u => fetcher(u, "text")));
-
   let allstashes = await Promise.all(totalurls.map((url, i) => getStashMeta(stashresponses[i], url)));
   return allstashes.filter(s => s);
 }
@@ -88,7 +87,11 @@ function decodeHtml(str){
 
 async function getStashMeta(sr, url){
   let info = {}, meta = {};
-  meta.stashSubmissionId = /gmi-deviationid="(\d+)"/.exec(sr)[1];
+  let sidreg = /gmi-deviationid="(\d+)"/.exec(sr);
+  if (!sidreg) {
+    return
+  }
+  meta.stashSubmissionId = sidreg[1];
   meta.stashTitle = decodeHtml(/<a class="title".+?>([^<]+)/.exec(sr)[1]);
   meta.stashUserName = /username".+?>(.+?)</.exec(sr)[1];
   meta.stashUrlId = url.split("/0").pop();
