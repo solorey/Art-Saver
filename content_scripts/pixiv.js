@@ -30,7 +30,7 @@ function pageInfo(){
     page.userId = /\/(\d+)/.exec(page.url)[1];
   }
   else if (["artwork", "novel"].includes(page.page)){
-    let userelem = $('a[href*="/users/"]:nth-of-type(2)');
+    let userelem = $('a[href*="/users/"] ~ div a[href*="/users/"]');
     page.user = userelem.textContent;
     page.userId = userelem.href.split("/").pop();
   }
@@ -90,7 +90,7 @@ as.pixiv.check.startChecking = function(){
   this.checkPage(page);
 
   let observer = new MutationObserver((mutationsList, observer) => {
-    if (page.url !== window.location.href || (page.page === "artwork" && page.user !== $('a[href*="/users/"]:nth-of-type(2)').textContent)){
+    if (page.url !== window.location.href || (page.page === "artwork" && page.user !== $('a[href*="/users/"] ~ div a[href*="/users/"]').textContent)){
       page = pageInfo();
     }
 
