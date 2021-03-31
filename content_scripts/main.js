@@ -453,6 +453,12 @@ async function downloadBlobs(blobs){
       function: "blob",
       ...blob
     });
+
+    //I don't know garbage collection already handles this,
+    //but since blobs can take a lot of space (especially large files)
+    //manually clear the blob after saving to clear memory.
+    blob.blob = '';
+    
     logDownloadResponse(message);
     results.push(message);
   }
