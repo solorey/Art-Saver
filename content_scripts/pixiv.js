@@ -156,7 +156,7 @@ as.pixiv.check.checkPopupLarge = function(popup){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 as.pixiv.check.checkFollowing = function(){
-  let rows = $$('li[type="following"], li[type="mypixiv"]');
+  let rows = $$("section > div:last-child > div");
   for (let r of rows){
     let userId = /\/(\d+)/.exec($(r, "a").href)[1];
     this.checkThumbnails($$(r, "ul > div"), userId);
