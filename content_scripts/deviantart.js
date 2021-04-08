@@ -310,23 +310,9 @@ as.deviantart.download.startDownloading = async function(pageurl, progress){
 
     let stashworker;
     if (options.deviantart.stash && info.stash.length > 0){
-      progress.say("Getting stash meta");
+      progress.say("Found stash");
       stashworker = new Worker(browser.runtime.getURL("/workers/stashworker.js"));
-      stashworker.postMessage({function: "getstash", stashurls: info.stash});
-
-      let stashes = await new Promise((resolve, reject) => {
-        stashworker.onmessage = m => {
-          if (m.data.message === "gotstash"){
-            resolve(m.data.stash);
-          }
-        }
-      });
-
-      let stashdownloads = stashes.map(s => ({
-        url: s.info.downloadurl,
-        meta: {...meta, ...s.meta},
-        filename: options.deviantart.stashFile
-      }));
+      stashdownloads = await this.startStashDownloading(info.stash, meta, options, progress, stashworker);
 
       downloads = downloads.concat(stashdownloads);
     }
@@ -486,6 +472,29 @@ as.deviantart.download.handleDownloads = async function(downloads, options, prog
   progress.saving(blobs.length);
 
   return await downloadBlobs(blobs);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+as.deviantart.download.startStashDownloading = async function(stashurls, meta, options, progress, stashworker){
+  stashworker.postMessage({function: "getstash", stashurls});
+
+  let stashes = await new Promise((resolve, reject) => {
+    stashworker.onmessage = m => {
+      if (m.data.message === "gotstash"){
+        resolve(m.data.stash);
+      }
+      else if (m.data.message === "progress"){
+        progress.say(m.data.say);
+      }
+    }
+  });
+
+  return stashes.map(s => ({
+    url: s.info.downloadurl,
+    meta: {...meta, ...s.meta},
+    filename: options.deviantart.stashFile
+  }));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -36,38 +36,47 @@ async function fetcher(url, type){
 
 async function getStash(urls){
   let totalurls = await navigateStacks(urls);
-  let stashresponses = await Promise.all(totalurls.map(u => fetcher(u, "text")));
-  let allstashes = await Promise.all(totalurls.map((url, i) => getStashMeta(stashresponses[i], url)));
-  return allstashes.filter(s => s);
+  let stashes = [];
+  let count = 0;
+  for (url of totalurls){
+    count += 1;
+    postMessage({message: "progress", say: `Getting ${count} of ${totalurls.length}`});
+    let sr = await fetcher(url, "text");
+    let smeta = await getStashMeta(sr, url);
+    if (smeta){
+      stashes.push(smeta);
+    }
+  }
+  return stashes
+}
+
+function findStashUrlsInStack(sr){
+  let thumbreg = /gmi-stashid(?:.|\n)+?<\//g;
+  let result;
+  let stashthumbs = [];
+  while ((result = thumbreg.exec(sr)) !== null){
+    stashthumbs.push(result[0]);
+  }
+
+  let surls = [];
+  for (thumb of stashthumbs){
+    let hrefreg = /<a.+?href="(.+?)"/.exec(thumb);
+    if (hrefreg){
+      surls.push(hrefreg[1]);
+    }
+    else {
+      surls.push(decodeStash(/gmi-stashid="(.+?)"/.exec(thumb)[1]));
+    }
+  }
+  return surls;
 }
 
 async function navigateStacks(urls){
-  function stackUrls(sr){
-    let thumbreg = /gmi-stashid(?:.|\n)+?<\//g;
-    let result;
-    let stashthumbs = [];
-    while ((result = thumbreg.exec(sr)) !== null){
-      stashthumbs.push(result[0]);
-    }
-
-    let surls = [];
-    for (thumb of stashthumbs){
-      let hrefreg = /<a.+?href="(.+?)"/.exec(thumb);
-      if (hrefreg){
-        surls.push(hrefreg[1]);
-      }
-      else {
-        surls.push(decodeStash(/gmi-stashid="(.+?)"/.exec(thumb)[1]));
-      }
-    }
-    return surls;
-  }
-
   let urlslist = urls;
   let stacks;
   while ((stacks = urlslist.filter(u => /\/2/.test(u))).length > 0){
     let responses = await Promise.all(stacks.map(g => fetcher(g, "text")));
-    let stackurls = responses.map(r => stackUrls(r));
+    let stackurls = responses.map(r => findStashUrlsInStack(r));
 
     urlslist = [urlslist.filter(u => !/\/2/.test(u)), stackurls].flat(Infinity).filter(s => s);
   }
