@@ -1,0 +1,100 @@
+<div id="artsaver-info-bar" class="collapsed">
+	<template id="recent-row-template">
+		<div class="row">
+			<div class="row-text">
+				<span></span><span></span><span class="hide"></span><span></span>
+			</div>
+			<div class="row-buttons">
+				<a class="row-button link-icon" target="_blank" rel="noopener noreferrer"></a>
+			</div>
+		</div>
+	</template>
+	<template id="file-row-template">
+		<div class="row">
+			<div class="row-text">
+				<span class="file-folder"></span><span></span>
+			</div>
+			<div class="row-buttons">
+				<button class="row-button folder-icon"></button>
+			</div>
+		</div>
+	</template>
+	<template id="error-row-template">
+		<div class="row">
+			<div class="row-text">
+				<span></span>
+			</div>
+			<div class="row-buttons">
+				<a class="row-button link-icon" target="_blank" rel="noopener noreferrer"></a>
+			</div>
+		</div>
+		<div class="row">
+			<div class="row-text">
+				<span></span>
+			</div>
+		</div>
+	</template>
+	<div id="list-recent" class="list-box hide">
+		<div class="list"></div>
+		<div class="list-bar">Recent</div>
+	</div>
+	<div id="list-files" class="list-box hide">
+		<div class="list"></div>
+		<div class="list-bar">
+			<div>Files</div>
+			<label>
+				<input type="checkbox">
+				<div class="switch"></div>
+				Show folders
+			</label>
+		</div>
+	</div>
+	<div id="list-errors" class="list-box hide">
+		<div class="list"></div>
+		<div class="list-bar">Errors</div>
+	</div>
+	<div id="info-bar">
+		<div id="collapse"></div>
+		<div id="history-stats">
+			<div id="stat-recent" class="stat">
+				<div class="stat-label">Recently saved</div>
+				<div class="stat-badge">
+					<span class="badge">0</span>
+				</div>
+			</div>
+			<div id="stat-files" class="stat">
+				<div class="stat-label">Files</div>
+				<div class="stat-badge">
+					<span class="badge">0</span>
+				</div>
+			</div>
+			<div id="stat-errors" class="stat-error hide">
+				<div class="stat-label">Errors</div>
+				<div class="stat-badge">
+					<span class="badge">0</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="queue" class="hide">
+		<div id="queue-stats">
+			<div class="queue-stat">
+				<span id="stat-downloading">0</span> downloading
+			</div>
+			<div class="queue-stat">
+				<span id="stat-progress">0</span> in progress
+			</div>
+			<div class="queue-stat hide">
+				<span id="stat-queue">0</span> in queue
+			</div>
+		</div>
+		<div class="artsaver-progress">
+			<div class="artsaver-bar">
+				<div class="artsaver-bar-text"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="artsaver-show-info-bar">
+	<div id="show-tab"></div>
+</div>

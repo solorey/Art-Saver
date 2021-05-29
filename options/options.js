@@ -1,462 +1,856 @@
-let globalrunningobservers = [];
+var globalrunningobservers = [];
 
-//restore options on page load
-document.addEventListener("DOMContentLoaded", async () => {
-  let options = await browser.runtime.sendMessage({
-    function: "getoptions"
-  });
-  setOptions(options);
-});
+const METAS = {
+	site:              "The name of the website. 'pixiv', 'deviantart', etc.",
+	userName:          "The user name of the artist.",
+	title:             "Title of the submission.",
+	submissionId:      "Id of the submission. Different according to each site.",
+	submissionId36:    "submissionId in base 36 format.",
+	fileName:          "Original site filename of the submission. Does not include extension.",
+	ext:               "File extension. 'jpg', 'png', 'gif', etc.",
+	stashUrlId:        "The digits and letters at the end of a the stash url.",
+	stashUserName:     "The user name of the artist of the stash submission.",
+	stashTitle:        "Title of the stash submission.",
+	stashSubmissionId: "Id of the stash submission.",
+	stashFileName:     "The original file name of the stash submission. Does not include extension.",
+	stashExt:          "File extension of the stash submission.",
+	userId:            "The user Id of the artist.",
+	page:              "The page number of the file in the submission set. Pages start at 1.",
+	fileId:            "Id of the submission file.",
+	userLower:         "The way the user name appears in the url bar.",
+	YYYY:              "The year the submission was posted.",
+	MM:                "Month, 01 - 12",
+	DD:                "Day, 01 - 31",
+	hh:                "Hours, 00 - 23",
+	mm:                "Minutes, 00 - 59",
+	ss:                "Seconds, 00 - 59",
+	stashYYYY:         "The year the stash submission was posted.",
+	stashMM:           "Month, 01 - 12",
+	stashDD:           "Day, 01 - 31",
+	stashhh:           "Hours, 00 - 23",
+	stashmm:           "Minutes, 00 - 59",
+	stashss:           "Seconds, 00 - 59",
+	story:             "Story content from written submissions.",
+	wordCount:         "Number of words from the story.",
+	description:       "Description from the submission page.",
+	url:               "Submission page url.",
+	stashUrl:          "Stash page url.",
+	stashDescription:  "Description from the stash page.",
+};
 
-window.addEventListener("resize", () => {
-  fixFormat();
-});
+initalSetup();
+
+async function initalSetup(){
+	let statekey = stateKey("settings");
+	let settingsstate = await browser.storage.local.get(statekey);
+	openTab(settingsstate[statekey].tab);
+	setupOptions();
+	await savedInfoDetails();
+	classToggle($("#saved-info-edit-switch input").checked, $("#saved-table"), "editable");
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function getJSON(file){
-  return new Promise((resolve, reject) => {
-    let reader = new FileReader();
-    reader.onload = loaded => {
-      resolve(JSON.parse(loaded.target.result));
-    };
-    reader.readAsText(file);
-  });
-}
-
-//---------------------------------------------------------------------------------------------------------------------
-// Help
-//---------------------------------------------------------------------------------------------------------------------
-
-for (let b of $$("button.help-button")){
-  b.onclick = function(){
-    toggleHelpButton(this);
-  };
-}
-
-function toggleHelpButton(button){
-  let table = button.nextElementSibling;
-  if (button.textContent === "Show Help"){
-    table.style.display = "block";
-    button.textContent = "Hide Help";
-  }
-  else if (button.textContent === "Hide Help"){
-    table.removeAttribute("style");
-    button.textContent = "Show Help";
-  }
+	return new Promise((resolve, reject) => {
+		let reader = new FileReader();
+		reader.onload = loaded => {
+			resolve(JSON.parse(loaded.target.result));
+		};
+		reader.readAsText(file);
+	});
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-const metas = {
-  site:              "The name of the website. 'pixiv', 'deviantart', etc.",
-  userName:          "The user name of the artist.",
-  title:             "Title of the submission.",
-  submissionId:      "Id of the submission. Different according to each site.",
-  submissionId36:    "submissionId in base 36 format.",
-  fileName:          "Original site filename of the submission. Does not include extension.",
-  ext:               "File extension. 'jpg', 'png', 'gif', etc.",
-  stashUrlId:        "The digits and letters at the end of a the stash url.",
-  stashUserName:     "The user name of the artist of the stash submission.",
-  stashTitle:        "Title of the stash submission.",
-  stashSubmissionId: "Id of the stash submission.",
-  stashFileName:     "The original file name of the stash submission. Does not include extension.",
-  stashExt:          "File extension of the stash submission.",
-  userId:            "The user Id of the artist.",
-  page:              "The page number of the file in the submission set. Pages start at 1.",
-  fileId:            "Id of the submission file.",
-  userLower:         "The way the user name appears in the url bar.",
-  YYYY:              "The year the submission was posted",
-  MM:                "Month, 01 - 12",
-  DD:                "Day, 01 - 31",
-  hh:                "Hours, 00 - 23",
-  mm:                "Minutes, 00 - 59",
-  ss:                "Seconds, 00 - 59",
-  stashYYYY:         "The year the stash submission was posted",
-  stashMM:           "Month, 01 - 12",
-  stashDD:           "Day, 01 - 31",
-  stashhh:           "Hours, 00 - 23",
-  stashmm:           "Minutes, 00 - 59",
-  stashss:           "Seconds, 00 - 59"
-};
-
-function addTable(location, tablemetas){
-  let table = $insert($(`${location} ~ button`), "table", {position: "afterend", class: "help-table"});
-
-  for (let tm of tablemetas){
-    let tr = $insert(table, "tr");
-    $insert($insert($insert(tr, "td"), "li"), "strong", {text: tm});
-    $insert(tr, "td", {text: metas[tm]});
-  }
-}
-
-for (let s of settingsList()){
-  if (!s.metas){
-    continue;
-  }
-
-  addTable(s.location, s.metas);
+function updateState(component, value){
+	browser.runtime.sendMessage({
+		function: "updatestate",
+		ui: "settings",
+		component,
+		value
+	});
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-// User list
+// tabs setup
 //---------------------------------------------------------------------------------------------------------------------
 
-async function userlistDetails(){
-  let res = await browser.storage.local.get("userlist");
-  let list = res.userlist;
-  let savedtable = $("#saved-table");
+function openTab(tab){
+	$$("#tabs > button").forEach(t => t.classList.remove("active"));
+	$$(".tab-content").forEach(t => t.classList.add("hide"));
 
-  $$(savedtable, "tr:nth-child(n+2)").forEach(row => $remove(row));
-  globalrunningobservers.forEach(ob => ob.disconnect());
+	$(`#tabs > button[data-tab=${tab}]`).classList.add("active");
 
-  if (!list || Object.keys(list).length === 0){
-    savedtable.style.display = "none";
-    return;
-  }
-
-  let sites = {
-    deviantart: {
-      user: "https://www.deviantart.com/{1}",
-      submission: "https://www.deviantart.com/deviation/{1}"
-    },
-    pixiv: {
-      user: "https://www.pixiv.net/users/{1}",
-      submission: "https://www.pixiv.net/artworks/{1}"
-    },
-    furaffinity: {
-      user: "https://www.furaffinity.net/user/{1}",
-      submission: "https://www.furaffinity.net/view/{1}"
-    },
-    inkbunny: {
-      user: "https://inkbunny.net/{1}",
-      submission: "https://inkbunny.net/s/{1}"
-    }
-  };
-
-  let tbody = $(savedtable,  "tbody");
-
-  for (let s of Object.keys(sites)){
-    if (!list[s]){
-      continue;
-    }
-
-    let savedstats = {
-      user: [...new Set(Object.keys(list[s]))].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: "base", numeric: true})),
-      submission: [...new Set(Object.values(list[s]).flat())].sort((a, b) => b - a)
-    };
-
-    let row = $insert(tbody, "tr", {class: "stat-row"});
-
-    $insert(row, "td", {text: `${s[0].toUpperCase()}${s.slice(1)}`});  //site
-
-    for (let [stat, list] of Object.entries(savedstats)){
-      let statbutton = $insert(row, "td", {"data-toggle": "closed"});
-      $insert(statbutton, "span", {class: "badge", text: list.length});
-
-      let listelem = $insert($insert($insert(tbody, "tr", {class: "search-row"}), "td", {colspan: "3"}), "div", {id: `${stat}-list`, class: "search-box"});
-      let search = $insert(listelem, "div", {class: "search"});
-      $insert($insert(search, "div", {class: "input-holder"}), "input", {type: "text", placeholder: `Search ${stat[0].toUpperCase()}${stat.slice(1)}s`});
-      $insert($insert(search, "button", {class: "icon-button"}), "i", {class: "icon-descend"});
-      $insert($insert(listelem, "div", {class: "list"}), "div", {class: "link-list", "data-sort": "descend"});
-
-      createVirtualList(listelem, list, sites[s][stat]);
-      statbutton.onclick = function(){ showSavedList(this, listelem); };
-    }
-  }
-
-  savedtable.removeAttribute("style");
+	let content;
+	switch (tab){
+		case "global":
+			content = "global-options-content";
+			break;
+		case "sites":
+			content = "site-options-content";
+			break;
+		case "saved":
+			content = "saved-info-content";
+			break;
+		case "about":
+			content = "about-content";
+			break;
+	}
+	$(`#${content}`).classList.remove("hide");
+	updateState("tab", tab);
 }
 
-userlistDetails();
+for (let t of $$("#tabs > button")){
+	t.onclick = function(){
+		openTab(this.getAttribute("data-tab"));
+	};
+}
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//---------------------------------------------------------------------------------------------------------------------
+// option setup
+//---------------------------------------------------------------------------------------------------------------------
 
-$("#userlist").oninput = function(){
-  $("#filename").textContent = this.files[0].name;
-};
+async function setupOptions(){
+	let alloptions = await browser.storage.local.get(ALLOPTIONSKEYS);
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	let globalinfo = {
+		label: "Global",
+		helplink: "https://github.com/solorey/Art-Saver/wiki/Options"
+	}
 
-$("#submit-list").onclick = async () => {
-  try {
-    let jsonfile = await getJSON($("#userlist").files[0]);
-    await browser.storage.local.set({
-      userlist: cleanUserList(jsonfile)
-    });
-    userlistDetails();
-  }
-  catch (err){}
-};
-
-//makes sure that the saved ids are an array of unique desending integers
-function cleanUserList(userlist){
-  for (let site in userlist){
-    for (let user in userlist[site]){
-      userlist[site][user] = [...new Set(userlist[site][user].map(n => parseInt(n, 10)))].sort((a, b) => b - a);
-      if (userlist[site][user].length === 0){
-        delete userlist[site][user];
-      }
-    }
-    if (Object.keys(userlist[site]).length === 0){
-      delete userlist[site];
-    }
-  }
-  return userlist;
+	createOptions($("#global-options"), "global", globalinfo, GLOBALOPTIONS, alloptions.global_options)
+	for (let site of SITES){
+		createOptions($("#sites-list"), site, SITEINFO[site], SITEOPTIONS[site], alloptions[optionsKey(site)] || {});
+		createSiteToggle($("#sites-toggles"), site, SITEINFO[site], $("#sites-list"));
+	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#export-list").onclick = async () => {
-  let res = await browser.storage.local.get("userlist");
-  let blob = new Blob([JSON.stringify(res.userlist)], {type : "application/json"});
-
-  browser.downloads.download({
-    url: URL.createObjectURL(blob),
-    filename: "Userlist.json",
-    saveAs: true
-  });
-};
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-$("#reset-list").onclick = async () => {
-  let undo = $("#userlist-undo");
-  if (undo.style.display === "flex"){
-    return;
-  }
-
-  let old = await browser.storage.local.get("userlist");
-  await browser.storage.local.remove("userlist");
-  await userlistDetails();
-
-  undo.style.display = "flex";
-
-  $(undo, ".undo-button").onclick = async () => {
-    await browser.storage.local.set({
-      userlist: old.userlist
-    });
-    await userlistDetails();
-    undo.removeAttribute("style");
-  }
-};
-
-//---------------------------------------------------------------------------------------------------------------------
-// Custom number and range input
-//---------------------------------------------------------------------------------------------------------------------
-
-for (let n of $$(".custom-number")){
-  let range;
-  if (n.matches(".number-range .custom-number")){
-    range = $(n.parentElement.parentElement.parentElement, "input[type=range]");
-  }
-  let num = $(n, "input");
-  $(n, ".increase").onmousedown = function(){ numberIncrement(num, this, 1, range) };
-  $(n, ".decrease").onmousedown = function(){ numberIncrement(num, this, -1, range) };
-}
-
-function numberIncrement(num, elem, n, range){
-  let step = () => {
-    num.stepUp(n);
-    if (range){
-      range.value = num.value;
-    }
-  };
-  step();
-
-  let intid;
-  let timeid = setTimeout(() => {
-    intid = setInterval(step, 80);
-  }, 400);
-
-  elem.onmouseup = elem.onmouseout = () => {
-    clearTimeout(timeid);
-    clearInterval(intid);
-    saveOptions();
-  };
+$("#sites-open-all").onclick = () => {
+	$$("#sites-toggles .site-toggle").forEach(sb => sb.classList.add("active"));
+	$$("#sites-toggles .site-radio").forEach(sr => sr.classList.remove("active"));
+	$$("#sites-list .site-options").forEach(so => so.classList.remove("hide"));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-for (let nr of $$(".number-range")){
-  let number = $(nr, "input[type=number]");
-  let range = $(nr, "input[type=range]");
-  range.value = number.value;
-  number.oninput = function(){
-    range.value = this.value;
-    saveOptions();
-  };
-  range.oninput = function(){
-    number.value = this.value;
-    saveOptions();
-  };
+$("#sites-close-all").onclick = () => {
+	$$("#sites-toggles .site-toggle").forEach(sb => sb.classList.remove("active"));
+	$$("#sites-toggles .site-radio").forEach(sr => sr.classList.remove("active"));
+	$$("#sites-list .site-options").forEach(so => so.classList.add("hide"));
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function createOptions(parent, site, info, options, savedoptions){
+	let section = $("#options-section-template").content.cloneNode(true).firstElementChild;
+	section.id = `${site}-options`;
+	$(section, ".site-header").insertAdjacentText("afterbegin", info.label);
+	$(section, ".question").href = info.helplink;
+
+	parent.appendChild(section);
+
+	for (let [name, values] of Object.entries(options)){
+		let newoption;
+		let optionid = `${site}-${name}`;
+
+		switch (values.type){
+			case "select":
+				newoption = createSelectOption(optionid, values, savedoptions[name]);
+				break;
+			case "slider":
+				newoption = createSliderOption(optionid, values, savedoptions[name]);
+				break;
+			case "checkbox":
+				newoption = createCheckboxOption(optionid, values, savedoptions[name]);
+				break;
+			case "number":
+				newoption = createNumberOption(optionid, values, savedoptions[name]);
+				break;
+			case "textarea":
+				newoption = createTextareaOption(optionid, values, savedoptions[name]);
+				break;
+		}
+
+		if (!newoption){
+			continue;
+		}
+
+		let optionelem = newoption.firstElementChild;
+		if (values.related){
+			for (let r of values.related){
+				let parentoption = $(`#${site}-${r.option}`);
+				parentoption.addEventListener("change", () => {
+					showRelated(site, values.related, optionelem);
+				});
+			}
+			showRelated(site, values.related, optionelem);
+		}
+
+		section.appendChild(newoption);
+	}
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function getValue(input){
+	if (input.type === "checkbox"){
+		return input.checked;
+	}
+	else if (input.type === "number"){
+		return input.valueAsNumber;
+	}
+	else {
+		return input.value;
+	}
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function setValue(input, value){
+	if (input.type === "checkbox"){
+		input.checked = value;
+	}
+	else {
+		input.value = value;
+	}
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function showRelated(site, related, option){
+	for (let r of related){
+		if (getValue($(`#${site}-${r.option}`)) !== r.value){
+			option.classList.add("hide");
+			return;
+		}
+	}
+	option.classList.remove("hide");
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-// Options buttons
+// option type creation
 //---------------------------------------------------------------------------------------------------------------------
 
-$("#reset-options").onclick = async () => {
-  let undo = $("#options-undo");
-  if (undo.style.display === "flex"){
-    return;
-  }
+function createSelectOption(optionid, values, savedvalue){
+	let option = $("#select-template").content.cloneNode(true);
 
-  let oldoptions = optionsInfo();
-  setOptions("default");
+	let labelelem = $(option, "label");
+	labelelem.textContent = values.label;
+	labelelem.setAttribute("for", optionid);
 
-  undo.style.display = "flex";
+	let selectelem = $(option, "select");
+	for (opt of values.options){
+		$insert(selectelem, "option", {value: opt.value, text: opt.label});
+	}
+	selectelem.id = optionid;
+	selectelem.value = savedvalue || values.default;
 
-  $(undo, ".undo-button").onclick = () => {
-    setOptions(oldoptions);
-    undo.removeAttribute("style");
-  }
-};
+	return option;
+}
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#export-options").onclick = () => {
-  let blob = new Blob([JSON.stringify(optionsInfo())], {type : "application/json"});
+function createNumberOption(optionid, values, savedvalue){
+	let option = $("#number-template").content.cloneNode(true);
 
-  browser.downloads.download({
-    url: URL.createObjectURL(blob),
-    filename: "artsaver-settings.json",
-    saveAs: true
-  });
-};
+	let labelelem = $(option, "label");
+	labelelem.setAttribute("for", optionid);
+	labelelem.insertAdjacentText("afterbegin", values.label);
+	if (values.unit){
+		labelelem.insertAdjacentText("beforeend", values.unit);
+	}
+
+	let inputelem = $(option, "input");
+	inputelem.id = optionid;
+	inputelem.value = savedvalue || values.default;
+
+	$(option, ".increase").onmousedown = function(){ numberChange(inputelem, this, 1) };
+	$(option, ".decrease").onmousedown = function(){ numberChange(inputelem, this, -1) };
+
+	return option;
+}
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#import-options").oninput = async function(){
-  let jsonfile = await getJSON(this.files[0]);
-  let newoptions = await browser.runtime.sendMessage({
-    function: "updateoptions",
-    newoptions: jsonfile
-  });
-  setOptions(newoptions);
-};
+function createSliderOption(optionid, values, savedvalue){
+	let option = $("#slider-template").content.cloneNode(true);
 
-$("#click-import").onclick = () => {
-  $("#import-options").click();
-};
+	let labelelem = $(option, "label");
+	labelelem.setAttribute("for", optionid);
+	labelelem.insertAdjacentText("afterbegin", values.label);
+	labelelem.insertAdjacentText("beforeend", values.unit);
 
-//---------------------------------------------------------------------------------------------------------------------
-// Form functions
-//---------------------------------------------------------------------------------------------------------------------
+	let number = $(option, "input[type=number]");
+	number.id = optionid;
+	let range = $(option, "input[type=range]");
+
+	for (let inputelem of [number, range]){
+		inputelem.setAttribute("min", values.min);
+		inputelem.setAttribute("max", values.max);
+		inputelem.value = savedvalue || values.default;
+	}
+
+	$(option, ".increase").onmousedown = function(){ numberChange(number, this, 1, range) };
+	$(option, ".decrease").onmousedown = function(){ numberChange(number, this, -1, range) };
+
+	number.oninput = function(){
+		range.value = this.value;
+		saveOptions();
+	};
+	range.oninput = function(){
+		number.value = this.value;
+		saveOptions();
+	};
+
+	return option;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function numberChange(num, elem, n, range){
+	let step = () => {
+		num.stepUp(n);
+		if (range){
+			range.value = num.value;
+		}
+	};
+	step();
+
+	let intid;
+	let timeid = setTimeout(() => {
+		intid = setInterval(step, 80);
+	}, 400);
+
+	elem.onmouseup = elem.onmouseout = () => {
+		clearTimeout(timeid);
+		clearInterval(intid);
+		saveOptions();
+	};
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function createCheckboxOption(optionid, values, savedvalue){
+	let option = $("#checkbox-template").content.cloneNode(true);
+
+	let labelelem = $(option, "label");
+	labelelem.setAttribute("for", optionid);
+	labelelem.lastElementChild.textContent = values.label;
+
+	let inputelem = $(option, "input");
+	inputelem.id = optionid;
+	inputelem.checked = savedvalue || values.default;
+
+	return option;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function createTextareaOption(optionid, values, savedvalue){
+	let option = $("#textarea-template").content.cloneNode(true);
+
+	let labelelem = $(option, "label");
+	labelelem.setAttribute("for", optionid);
+	labelelem.textContent = values.label;
+
+	let textareaelem = $(option, "textarea");
+	textareaelem.id = optionid;
+	textareaelem.value = savedvalue || values.default;
+
+	textareaResize(textareaelem);
+	let resize = new ResizeObserver(entries => {
+		textareaResize(entries.pop().target);
+	});
+	resize.observe(textareaelem);
+	textareaelem.oninput = function(){
+		textareaResize(this);
+	};
+	
+	let table = $(option, "table");
+	for (let tm of values.metas){
+		let metarow = $("#meta-row-template").content.cloneNode(true);
+		$(metarow, "strong").textContent = tm;
+		$$(metarow, "td")[1].textContent = METAS[tm];
+
+		table.appendChild(metarow);
+	}
+
+	let helpbutton = $(option, "button");
+	helpbutton.onclick = function(){
+		if (table.classList.toggle("hide")){
+			this.textContent = "Show Help";
+		}
+		else {
+			this.textContent = "Hide Help";
+		}
+	};
+
+	return option;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function textareaResize(textarea){
+	if (textarea.style.height){ //don't resize if height is given
+		return;
+	}
+	let rows = 1;
+	textarea.rows = rows;
+	let maxrows = 16;
+	while (textarea.clientHeight < textarea.scrollHeight && textarea.rows < maxrows){
+		rows += 1;
+		textarea.rows = Math.min(rows, maxrows);
+	}
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function createSiteToggle(parent, site, info, optionslist){
+	let showtoggle = $("#site-toggle-template").content.cloneNode(true);
+	let toggle = $(showtoggle, ".site-toggle");
+	let button = $(showtoggle, ".site-button");
+	let radio = $(showtoggle, ".site-radio");
+	button.textContent = info.label;
+	button.onclick = function(){
+		let isactive = toggle.classList.toggle("active");
+		classToggle(!isactive, $(`#${site}-options`), "hide");
+		$$(parent, ".site-radio").forEach(t => t.classList.remove("active"));
+	}
+	radio.onclick = function(){
+		$$(parent, ".site-toggle").forEach(t => t.classList.remove("active"));
+		$$(parent, ".site-radio").forEach(t => t.classList.remove("active"));
+		$$(optionslist, ".site-options").forEach(o => o.classList.add("hide"));
+
+		this.classList.add("active");
+		toggle.classList.add("active");
+		$(`#${site}-options`).classList.remove("hide");
+	}
+	parent.appendChild(showtoggle);
+}
 
 $("form").onsubmit = s => s.preventDefault();
 $("form").oninput = () => saveOptions();
 
 //---------------------------------------------------------------------------------------------------------------------
-// Options functions
+// form getting and setting
 //---------------------------------------------------------------------------------------------------------------------
 
 function saveOptions(){
-  browser.storage.local.set({
-    options: optionsInfo()
-  });
+	let formoptions = getFormOptions();
+	let optionstosave = {}
+	for (let [key, values] of Object.entries(formoptions)){
+		optionstosave[optionsKey(key)] = values;
+	}
+	browser.storage.local.set(optionstosave);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function optionsInfo(){
-  let currentoptions = {};
-  for (let s of settingsList()){
-    if (!currentoptions[s.site]){
-      currentoptions[s.site] = {};
-    }
+function getFormOptions(){
+	let formoptions = {};
 
-    let elem = $(s.location);
-    if (elem.getAttribute("type") === "checkbox"){
-      currentoptions[s.site][s.option] = elem.checked;
-    }
-    else {
-      currentoptions[s.site][s.option] = elem.value;
-    }
-  }
+	for (let site of Object.keys(ALLOPTIONS)){
+		formoptions[site] = {};
+		for (let key of Object.keys(ALLOPTIONS[site])){
+			formoptions[site][key] = getValue($(`#${site}-${key}`));
+		}
+	}
 
-  return currentoptions;
+	return formoptions
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function setOptions(options){
-  for (let s of settingsList()){
-    let elem = $(s.location);
-    let value = (options === "default")? s.default : options[s.site][s.option];
-    if (elem.getAttribute("type") === "checkbox"){
-      elem.checked = value;
-    }
-    else {
-      elem.value = value;
-    }
-  }
-  saveOptions();
-  fixFormat();
+function getDefalutOptions(){
+	let defaultoptions = {};
+
+	for (let site of Object.keys(ALLOPTIONS)){
+		defaultoptions[site] = {};
+		for (let [key, values] of Object.entries(ALLOPTIONS[site])){
+			defaultoptions[site][key] = values.default;
+		}
+	}
+
+	return defaultoptions;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function setFormOptions(alloptions){
+	let related = [];
+	for (let site of Object.keys(ALLOPTIONS)){
+		for (let [key, values] of Object.entries(ALLOPTIONS[site])){
+			let optionelem = $(`#${site}-${key}`);
+			let optionblock = getOptionBlock(optionelem, values.type);
+
+			if (values.related){
+				related.push([site, values.related, optionblock]);
+			}
+
+			if (!alloptions[site] || alloptions[site][key] === undefined){
+				continue;
+			}
+			let value = alloptions[site][key];
+			setValue(optionelem, value);
+
+			if (values.type === "slider"){
+				$(optionblock, "input[type=range]").value = value;
+			}
+			else if (values.type === "textarea"){
+				textareaResize(optionelem);
+			}
+		}
+	}
+	related.forEach(r => showRelated(...r));
+	saveOptions();
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function getOptionBlock(input, type){
+	let elem = input;
+	while (true){
+		elem = elem.parentElement;
+		if (elem.classList.contains(`option-${type}`)){
+			return elem;
+		}
+	}
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#import-options").oninput = async function(){
+	let jsonfile = await getJSON(this.files[0]);
+	setFormOptions(jsonfile);
+};
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#click-import").onclick = () => {
+	$("#import-options").click();
+};
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#export-options").onclick = () => {
+	let blob = new Blob([JSON.stringify(getFormOptions(), null, "\u0009")], {type: "application/json"});
+
+	browser.downloads.download({
+		url: URL.createObjectURL(blob),
+		filename: "artsaver_settings.json",
+		saveAs: true
+	});
+};
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#reset-options").onclick = () => {
+	let undo = $("#options-undo");
+	if (!undo.classList.contains("hide")){
+		return;
+	}
+
+	let oldoptions = getFormOptions();
+	setFormOptions(getDefalutOptions());
+
+	undo.classList.remove("hide");
+	$(undo, ".undo-button").onclick = () => {
+		setFormOptions(oldoptions);
+		undo.classList.add("hide");
+	}
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-// Page format functions
+// saved info table
 //---------------------------------------------------------------------------------------------------------------------
 
-function textareaResize(textarea){
-  let height = 0;
-  while (textarea.clientHeight < textarea.scrollHeight){
-    textarea.style.height = `${textarea.scrollHeight + height}px`;
-    height += 1;
-  }
-}
+async function savedInfoDetails(){
+	let res = await browser.storage.local.get(SITESSAVEDKEYS);
+	let list = {};
+	for (let site of SITES){
+		if (res[savedKey(site)]){
+			list[site] = res[savedKey(site)];
+		}
+	}
 
-for (let t of $$("textarea")){
-  t.style.height = "1.6em";
-  textareaResize(t);
-  t.oninput = function(){
-    this.style.height = "1.6em";
-    textareaResize(this);
-  };
+	let savedtable = $("#info-table");
+	let tablestate = getSavedInfoTableState();
+
+	$$(savedtable, "tr:nth-child(n+2)").forEach(row => $remove(row));
+	globalrunningobservers.forEach(ob => ob.disconnect());
+
+	if (!list || Object.keys(list).length <= 0){
+		savedtable.classList.add("hide");
+		return;
+	}
+
+	let tbody = $(savedtable, "tbody");
+
+	for (let site of Object.keys(list)){
+		let row = $("#stats-row-template").content.cloneNode(true);
+		let statrow = $(row, ".stat-row")
+		let inforow = $(row, ".info-row")
+		statrow.setAttribute("data-site", site);
+
+		statrow.onclick = function(){
+			classToggle(!inforow.classList.toggle("hide"), this, "active");
+		};
+
+		if (tablestate[site] && tablestate[site].toggle){
+			statrow.classList.add("active");
+			inforow.classList.remove("hide");
+		}
+
+		$(row, ".stat-site").textContent = SITEINFO[site].label;
+
+		let stats = [
+			[...new Set(Object.keys(list[site]))].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: "base", numeric: true})), //users
+			[...new Set(Object.values(list[site]).flat())].sort((a, b) => b - a) //submissions
+		];
+
+		let badges = $$(row, ".badge");
+		let searchboxes = $$(row, ".search-box");
+		let searchinputs = $$(row, ".search-box input");
+		let listboxes = $$(row, ".list-box");
+
+		let createrows = [
+			(u) => createUserRow(site, u),
+			(s) => createSubmissionRow(site, s)
+		];
+
+		let onresize = [
+			() => { listboxes[1].style.height = listboxes[0].style.height },
+			() => { listboxes[0].style.height = listboxes[1].style.height }
+		];
+
+		for (let i = 0; i < stats.length; i++){
+			badges[i].textContent = stats[i].length;
+
+			if (tablestate[site]){
+				searchinputs[i].value = tablestate[site].searches[i];
+			}
+
+			let list = createVirtualList(listboxes[i], searchResult(searchboxes[i], stats[i]), createrows[i]);
+			setupSearch(list, searchboxes[i], stats[i]);
+
+			let resize = new ResizeObserver(onresize[i]);
+			globalrunningobservers.push(resize);
+			resize.observe(listboxes[i]);
+		}
+
+		if (tablestate[site]){
+			listboxes.forEach(b => b.style.height = tablestate[site].height);
+		}
+		else {
+			(stats[0].length > stats[1].length) ? onresize[0]() : onresize[1]();
+		}
+
+		tbody.appendChild(row);
+
+		if (tablestate[site]){
+			listboxes.forEach((b, i) => b.scrollTo(0, tablestate[site].scrolls[i]));
+		}
+	}
+
+	savedtable.classList.remove("hide");
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-let optiontoggles = [
-  {toggle: "#stash", opt: "div.stash-options"},
-  {toggle: "#add-screen", opt: "div.screen-options"},
-  {toggle: "#use-queue", opt: "div.queue-options"}
-];
-
-for (let {toggle, opt} of optiontoggles){
-  $(toggle).oninput = function(){ uncoverOptions(toggle, opt) };
+function getSavedInfoTableState(){
+	let savedtable = $("#info-table");
+	let tablestate = {};
+	for (site of SITES){
+		let statrow = $(savedtable, `tr[data-site=${site}]`);
+		if (!statrow){
+			continue;
+		}
+		let inforow = statrow.nextElementSibling;
+		tablestate[site] = {
+			toggle: statrow.classList.contains("active"),
+			searches: $$(inforow, ".search-box input").map(s => s.value),
+			scrolls: $$(inforow, ".list-box").map(s => s.scrollTop),
+			height: $(inforow, ".list-box").style.height
+		}
+	}
+	return tablestate;
 }
-
-function uncoverOptions(toggle, opt){
-  let screenoptions = $(opt);
-  if ($(toggle).checked){
-    screenoptions.removeAttribute("style");
-  }
-  else {
-    screenoptions.style.display = "none";
-  }
-
-  if (toggle === "#stash"){
-    textareaResize($("#dev-stash"));
-  }
-}
-
-function showOptions(){
-  for (let {toggle, opt} of optiontoggles){
-    uncoverOptions(toggle, opt);
-  }
-}
-
-showOptions();
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function fixFormat(){
-  showOptions();
-  for (let t of $$("textarea")){
-    t.style.height = "1.6em";
-    textareaResize(t);
-  }
-  for (let nr of $$(".number-range")){
-    $(nr, "input[type=range]").value = $(nr, "input[type=number]").value;
-  }
+function createUserRow(site, reguser){
+	let links = SITEINFO[site].links;
+
+	let row = $("#user-row-template").content.cloneNode(true);
+	let spans = $$(row, "span");
+	spans[0].textContent = reguser[1];
+	spans[1].textContent = reguser[reguser.length - 1];
+	$(row, "strong").textContent = reguser[2];
+
+	let alinks = $$(row, "a");
+	alinks[0].href = links.user(reguser[0]);
+	alinks[1].href = links.gallery(reguser[0]);
+	alinks[2].href = links.favorites(reguser[0]);
+
+	$(row, ".row-delete").addEventListener("click", async function(){
+		this.classList.add("deleting");
+		await browser.runtime.sendMessage({
+			function: "removeuser",
+			site: site,
+			user: reguser[0]
+		});
+		savedInfoDetails();
+	}, {once: true});
+	return row.firstElementChild;
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function createSubmissionRow(site, regsubmission){
+	let links = SITEINFO[site].links;
+
+	let row = $("#submission-row-template").content.cloneNode(true);
+	let spans = $$(row, "span")
+	spans[0].textContent = regsubmission[1];
+	spans[1].textContent = regsubmission[regsubmission.length - 1];
+	$(row, "strong").textContent = regsubmission[2];
+
+	$(row, "a").href = links.submission(regsubmission[0]);
+
+	$(row, ".row-delete").addEventListener("click", async function(){
+		this.classList.add("deleting");
+		await browser.runtime.sendMessage({
+			function: "removesubmission",
+			site: site,
+			sid: parseInt(regsubmission[0], 10)
+		});
+		savedInfoDetails();
+	}, {once: true});
+
+	return row.firstElementChild;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#table-refresh").onclick = () => savedInfoDetails();
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#table-open-all").onclick = () => {
+	$$("#saved-table .stat-row").forEach(sr => sr.classList.add("active"));
+	$$("#saved-table .info-row").forEach(ir => ir.classList.remove("hide"));
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#table-close-all").onclick = () => {
+	$$("#saved-table .stat-row").forEach(sr => sr.classList.remove("active"));
+	$$("#saved-table .info-row").forEach(ir => ir.classList.add("hide"));
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#export-list").onclick = async () => {
+	let savedinfo = await browser.storage.local.get(SITESSAVEDKEYS);
+	let informationtosave = {};
+	for (let site of SITES){
+		if (savedinfo[savedKey(site)]){
+			informationtosave[site] = savedinfo[savedKey(site)];
+		}
+	}
+	let blob = new Blob([JSON.stringify(informationtosave, null, "\u0009")], {type: "application/json"});
+
+	browser.downloads.download({
+		url: URL.createObjectURL(blob),
+		filename: "artsaver_saved_info.json",
+		saveAs: true
+	});
+};
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#reset-list").onclick = async () => {
+	let undo = $("#saved-info-undo");
+	$(undo, "span").textContent = "reset";
+
+	await setUndoButton();
+	await browser.storage.local.remove(SITESSAVEDKEYS);
+	await savedInfoDetails();
+
+	undo.classList.remove("hide");
+};
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#saved-info").oninput = async function(){
+	$("#filename").textContent = this.files[0].name;
+
+	let undo = $("#saved-info-undo");
+	$(undo, "span").textContent = "overwritten";
+	await setUndoButton();
+
+	try {
+		let jsonfile = await getJSON(this.files[0]);
+		await browser.storage.local.set(cleanSavedInfo(jsonfile));
+		await savedInfoDetails();
+	}
+	catch (err){}
+
+	undo.classList.remove("hide");
+};
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function cleanSavedInfo(savefile){
+	let informationtosave = {};
+
+	for (let site of SITES){
+		if (![...Object.keys(savefile)].includes(site) || Object.keys(savefile[site]).length <= 0){
+			continue;
+		}
+		informationtosave[savedKey(site)] = {};
+
+		for (let [user, savedsubmissions] of Object.entries(savefile[site])){
+			if (savedsubmissions.length > 0){
+				informationtosave[savedKey(site)][user] = [...new Set(savedsubmissions.map(n => parseInt(n, 10)))].sort((a, b) => b - a);
+			}
+		}
+	}
+
+	return informationtosave;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+async function setUndoButton(){
+	let old = await browser.storage.local.get(SITESSAVEDKEYS);
+
+	$("#saved-info-undo .undo-button").onclick = async () => {
+		await browser.storage.local.set(old);
+		await savedInfoDetails();
+		$("#saved-info-undo").classList.add("hide");
+	}
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+for (ub of $$(".close-button")){
+	ub.onclick = function(){
+		this.parentElement.classList.add("hide");
+	}
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$("#saved-info-edit-switch").oninput = function(){
+	classToggle($(this, "input").checked, $("#saved-table"), "editable");
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// about info
+//---------------------------------------------------------------------------------------------------------------------
+
+$("#version").textContent = browser.runtime.getManifest().version;

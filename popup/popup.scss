@@ -3,356 +3,386 @@
 $stat-width: 140px;
 
 html {
-  @extend %font;
+	@extend %font;
 }
 
 body {
-  padding: 0;
-  overflow: hidden;
-  margin: 0;
-  color: $color-text;
+	padding: 0;
+	overflow: hidden;
+	margin: 0;
+	color: $color-text;
 }
 
-*{
-  box-sizing: border-box;
+* {
+	box-sizing: border-box;
 }
 
-button {
-  cursor: pointer;
+.hide {
+	display: none !important;
 }
 
 #popup-container {
-  //display: table;
-  min-width: 250px;
-  max-width: 800px;
-  max-height: 600px;
+	//display: table;
+	min-width: 250px;
+	max-width: 800px;
+	max-height: 600px;
 }
 
 .tabs {
-  display: flex;
+	display: flex;
+	border-bottom: {
+		color: $color-2;
+		style: solid;
+		width: u(2);
+	}
 
-  > :last-child {
-    margin-left: auto;
-  }
-
-  > button {
-    color: $color-text;
-    background-color: inherit;
-    border: none;
-    outline: none;
-    padding: $vert-pad $horz-pad*2;
-    transition: {
-      property: background-color;
-      duration: .3s;
-    };
-    font-size: u(16);
-
-    &:not(#settings-tab){
-      display: none;
-    }
-
-    &:hover {
-      background-color: $color-1;
-    }
-
-    &.active {
-      background-color: $color-2;
-    }
-  }
+	> :last-child {
+		margin-left: auto;
+	}
 }
 
-.tab-content {
-  display: none;
+.tab-button {
+	color: $color-text;
+	background-color: inherit;
+	border: none;
+	outline: none;
+	padding: $vert-pad $horz-pad*2;
+	font-size: u(16);
+
+	&:hover {
+		background-color: $color-1;
+	}
+
+	&.active {
+		color: $blue;
+		border-bottom: {
+			color: $blue;
+			style: solid;
+			width: u(2);
+		}
+	}
 }
 
 .header {
-  background-color: $color-1;
-  border-top: $style-border;
-  padding: $base-padding;
+	background-color: $color-1;
+	padding: $base-padding;
 }
 
 #stats-site {
-  text-transform: capitalize;
+	text-transform: capitalize;
 }
 
 .stat-row {
-  border-top: $style-border;
-  padding: $base-padding;
+	border-top: $style-border;
+	padding: $base-padding;
 
-  display: flex;
-  flex: 1;
+	display: flex;
+	flex: 1;
 
-  > div {
-    white-space: nowrap;
-  }
+	> div {
+		white-space: nowrap;
+	}
 
-  > :first-child {
-    margin: auto auto auto 0;
-  }
+	> :first-child {
+		margin: auto auto auto 0;
+	}
 
-  > :last-child {
-    margin: auto 0 auto $horz-pad;
-  }
+	> :last-child {
+		margin: auto 0 auto $horz-pad;
+	}
 }
 
 #user-profile {
-  display: flex;
+	display: flex;
+
+	> :nth-child(n+2) {
+		border-left: $style-border;
+	}
+
+	&.no-stats {
+		flex-direction: column;
+
+		> :nth-child(n+2) {
+			border: {
+				left: none;
+				top: $style-border;
+			}
+		}
+
+		#total-saved {
+			border: none;
+		}
+	}
 }
 
 #user-stats {
-  border-left: $style-border;
-  display: none;
-  min-width: $stat-width;
-  flex-direction: column;
-  flex: 1;
+	display: flex;
+	min-width: $stat-width;
+	flex-direction: column;
+	flex: 1;
 }
 
 #profile-cover {
-  background-color: $color-1;
-  padding: $vert-pad;
-  text-align: center;
-  border-top: $style-border;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 110px;
+	background-color: $color-1;
+	padding: $vert-pad;
+	text-align: center;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-width: 110px;
 
-  > div {
-    margin: u(3) auto;
-  }
+	> div {
+		margin: u(3) auto;
+	}
 }
 
 #profile-pic {
-  width: u(50);
-  height: u(50);
-  
-  object: {
-    fit: cover;
-    position: top center;
-  }
+	width: u(50);
+	height: u(50);
+
+	object: {
+		fit: cover;
+		position: top center;
+	}
 }
 
 .img-thumbnail {
-  background-color: $color-0;
-  border: $style-border;
-  border-radius: $radius;
-  line-height: 0;
-  display: table;
-  margin: auto;
-  padding: $vert-button-pad;
+	background-color: $color-0;
+	border: $style-border;
+	border-radius: $radius;
+	line-height: 0;
+	display: table;
+	margin: auto;
+	padding: $vert-button-pad;
 }
 
 @keyframes rotation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
 
 .loading-icon {
-  animation: rotation 0.5s steps(12, end) infinite;
-  animation-iteration-count: infinite;
+	animation: rotation 0.5s steps(12, end) infinite;
+	animation-iteration-count: infinite;
 }
 
 #user-name {
-  font: {
-    weight: 600;
-    size: u(16);
-  }
-  white-space: nowrap;
+	font: {
+		weight: 600;
+		size: u(16);
+	}
+	white-space: nowrap;
 }
 
 #user-buttons {
-  margin-top: $vert-button-pad;
-  display: none;
-  justify-content: center;
-}
+	margin-top: $vert-button-pad;
+	display: flex;
+	justify-content: center;
+	border: $style-border;
+	border-radius: $radius;
+	overflow: hidden;
 
-.icon-button {
-  @extend %icon-button;
+	> * {
+		@extend %icon-button;
+
+		padding: u(3) u(5);
+	}
 }
 
 .badge {
-  background-color: $color-1;
-  border-radius: $radius;
-  padding: $base-button-padding;
-  font-weight: 600;
+	background-color: $color-1;
+	border-radius: $radius;
+	padding: $base-button-padding;
+	font-weight: 600;
 }
 
-.search-box {
-  @extend %search-box;
+.info-box {
+	border-top: $style-border;
+	@extend %info-box;
 }
 
 #total-saved {
-  display: none;
+	display: flex;
+	border: {
+		top: none;
+		bottom: $style-border;
+		left: none;
+		right: none;
+	}
 }
 
 .stat-button {
-  cursor: pointer;
-  white-space: nowrap;
+	cursor: pointer;
+	white-space: nowrap;
 
-  &:hover {
-    background-color: $color-1;
-  }
+	&:hover, &.active {
+		background-color: $color-1;
+
+		.badge {
+			background-color: $color-0;
+		}
+	}
 }
 
 .search-holder {
-  height: 0;
-  overflow: hidden;
-  transition: height 0.5s;
+	height: 0;
+	overflow: hidden;
+	transition: height 0.5s;
 }
 
 .button-stat {
-  padding: $base-button-padding;;
-  border-radius: $radius;
-  background-color: $color-0;
+	padding: $base-button-padding;;
+	border-radius: $radius;
+	background-color: $color-0;
 }
 
 #recheck {
-  background-color: $green;
-  color: $color-0;
-  border: 0;
+	background-color: $green;
+	color: $color-0;
+	border: 0;
 
-  .button-stat {
-    color: $green;
-  }
+	.button-stat {
+		color: $green;
+	}
 
-  &:hover {
-    background-color: $green-light-1;
-  }
+	&:hover {
+		background-color: $green-light-1;
+	}
 
-  &:active {
-    background-color: $green-light-2;
-  }
+	&:active {
+		background-color: $green-light-2;
+	}
 }
-
 
 #download-all, #download-lock {
-  background-color: $blue;
-  color: $color-0;
-  border: 0;
+	background-color: $blue;
+	color: $color-0;
+	border: 0;
 
-  &:hover {
-    background-color: $blue-light-1;
-  }
+	&:hover {
+		background-color: $blue-light-1;
+	}
 
-  &:active {
-    background-color: $blue-light-2;
-  }
+	&:active {
+		background-color: $blue-light-2;
+	}
 }
-  
+
 #download-all {
-  .button-stat {
-    color: $blue;
-  }
+	.button-stat {
+		color: $blue;
+	}
 
-  &[disabled] {
-    background-color: $color-1;
-    pointer-events: none;
-    color: scale-color($color-1, $lightness: -50%);
+	&[disabled] {
+		background-color: $color-1;
+		pointer-events: none;
+		color: scale-color($color-1, $lightness: -50%);
 
-    .button-stat {
-      color: inherit;
-    }
-  }
+		.button-stat {
+			color: inherit;
+		}
+	}
 }
 
 #download-lock {
-  padding: 0 $horz-button-pad;
-  
-  i {
-    font-size: 1rem;
-  }
+	padding: 0 $horz-button-pad;
+
+	i {
+		font-size: 1rem;
+	}
 }
 
 #found-stats {
-  border-top: $style-border;
-  display: flex;
-  flex: 1;
+	border: {
+		top: $style-border;
+		bottom: $style-border;
+	}
+	display: flex;
+	flex: 1;
 }
 
 .flex-button {
-  display: flex;
-  flex: 1;
-  font: {
-    size: inherit;
-    family: inherit;
-    weight: 600;
-  }
-  padding: $base-padding;
+	display: flex;
+	flex: 1;
+	font: {
+		size: inherit;
+		family: inherit;
+		weight: 600;
+	}
+	padding: $base-padding;
 
-  > :last-child {
-    margin: auto 0 auto $horz-pad;
-  }
+	> :last-child {
+		margin: auto 0 auto $horz-pad;
+	}
 
-  .label-1 {
-    margin: auto;
-    display: block;
-  }
-  .label-2 {
-    margin: auto;
-    display: none;
-  }
+	.label-1 {
+		margin: auto;
+		display: block;
+	}
+	.label-2 {
+		margin: auto;
+		display: none;
+	}
 
-  &:hover {
-    .label-1 {
-      display: none;
-    }
-    .label-2 {
-      display: block;
-    }
-  }
+	&:hover {
+		.label-1 {
+			display: none;
+		}
+		.label-2 {
+			display: block;
+		}
+	}
 }
 
 #unsupported-page {
-  border-top: $style-border;
-  background-color: #fff3cd;
-  color: #856404;
+	background-color: #fff3cd;
+	color: #856404;
 
-  .linebreak {
-    border-top: u(1) solid #856404;
-    margin: u(6) 0;
-  }
+	.linebreak {
+		border-top: u(1) solid #856404;
+		margin: u(6) 0;
+	}
 }
 
 %information{
-  width: u(250);
-  padding: u(9) u(15);
-  margin: auto;
+	width: u(250);
+	padding: u(9) u(15);
+	margin: auto;
 }
 
 #unsupported-info {
-  @extend %information;
+	@extend %information;
 }
 
 #getting-info {
-  @extend %information;
-  display: flex;
+	@extend %information;
+	display: flex;
 
-  .loading-icon {
-    width: u(16);
-    height: u(16);
-  }
+	.loading-icon {
+		width: u(16);
+		height: u(16);
+	}
 
-  > div {
-    margin: auto;
-  }
+	> div {
+		margin: auto;
+	}
 }
 
 #getting-page {
-  border-top: $style-border;
-  background-color: $color-1;
+	background-color: $color-1;
 }
 
 #link-tester {
-  padding: {
-    left: $horz-pad + u(6);
-    right: $horz-pad;
-  }
-  position: absolute;
-  top: 0;
-  opacity: 0;
+	padding: {
+		left: $horz-pad + u(6);
+		right: $horz-pad;
+	}
+	position: absolute;
+	top: 0;
+	opacity: 0;
 }

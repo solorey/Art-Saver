@@ -2,7 +2,7 @@ $base: 16px;
 $size-font: 12px;
 
 @function u($size){
-  @return (1em / 12) * $size; 
+	@return (1em / 12) * $size;
 }
 
 $size-icon: var(--as-icon-size);
@@ -34,7 +34,7 @@ $color-screen: gray;
 //old blue #0786cf
 $blue: #0a84ff;
 $blue-light-1: #249cffff;
-$blue-light-2: scale-color($blue-light-1, $lightness: 5%); 
+$blue-light-2: scale-color($blue-light-1, $lightness: 5%);
 
 $green: #07cc07;
 $green-light-1: scale-color($green, $lightness: 5%);
@@ -68,152 +68,191 @@ $icon-collapse: url("/icons/flat/collapse.svg");
 $icon-selection: url("/icons/selection.svg");
 
 %font {
-  font: {
-    family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    style: normal;
-    weight: normal;
-  }
-  font-size: $size-font;
+	font: {
+		family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+		style: normal;
+		weight: normal;
+	}
+	font-size: $size-font;
 }
 
 %switch {
-  $width: u(32);
-  $height: u(18);
-  $diameter: u(12);
+	$width: u(32);
+	$height: u(18);
+	$diameter: u(12);
 
-  $space: ($height - $diameter) / 2;
+	$space: ($height - $diameter) / 2;
 
-  position: relative;
-  width: $width;
-  height: $height;
-  border-radius: $height / 2;
-  background-color: $color-1;
-  margin-right: u(6);
-  transition: background-color .2s;
-  flex-shrink: 0;
+	position: relative;
+	width: $width;
+	height: $height;
+	border-radius: $height / 2;
+	background-color: $color-1;
+	margin-right: u(6);
+	transition: background-color .2s;
+	flex-shrink: 0;
 
-  label:hover &{
-    background-color: $color-2;
-  }
+	label:hover &{
+		background-color: $color-2;
+	}
 
-  input:checked + &{
-    background-color: $blue;
-  }
-  
-  label:hover input:checked + &{
-    background-color: $blue-light-1;
-  }
+	input:checked + &{
+		background-color: $blue;
+	}
 
-  &::after {
-    content: "";
-    position: absolute;
-    width: $diameter;
-    height: $diameter;
-    left: $space;
-    bottom: $space;
-    border-radius: $diameter / 2;
-    background-color: #fff;
-    transition: left .2s;
-  }
+	label:hover input:checked + &{
+		background-color: $blue-light-1;
+	}
 
-  input:checked + &::after {
-    left: $width - ($diameter + $space);
-  }
-}
+	&::after {
+		content: "";
+		position: absolute;
+		width: $diameter;
+		height: $diameter;
+		left: $space;
+		bottom: $space;
+		border-radius: $diameter / 2;
+		background-color: #fff;
+		transition: left .2s;
+	}
 
-%search-box {
-  display: none;
-  border-top: $style-border;
-  width: 100%;
-
-  .search {
-    padding: u(2) $horz-pad;
-    background-color: $color-1;
-    display: flex;
-
-    button {
-      border-radius: 0 $radius $radius 0;
-      border-left: none;
-      margin: 0;
-    }
-
-    .input-holder {
-      flex: 1;
-      display: flex;
-    }
-  
-    input {
-      background-color: $color-0;
-      border: $style-border;
-      border-radius: $radius 0 0 $radius;
-      padding: $base-button-padding;
-      width: 100%;
-      font: {
-        size: inherit;
-        family: inherit;
-      }
-    }
-  }
-
-  .list {
-    border-top: $style-border;
-    position: relative;
-    overflow: auto;
-    resize: vertical;
-  }
-  
-  .link-list {
-    position: absolute;
-    top: 0;
-    width: 100%;
-
-    > a {
-      position: absolute;
-      display: block;
-      text-decoration: none;
-      color: $color-text;
-      padding: u(1) u(21);
-      transition: padding-left 0.2s;
-      white-space: nowrap;
-      overflow: hidden;
-      width: 100%;
-      box-sizing: border-box;
-
-      &:hover {
-        background-color: $color-1;
-        padding-left: u(27);
-      }
-
-      .link-search {
-        font-weight: 700;
-      }
-    }
-  }
+	input:checked + &::after {
+		left: $width - ($diameter + $space);
+	}
 }
 
 %icon-button {
-  background-color: $color-0;
-  border: $style-border;
-  border-radius: $radius;
-  padding: $base-button-padding;
+	background-color: $color-0;
+	cursor: pointer;
+	color: $color-text;
+	font-size: 1rem;
+	text-align: center;
+	text-decoration: none;
+	display: flex;
 
-  cursor: pointer;
-  color: $color-text;
-  font-size: 1rem;
-  text-align: center;
-  text-decoration: none;
-  margin: 0 u(2);
-  display: flex;
+	> i {
+		margin: auto;
+	}
 
-  > i {
-    margin: auto;
-  }
+	&:hover {
+		background-color: $color-1;
+	}
+}
 
-  &:hover {
-    background-color: $color-1;
-  }
+%info-box {
+	width: 100%;
 
-  &#user-folder {
-    display: none;
-  }
+	.search-box {
+		padding: u(2) $horz-pad;
+		background-color: $color-1;
+		display: flex;
+
+		button {
+			padding: u(6);
+
+			@extend %icon-button;
+		}
+	}
+
+	.search-clear {
+		border: $style-border;
+		border-left: none;
+		border-radius: 0;
+	}
+
+	.search-sort {
+		border: $style-border;
+		border-left: none;
+		border-radius: 0 $radius $radius 0;
+	}
+
+	.input-holder {
+		flex: 1;
+		display: flex;
+
+		input {
+			background-color: $color-0;
+			border: $style-border;
+			border-radius: $radius 0 0 $radius;
+			padding: $base-button-padding;
+			width: 100%;
+			outline: none;
+			font: {
+				size: inherit;
+				family: inherit;
+			}
+
+			&:focus {
+				border-right: {
+					style: solid;
+					width: u(1);
+				}
+				border-color: $blue;
+			}
+		}
+	}
+
+	.list-box {
+		border-top: $style-border;
+		position: relative;
+		overflow: auto;
+		resize: vertical;
+	}
+
+	.list {
+		position: absolute;
+		top: 0;
+		width: 100%;
+
+		> * {
+			position: absolute;
+			white-space: nowrap;
+			overflow: hidden;
+
+			width: 100%;
+			box-sizing: border-box;
+
+			&:hover {
+				.row-label {
+					background-color: $color-1;
+					padding-left: $horz-pad + u(6);
+				}
+			}
+		}
+	}
+
+	.link-search {
+		font-weight: 700;
+	}
+
+	.list-row {
+		display: flex;
+
+		> * {
+			padding: {
+				top: u(1);
+				bottom: u(1);
+			}
+		}
+	}
+
+	.row-label {
+		flex: 1;
+		border-right: {
+			width: u(1);
+			style: solid;
+			color: $color-0;
+		}
+		padding-left: $horz-pad;
+		transition: padding-left 0.2s;
+	}
+
+	a {
+		@extend %icon-button;
+
+		padding: {
+			left: u(4);
+			right: u(4);
+		}
+	}
 }

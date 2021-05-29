@@ -1,11 +1,11 @@
-.artsaver-tip, .artsaver-progress, .artsaver-infobar {
+.artsaver-tip, .artsaver-progress, #artsaver-info-bar {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   font-style: normal;
   font-weight: normal;
   font-size: 12px;
 }
 
-.artsaver-infobar #list-files .list-bar .switch {
+#artsaver-info-bar .switch {
   position: relative;
   width: 2.6666666667em;
   height: 1.5em;
@@ -15,16 +15,16 @@
   transition: background-color 0.2s;
   flex-shrink: 0;
 }
-label:hover .artsaver-infobar #list-files .list-bar .switch, .artsaver-infobar #list-files .list-bar label:hover .switch {
+label:hover #artsaver-info-bar .switch, #artsaver-info-bar label:hover .switch {
   background-color: #e0e0e0;
 }
-.artsaver-infobar #list-files .list-bar input:checked + .switch {
+#artsaver-info-bar input:checked + .switch {
   background-color: #0a84ff;
 }
-label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .artsaver-infobar #list-files .list-bar label:hover input:checked + .switch {
+label:hover #artsaver-info-bar input:checked + .switch, #artsaver-info-bar label:hover input:checked + .switch {
   background-color: #249cffff;
 }
-.artsaver-infobar #list-files .list-bar .switch::after {
+#artsaver-info-bar .switch::after {
   content: "";
   position: absolute;
   width: 1em;
@@ -35,7 +35,7 @@ label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .ar
   background-color: #fff;
   transition: left 0.2s;
 }
-.artsaver-infobar #list-files .list-bar input:checked + .switch::after {
+#artsaver-info-bar input:checked + .switch::after {
   left: 1.4166666667em;
 }
 
@@ -204,7 +204,7 @@ label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .ar
   background-position: center;
 }
 
-.artsaver-infobar {
+#artsaver-info-bar {
   position: fixed;
   bottom: 8px;
   left: 8px;
@@ -223,15 +223,15 @@ label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .ar
   transition-duration: 0.2s;
   transition-timing-function: ease-out;
 }
-.artsaver-infobar[data-display=hide] {
+#artsaver-info-bar.collapsed {
   visibility: hidden;
   opacity: 0;
   bottom: 0;
 }
-.artsaver-infobar #infobar {
+#artsaver-info-bar #info-bar {
   display: flex;
 }
-.artsaver-infobar #collapse {
+#artsaver-info-bar #collapse {
   padding: 0.5em 0.75em;
   width: 1.3333333333em;
   flex-shrink: 0;
@@ -241,58 +241,46 @@ label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .ar
   background-image: url("/icons/flat/collapse.svg");
   cursor: pointer;
 }
-.artsaver-infobar #collapse:hover {
+#artsaver-info-bar #collapse:hover {
   background-color: #f0f0f0;
 }
-.artsaver-infobar #queue {
+#artsaver-info-bar #queue {
   padding: 0.25em 0.5em;
   background-color: #f0f0f0;
   border-top: 0.0833333333em solid #e0e0e0;
 }
-.artsaver-infobar #queue-stats > div {
+#artsaver-info-bar .queue-stat {
   margin: 0 auto;
   padding: 0 0.25em;
 }
-.artsaver-infobar .list-box {
+#artsaver-info-bar .list-box {
   border-bottom: 0.0833333333em solid #e0e0e0;
 }
-.artsaver-infobar .list-box .list {
+#artsaver-info-bar .list {
   max-height: 300px;
   overflow-y: auto;
 }
-.artsaver-infobar .list-box .row {
+#artsaver-info-bar .row {
   display: flex;
 }
-.artsaver-infobar .list-box .row:not(:last-of-type) {
+#artsaver-info-bar .row:not(:last-child) {
   border-bottom: 0.0833333333em solid #e0e0e0;
 }
-.artsaver-infobar .list-box .row .row-text {
+#artsaver-info-bar .row-text {
   flex: 1;
   display: flex;
   padding: 0.25em 0.75em;
   white-space: nowrap;
   overflow: hidden;
 }
-.artsaver-infobar .list-box .row .row-text > div:nth-of-type(1) {
-  flex-basis: 25%;
+#artsaver-info-bar #list-recent .row-text {
+  gap: 0.25em;
 }
-.artsaver-infobar .list-box .row .row-text > div:nth-of-type(2) {
-  flex-basis: 25%;
-}
-.artsaver-infobar .list-box .row .row-text > div:nth-of-type(3) {
-  flex-basis: 10%;
-}
-.artsaver-infobar .list-box .row .row-text > div:nth-of-type(4) {
-  flex-basis: 40%;
-}
-.artsaver-infobar .list-box .row .row-text > div:not(:last-of-type) {
-  padding-right: 0.25em;
-}
-.artsaver-infobar .list-box .row .row-buttons {
+#artsaver-info-bar .row-buttons {
   line-height: 0;
   display: flex;
 }
-.artsaver-infobar .list-box .row button, .artsaver-infobar .list-box .row a {
+#artsaver-info-bar .row-button {
   display: inline-block;
   border: none;
   line-height: inherit;
@@ -308,102 +296,108 @@ label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .ar
   background-size: 1em 1em;
   background-repeat: no-repeat;
 }
-.artsaver-infobar .list-box .row button.link, .artsaver-infobar .list-box .row a.link {
+#artsaver-info-bar .row-button.link-icon {
   background-image: url("/icons/flat/link.svg");
 }
-.artsaver-infobar .list-box .row button.folder, .artsaver-infobar .list-box .row a.folder {
+#artsaver-info-bar .row-button.folder-icon {
   background-image: url("/icons/flat/folder.svg");
 }
-.artsaver-infobar .list-box .row button:hover, .artsaver-infobar .list-box .row a:hover {
+#artsaver-info-bar .row-button:hover {
   background-color: #e0e0e0;
 }
-.artsaver-infobar .list-box .list-bar {
-  padding: 0.5em 0.75em;
+#artsaver-info-bar .file-folder {
+  display: none;
+}
+#artsaver-info-bar #list-files.show-folders .file-folder {
+  display: block;
+}
+#artsaver-info-bar .list-bar {
+  padding: 0.25em 0.75em;
   background-color: #f0f0f0;
   border-top: 0.0833333333em solid #e0e0e0;
 }
-.artsaver-infobar #list-errors .row {
+#artsaver-info-bar #list-errors .row {
   color: #721c24;
   background-color: #f8d7da;
-  border-bottom: none;
 }
-.artsaver-infobar #list-errors .row:not(:last-of-type) .row-text {
+#artsaver-info-bar #list-errors .row:not(:last-child) {
   border-bottom: 0.0833333333em solid #f5c6cb;
 }
-.artsaver-infobar #list-errors .row:not(:last-of-type) .row-buttons {
-  border-bottom: 0.0833333333em solid #e0e0e0;
-}
-.artsaver-infobar #stat-errors {
-  color: #721c24;
-  background-color: #f8d7da;
-}
-.artsaver-infobar #stat-errors:hover, .artsaver-infobar #stat-errors .badge {
-  background-color: #f5c6cb;
-}
-.artsaver-infobar #history-stats {
+#artsaver-info-bar #history-stats {
   flex: 1;
 }
-.artsaver-infobar #history-stats > div {
+#artsaver-info-bar .stat {
   display: flex;
   padding: 0.5em 0.75em;
   white-space: nowrap;
-}
-.artsaver-infobar #history-stats > div.stat-button {
-  cursor: pointer;
-}
-.artsaver-infobar #history-stats > div.stat-button:hover:not(#stat-errors) {
-  background-color: #f0f0f0;
-}
-.artsaver-infobar #history-stats > div > :first-child {
-  margin: auto auto auto 0;
-}
-.artsaver-infobar #history-stats > div > :last-child {
-  margin: auto 0 auto 0.75em;
-}
-.artsaver-infobar #history-stats > div.expand {
   flex: 1;
 }
-.artsaver-infobar #queue-stats, .artsaver-infobar #history-stats {
+#artsaver-info-bar .stat.stat-button:hover, #artsaver-info-bar .stat.stat-button.active {
+  background-color: #f0f0f0;
+}
+#artsaver-info-bar .stat.stat-button:hover .badge, #artsaver-info-bar .stat.stat-button.active .badge {
+  background-color: white;
+}
+#artsaver-info-bar .stat-label {
+  margin: auto auto auto 0;
+}
+#artsaver-info-bar .stat-badge {
+  margin: auto 0 auto 0.75em;
+}
+#artsaver-info-bar .stat-button {
+  cursor: pointer;
+}
+#artsaver-info-bar .stat-error {
+  display: flex;
+  padding: 0.5em 0.75em;
+  white-space: nowrap;
+  color: #721c24;
+  background-color: #f8d7da;
+}
+#artsaver-info-bar .stat-error .badge {
+  background-color: #f5c6cb;
+}
+#artsaver-info-bar .stat-error.stat-button:hover, #artsaver-info-bar .stat-error.stat-button.active {
+  background-color: #f5c6cb;
+}
+#artsaver-info-bar .stat-error.stat-button:hover .badge, #artsaver-info-bar .stat-error.stat-button.active .badge {
+  background-color: #f8d7da;
+}
+#artsaver-info-bar #queue-stats, #artsaver-info-bar #history-stats {
   display: flex;
   white-space: nowrap;
 }
-.artsaver-infobar #list-files.hide-folders .row-text > span:first-of-type {
-  display: none;
-}
-.artsaver-infobar #list-files .list-bar {
+#artsaver-info-bar #list-files .list-bar {
   display: flex;
 }
-.artsaver-infobar #list-files .list-bar > div {
-  padding-right: 0.25em;
-}
-.artsaver-infobar #list-files .list-bar input {
+#artsaver-info-bar #list-files .list-bar input {
   display: none;
 }
-.artsaver-infobar #list-files .list-bar label {
+#artsaver-info-bar #list-files .list-bar label {
   display: flex;
   margin: 0 auto;
   cursor: pointer;
 }
-.artsaver-infobar #list-files .list-bar .switch {
-  margin-left: 0.5em;
-  margin-right: 0;
+#artsaver-info-bar .switch {
+  margin-left: 0;
+  margin-right: 0.5em;
   background-color: #e0e0e0;
 }
-.artsaver-infobar .hide {
+#artsaver-info-bar .hide {
   display: none !important;
 }
-.artsaver-infobar .artsaver-progress {
+#artsaver-info-bar .artsaver-progress {
   margin-top: 0.25em;
   position: relative;
   height: 1.3333333333em;
 }
-.artsaver-infobar .artsaver-progress .artsaver-bar[style="width: 100%;"] {
+#artsaver-info-bar .artsaver-bar[style="width: 100%;"] {
   background: #0a84ff;
 }
-.artsaver-infobar .artsaver-progress .artsaver-bar-text {
+#artsaver-info-bar .artsaver-bar-text {
   padding-left: 0.25em;
 }
-.artsaver-infobar .badge {
+#artsaver-info-bar .badge {
   display: inline;
   background-color: #f0f0f0;
   border-radius: 0.25em;
@@ -411,7 +405,7 @@ label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .ar
   font-weight: 600;
 }
 
-.artsaver-show-infobar {
+#artsaver-show-info-bar {
   width: 6em;
   height: 3em;
   position: fixed;
@@ -423,10 +417,13 @@ label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .ar
   z-index: 1002;
   font-size: 12px;
 }
-.artsaver-show-infobar:hover {
+#artsaver-show-info-bar:hover {
   opacity: 1;
 }
-.artsaver-show-infobar #show-tab {
+#artsaver-show-info-bar.hide {
+  display: none !important;
+}
+#artsaver-show-info-bar #show-tab {
   padding: 0.5em 0.75em;
   width: 1.3333333333em;
   flex-shrink: 0;
@@ -448,10 +445,23 @@ label:hover .artsaver-infobar #list-files .list-bar input:checked + .switch, .ar
   background-image: url("/icons/flat/collapse.svg");
   cursor: pointer;
 }
-.artsaver-show-infobar #show-tab:hover {
+#artsaver-show-info-bar #show-tab:hover {
   opacity: 1;
   bottom: -1.1666666667em;
 }
-.artsaver-show-infobar.hide, .artsaver-show-infobar .hide {
-  display: none !important;
+
+#artsaver-test-button {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.artsaver-text-render {
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  white-space: pre-wrap;
 }

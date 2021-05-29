@@ -1,76 +1,79 @@
-var globaluserlist;
+var globalsavedinfo;
 var globalrunningobservers = [];
 var globaltooltip = createTooltip();
 var globaloptions;
 var globalqueue;
+var globalbuttons = createButtonsState();
+
+const optionsKey = (s) => `${s}_options`;
+const savedKey = (s) => `${s}_saved`;
 
 main();
 
 async function main(){
-  globaloptions = (await getOptions()).global;
-  document.body.style.setProperty("--as-icon-size", `${globaloptions.iconSize}px`);
+	globaloptions = await getOptions("global");
+	document.body.style.setProperty("--as-icon-size", `${globaloptions.iconSize}px`);
 
-  globalqueue = createPageQueue(globaloptions.useQueue, {
-    concurrent: globaloptions.queueConcurrent,
-    waittime: globaloptions.queueWait,
-    infobar: globaloptions.infoBar ? createPageInfoBar() : false
-  });
+	globalqueue = createPageQueue(globaloptions.useQueue, {
+		concurrent: globaloptions.queueConcurrent,
+		waittime: globaloptions.queueWait,
+		infobar: globaloptions.infoBar ? await createPageInfoBar() : false
+	});
 
-  await setList();
+	let page = await getPage();
 
-  let page = await getPage();
+	await setSavedInfo(page.site);
 
-  as[page.site].check.startChecking();
+	as[page.site].check.startChecking();
+	//$insert(document.body, "button", {id: "artsaver-test-button", text: "test button"}).onclick = () => testing();
+}
+
+//function testing(){
+//	asLog(globalbuttons);
+//}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+async function getOptions(site){
+	let key = optionsKey(site);
+	let res = await browser.storage.local.get(key);
+	return res[key];
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-async function getOptions(){
-  let res = await browser.storage.local.get("options");
-  return res.options;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-async function setList(){
-  let item = await browser.storage.local.get("userlist");
-  //console.log(item);
-  globaluserlist = item.userlist;
-  if (!globaluserlist){
-    globaluserlist = {};
-
-    await browser.storage.local.set({
-      userlist: globaluserlist
-    });
-  }
+async function setSavedInfo(site){
+	let key = savedKey(site);
+	let item = await browser.storage.local.get(key);
+	globalsavedinfo = item[key] || {};
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function getPage(){
-  return new Promise((resolve, reject) => {
-    try {
-      resolve(pageInfo());
-    }
-    catch (err){
-      setTimeout(() => resolve(getPage()), 300);
-    }
-  });
+	return new Promise((resolve, reject) => {
+		try {
+			resolve(pageInfo());
+		}
+		catch (err){
+			setTimeout(() => resolve(getPage()), 300);
+		}
+	});
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function reCheck(){
-  await setList();
+	let page = await getPage();
+	await setSavedInfo(page.site);
 
-  globalrunningobservers.forEach(ob => ob.disconnect());
-  globalrunningobservers = [];
+	globalrunningobservers.forEach(ob => ob.disconnect());
+	globalrunningobservers = [];
 
-  $$("[data-checkstatus]").forEach(e => e.removeAttribute("data-checkstatus"));
-  $$(".artsaver-check, .artsaver-screen").forEach(e => $remove(e));
+	$$("[data-checkstatus]").forEach(e => e.removeAttribute("data-checkstatus"));
+	$$(".artsaver-check, .artsaver-screen").forEach(e => $remove(e));
 
-  let page = await getPage();
-  as[page.site].check.startChecking();
+	as[page.site].check.startChecking();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -79,46 +82,239 @@ async function reCheck(){
 //themed console log
 
 function asLog(...texts){
-  let log = ["%c[art saver]%c", "color: #006efe", ""];
-  if (typeof(texts[0]) === "string"){
-    log[0] += ` ${texts.shift()}`;
-  }
-  console.log(...log.concat(texts));
+	let log = ["%c[Art Saver]%c", "color: #006efe", ""];
+	if (typeof(texts[0]) === "string"){
+		log[0] += ` ${texts.shift()}`;
+	}
+	console.log(...log.concat(texts));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //simpler fetch function with document support
 
 async function fetcher(url, type = "response", init = {}){
-  init = {
-    credentials: "include",
-    referrer: window.location.href,
-    ...init
-  };
+	init = {
+		credentials: "include",
+		referrer: window.location.href,
+		...init
+	};
 
-  let response = await fetch(url, init);
+	let response = await fetch(url, init);
 
-  if (!response.ok && type !== "response"){
-    let err = new Error(url);
-    err.name = `Error ${response.status}`;
-    return err;
-  }
+	if (!response.ok && type !== "response"){
+		let err = new Error(url);
+		err.name = `Error ${response.status}`;
+		return err;
+	}
 
-  switch (type){
-    case "document":
-      let html = await response.text();
-      let parser = new DOMParser();
-      return parser.parseFromString(html, "text/html");
+	switch (type){
+		case "document":
+			let html = await response.text();
+			let parser = new DOMParser();
+			return parser.parseFromString(html, "text/html");
 
-    case "json":
-      return await response.json();
+		case "json":
+			return await response.json();
 
-    case "blob":
-      return await response.blob();
+		case "blob":
+			return await response.blob();
 
-    default:
-      return response;
-  }
+		default:
+			return response;
+	}
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// main on page buttons state
+//---------------------------------------------------------------------------------------------------------------------
+
+function createButtonsState(){
+	let state = {
+		idsMap: new Map(),
+		runningloop: false
+	};
+
+	state.createState = function(type, site, subid){
+		let base = {
+			type,
+			status: "idle",
+			site,
+			subid,
+			buttons: []
+		};
+
+		if (type === "check"){
+			this.idsMap.set(subid, base);
+		}
+		else if (type === "download"){
+			this.idsMap.set(subid, {
+				text: "",
+				width: 0,
+				...base
+			});
+		}
+	}
+
+	state.hasId = function(subid){
+		return this.idsMap.has(subid);
+	}
+
+	state.addButton = function(type, site, subid, button){
+		if (!this.hasId(subid)){
+			this.createState(type, site, subid);
+		}
+		this.idsMap.get(subid).buttons.push(button);
+		this.setValue(subid, "type", type);
+	}
+
+	state.setValue = function(subid, key, value){
+		this.idsMap.get(subid)[key] = value;
+		this.runUpdateLoop();
+	}
+
+	state.getValue = function(subid, key){
+		return this.idsMap.get(subid)[key];
+	}
+
+	state.removeState = function(subid){
+		this.idsMap.delete(subid);
+	}
+
+	state.runUpdateLoop = function(){
+		if (this.runningloop){
+			return;
+		}
+		this.runningloop = true;
+		window.requestAnimationFrame(() => {state.updateButtons()});
+	}
+
+	state.cleanButtons = function(){
+		//clean diconnected nodes
+		for (let [subid, info] of this.idsMap){
+			for (let b of info.buttons){
+				if (!b.button.isConnected){
+					removeListeners(b);
+				}
+			}
+			info.buttons = info.buttons.filter(b => b.button.isConnected);
+			if (info.status === "idle" && info.buttons.length <= 0){
+				this.removeState(subid);
+			}
+		}
+	}
+
+	state.updateButtons = function(){
+		this.cleanButtons();
+
+		let keeprunning = false;
+		let recheck = false;
+		for (let [subid, info] of this.idsMap){
+			let status = info.status;
+			switch (info.type){
+				case "check":
+					updateCheck(subid, info);
+					if (status === "removing"){
+						keeprunning = true;
+					}
+					else if (status === "finished"){
+						recheck = true;
+					}
+					break;
+
+				case "download":
+					updateDownload(subid, info);
+					if (status === "inprogress"){
+						keeprunning = true;
+					}
+					else if (status === "finished"){
+						recheck = true;
+					}
+					break;
+
+				case "error":
+					updateError(subid, info);
+					if (status === "remove"){
+						recheck = true;
+					}
+			}
+		}
+
+		if (recheck){
+			reCheck();
+		}
+		if (keeprunning){
+			window.requestAnimationFrame(() => {state.updateButtons()});
+		}
+		else {
+			this.runningloop = false;
+		}
+	}
+
+	function removeListeners(button){
+		for (let e of button.events){
+			e.target.removeEventListener(e.type, e.listener);
+		}
+		button.events = [];
+	}
+
+	function updateCheck(subid, info){
+		if (info.status === "removing"){
+			for (let b of info.buttons){
+				if (b.button.className !== "artsaver-loading"){
+					b.button.className = "artsaver-loading";
+					removeListeners(b);
+				}
+			}
+		}
+		else if (info.status === "finished"){
+			info.buttons.forEach(b => $remove(b.button));
+			state.removeState(subid);
+		}
+	}
+
+	function updateDownload(subid, info){
+		if (info.status === "inprogress"){
+			for (let b of info.buttons){
+				if (b.button.className !== "artsaver-loading"){
+					b.button.className = "artsaver-loading";
+					b.bar = $insert(b.button, "div", {position: "beforebegin", class: "artsaver-progress"});
+					$insert($insert(b.bar, "div", {class: "artsaver-bar"}), "div", {class: "artsaver-bar-text"});
+					removeListeners(b);
+				}
+				b.bar.firstElementChild.style.width = `${info.width}%`;
+				b.bar.firstElementChild.firstElementChild.textContent = info.text;
+			}
+		}
+		else if (info.status === "finished"){
+			for (let b of info.buttons){
+				$remove(b.button);
+				$remove(b.bar);
+			}
+			state.removeState(subid);
+		}
+	}
+
+	function updateError(subid, info){
+		for (let b of info.buttons){
+			if (b.button.className !== "artsaver-error"){
+				b.button.className = "artsaver-error";
+				$remove(b.bar);
+				b.button.addEventListener("click", event => {
+					event.preventDefault();
+					event.stopPropagation();
+
+					state.setValue(subid, "status", "remove");
+				}, {once: true});
+			}
+		}
+
+		if (info.status === "remove"){
+			info.buttons.forEach(b => $remove(b.button));
+			state.removeState(subid);
+		}
+	}
+
+	return state;
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -126,233 +322,250 @@ async function fetcher(url, type = "response", init = {}){
 //---------------------------------------------------------------------------------------------------------------------
 
 function createTooltip(){
-  $remove($(".artsaver-tip"));
+	$remove($(".artsaver-tip"));
 
-  let tip = $insert(document.body, "div", {class: "artsaver-tip"});
-  let table = $insert(tip, "table");
-  let tr1 = $insert(table, "tr");
-  $insert(tr1, "td", {text: "User:"});
-  $insert(tr1, "td");
-  let tr2 = $insert(table, "tr");
-  $insert(tr2, "td", {text: "Id:"});
-  $insert(tr2, "td");
+	let tip = $insert(document.body, "div", {class: "artsaver-tip"});
+	let table = $insert(tip, "table");
+	let tr1 = $insert(table, "tr");
+	$insert(tr1, "td", {text: "User:"});
+	$insert(tr1, "td");
+	let tr2 = $insert(table, "tr");
+	$insert(tr2, "td", {text: "Id:"});
+	$insert(tr2, "td");
 
-  tooltip = {tip};
+	tooltip = {tip};
 
-  tooltip.show = function(){
-    this.tip.setAttribute("data-display", "show");
-  }
-  tooltip.fade = function(){
-    this.tip.removeAttribute("data-display");
-  }
-  tooltip.set = function(user, id){
-    let fields = $$(this.tip, "td:last-child");
-    fields[0].textContent = user;
-    fields[1].textContent = id;
-  }
-  tooltip.move = function(x, user, id){
-    let rect = x.getBoundingClientRect();
-    this.set(user, id);
-    this.tip.style.top = `${rect.top + window.scrollY - this.tip.offsetHeight - 1}px`;
-    //dont let the tooltip cross the document width
-    this.tip.style.left = `${Math.min(rect.left + window.scrollX, document.body.offsetWidth - this.tip.offsetWidth)}px`;
-    this.show();
-  }
+	tooltip.show = function(){
+		this.tip.setAttribute("data-display", "show");
+	}
+	tooltip.fade = function(){
+		this.tip.removeAttribute("data-display");
+	}
+	tooltip.set = function(user, id){
+		let fields = $$(this.tip, "td:last-child");
+		fields[0].textContent = user;
+		fields[1].textContent = id;
+	}
+	tooltip.move = function(x, user, id){
+		let rect = x.getBoundingClientRect();
+		this.set(user, id);
+		this.tip.style.top = `${rect.top + window.scrollY - this.tip.offsetHeight - 1}px`;
+		//don't let the tooltip cross the document width
+		this.tip.style.left = `${Math.min(rect.left + window.scrollX, document.body.offsetWidth - this.tip.offsetWidth)}px`;
+		this.show();
+	}
 
-  return tooltip;
+	return tooltip;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function createCheck(anchor, color, position, data){
-  let checkbutton = $insert(anchor, "div", {position, class: "artsaver-check", "data-color": color});
+function createCheck(site, user, subid, color, anchor, screen){
+	let checkbutton = $insert(anchor, "div", {class: "artsaver-check", "data-color": color});
 
-  if (tooltip){
-    checkbutton.onmouseover = function(){
-      globaltooltip.move(this, data.user, data.id);
-    };
-    checkbutton.onmouseout = () => {
-      globaltooltip.fade();
-    }
-  }
+	if (tooltip){
+		checkbutton.onmouseover = function(){
+			globaltooltip.move(this, user, subid);
+		};
+		checkbutton.onmouseout = () => {
+			globaltooltip.fade();
+		}
+	}
 
-  checkbutton.addEventListener("click", function(event){
-    event.preventDefault();
-    event.stopPropagation();
+	let clickevent = event => {
+		event.preventDefault();
+		event.stopPropagation();
 
-    removeCheck(this, data);
-    globaltooltip.fade();
-  }, {once: true});
+		removeSubmission(site, subid);
+		globaltooltip.fade();
+	};
 
-  return checkbutton;
+	checkbutton.addEventListener("click", clickevent, {once: true});
+
+	if (globaloptions.addScreen && screen){
+		let cover = $insert(checkbutton, "div", {position: "beforebegin", class: "artsaver-screen"});
+		cover.style.opacity = `${globaloptions.screenOpacity}%`;
+		$insert(cover, "div");
+	}
+
+	let events = [
+		{target: checkbutton, type: "click", listener: clickevent}
+	];
+
+	globalbuttons.addButton("check", site, subid, {button: checkbutton, events});
+
+	return checkbutton;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-async function removeCheck(checkbutton, data){
-  checkbutton.className = "artsaver-loading";
-  try {
-    let item = await browser.storage.local.get("userlist");
-    let userids = item.userlist[data.site][data.user];
-
-    globaluserlist[data.site][data.user] = userids.filter(id => id !== data.id);
-
-    if (globaluserlist[data.site][data.user].length === 0){
-      delete globaluserlist[data.site][data.user];
-    }
-    if (Object.keys(globaluserlist[data.site]).length === 0){
-      delete globaluserlist[data.site];
-    }
-
-    await browser.storage.local.set({
-      userlist: globaluserlist
-    });
-    $remove(checkbutton);
-    reCheck();
-  }
-  catch (err){}
+async function removeSubmission(site, subid){
+	globalbuttons.setValue(subid, "status", "removing");
+	try {
+		globalsavedinfo = await browser.runtime.sendMessage({
+			function: "removesubmission",
+			site: site,
+			sid: subid
+		});
+	}
+	catch (err){}
+	globalbuttons.setValue(subid, "status", "finished");
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function createDownload(site, anchor, url, position){
-  let dlbutton = $insert(anchor, "div", {position, class: "artsaver-download"});
-  let activated = false;
+function createDownload(site, subid, anchor){
+	let dlbutton = $insert(anchor, "div", {class: "artsaver-download"});
 
-  dlbutton.addEventListener("click", event => {
-    event.preventDefault();
-    event.stopPropagation();
+	let clickevent = event => {
+		event.preventDefault();
+		event.stopPropagation();
 
-    activated = true;
-    let bar = createProgress(dlbutton, [site, anchor, url, position]);
-    globalqueue.addDownload(site, url, bar);
-  }, {once: true});
+		globalqueue.addDownload(site, subid);
+	};
 
-  document.addEventListener("keypress", event => {
-    if (anchor.matches(":hover") && event.key === "d" && !activated){
-      dlbutton.click();
-      activated = true;
-    }
-  });
+	dlbutton.addEventListener("click", clickevent, {once: true});
 
-  return dlbutton;
+	let keyevent = event => {
+		if (anchor.matches(":hover") && event.key === "d"){
+			globalqueue.addDownload(site, subid);
+		}
+	};
+
+	document.addEventListener("keypress", keyevent);
+
+	let events = [
+		{target: dlbutton, type: "click", listener: clickevent},
+		{target: document, type: "keypress", listener: keyevent}
+	];
+
+	globalbuttons.addButton("download", site, subid, {button: dlbutton, events});
+
+	return dlbutton;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function addButton(site, user, subid, submission, anchor, url, position = "afterend", screen = true){
-  let parent = ["afterend", "beforebegin"].includes(position) ? anchor.parentElement : anchor;
-  if ($(parent, ".artsaver-error, .artsaver-loading")){
-    return;
-  }
-  let button = $(parent, ".artsaver-check, .artsaver-download");
+function createError(dlbutton){
+	dlbutton.className = "artsaver-error";
+	dlbutton.addEventListener("click", function(event){
+		event.preventDefault();
+		event.stopPropagation();
 
-  if (submission.getAttribute("data-checkstatus") !== "checked"){
-    let result = checkUserList(site, user, subid);
-    submission.setAttribute("data-checkstatus", "checked");
-
-    if (result.found){
-      $$(parent, "[class^=artsaver]").forEach(e => $remove(e));
-
-      button = createCheck(anchor, result.color, position, {site, user: result.user, id: subid});
-
-      if (globaloptions.addScreen && screen){
-        let cover = $insert(button, "div", {position: "beforebegin", class: "artsaver-screen"});
-        cover.style.opacity = `${globaloptions.screenOpacity}%`;
-
-        $insert(cover, "div");
-      }
-    }
-  }
-
-  if (!button){
-    button = createDownload(site, anchor, url, position);
-  }
-
-  return button;
+		$remove(this);
+		reCheck();
+	}, {once: true});
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function checkUserList(site, user, id){
-  let found = false;
-  let founduser = user;
-  let color = "green";
+function addButton(site, user, subid, anchor, screen = true){
+	if ($(anchor, ".artsaver-error, .artsaver-loading")){
+		return;
+	}
+	let button = $(anchor, ".artsaver-check, .artsaver-download");
 
-  if (globaluserlist[site] && globaluserlist[site][user] && globaluserlist[site][user].includes(id)){
-    found = true;
-  }
-  else if (globaluserlist[site]) {
-    for (let otheruser in globaluserlist[site]){
-      if (otheruser === user || !globaluserlist[site][otheruser].includes(id)){
-        continue;
-      }
+	if (anchor.getAttribute("data-checkstatus") !== "checked" && !$(anchor, "[data-checkstatus]")){
+		let result = checkSavedInfo(site, user, subid);
+		anchor.setAttribute("data-checkstatus", "checked");
 
-      founduser = otheruser;
-      if (user){
-        color = "yellow";
-      }
-      found = true;
-      break;
-    }
-  }
+		if (result.found){
+			$$(anchor, "[class^=artsaver]").forEach(e => $remove(e));
 
-  return {found, user: founduser, color};
+			button = createCheck(site, user, subid, result.color, anchor, screen);
+		}
+	}
+
+	if (!button){
+		button = createDownload(site, subid, anchor);
+	}
+
+	return button;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function createProgress(dlbutton, rebuild){
-  dlbutton.className = "artsaver-loading";
+function checkSavedInfo(site, user, id){
+	let found = false;
+	let founduser = user;
+	let color = "green";
 
-  let p = $insert(dlbutton, "div", {position: "beforebegin", class: "artsaver-progress"});
-  $insert($insert(p, "div", {class: "artsaver-bar"}), "div", {class: "artsaver-bar-text"});
+	if (globalsavedinfo[user] && globalsavedinfo[user].includes(id)){
+		found = true;
+	}
+	else {
+		for (let otheruser in globalsavedinfo){
+			if (otheruser === user || !globalsavedinfo[otheruser].includes(id)){
+				continue;
+			}
 
-  let progress = {button: dlbutton, element: p};
+			founduser = otheruser;
+			if (user){
+				color = "yellow";
+			}
+			found = true;
+			break;
+		}
+	}
 
-  progress.bar = progress.element.firstChild;
+	return {found, user: founduser, color};
+}
 
-  progress.start = function(){
-    this.bar.style = "width:0";
-  }
-  progress.say = function(text){
-    this.bar.firstChild.textContent = text;
-  }
-  progress.width = function(width){
-    this.bar.style.width = `${width}%`;
-  }
-  progress.saving = function(amount){
-    let multiple = (amount > 1) ? [` ${amount}`, "s"] : ["", ""];
-    this.say(`Saving${multiple[0]} file${multiple[1]}`);
-  }
-  progress.remove = function(){
-    try {
-      $remove(this.element);
-    }
-    catch (e){}
-    try {
-      $remove(this.button);
-    }
-    catch (e){}
-  }
-  progress.reset = function(){
-    this.remove();
-    return createDownload(...rebuild).click();
-  }
-  progress.error = function(){
-    this.button.className = "artsaver-error";
-    $remove(this.element);
-    this.button.addEventListener("click", function(event){
-      event.preventDefault();
-      event.stopPropagation();
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      $remove(this);
-      createDownload(...rebuild);
-    }, {once: true});
-  }
+function createProgress(subid){
+	let progress = {};
 
-  progress.start();
-  return progress;
+
+	progress.say = function(text){
+		globalbuttons.setValue(subid, "text", text);
+	}
+	progress.width = function(width){
+		globalbuttons.setValue(subid, "width", width);
+	}
+	progress.start = function(text){
+		this.width(0);
+		this.say(text);
+	}
+	progress.onOf = function(message, index, total){
+		let multiple = (total > 1) ? ` ${index}/${total}` : "";
+		this.say(`${message}${multiple}`);
+	}
+	progress.blobProgress = function(index, total, bytes, loaded, blobtotal){
+		let block = (1 / total) * 100;
+		let initalwidth = (index / total) * 100;
+		let onof = (total > 1) ? `${index + 1}/${total} ` : "";
+		let size = fileSize(bytes + loaded);
+		if (!blobtotal){
+			this.width(initalwidth + block);
+			this.say(`... ${onof}${size}`);
+		}
+		else {
+			let percent = initalwidth + (block * (loaded / blobtotal));
+			this.width(percent);
+			this.say(`${onof}${size} ${Math.floor(percent)}%`);
+		}
+	}
+	progress.finished = function(){
+		globalbuttons.setValue(subid, "status", "finished");
+	}
+	progress.error = function(){
+		globalbuttons.setValue(subid, "type", "error");
+		globalbuttons.setValue(subid, "status", "error");
+	}
+
+	return progress;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function fileSize(bytes){
+	for (let size of ["bytes", "KB", "MB", "GB", "TB"]){
+		if (bytes < 1024 || size === "TB"){
+			return `${bytes.toFixed(2)} ${size}`;
+		}
+		bytes = bytes / 1024;
+	}
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -360,132 +573,115 @@ function createProgress(dlbutton, rebuild){
 //---------------------------------------------------------------------------------------------------------------------
 
 function timeParse(timestring){
-  let time = new Date(timestring);
+	let time = new Date(timestring);
 
-  let pad = (n) => `${n}`.padStart(2, "0");
+	let pad = (n) => `${n}`.padStart(2, "0");
 
-  return {
-    YYYY: pad(time.getFullYear()),
-    MM: pad(time.getMonth() + 1),
-    DD: pad(time.getDate()),
-    hh: pad(time.getHours()),
-    mm: pad(time.getMinutes()),
-    ss: pad(time.getSeconds())
-  }
+	return {
+		YYYY: pad(time.getFullYear()),
+		MM: pad(time.getMonth() + 1),
+		DD: pad(time.getDate()),
+		hh: pad(time.getHours()),
+		mm: pad(time.getMinutes()),
+		ss: pad(time.getSeconds())
+	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-async function fetchBlobsProgress(downloads, progress){
-  progress.say("Starting download");
+async function fetchBlob(url, callback){
+	let response = await fetcher(url);
 
-  let allprogress = Array(downloads.length);
+	if (!response.ok){
+		let err = new Error(url);
+		err.name = `Error ${response.status}`;
+		throw err;
+	}
 
-  return await Promise.all(downloads.map((dl, i) => getBlob(dl, i)));
+	let loaded = 0;
+	let total = parseInt(response.headers.get("Content-Length"), 10);
 
-  async function getBlob(dl, i){
-    let response = await fetcher(dl.url);
+	let reader = response.body.getReader();
+	let chunks = [];
 
-    if (!response.ok){
-      let err = new Error(dl.url);
-      err.name = `Error ${response.status}`;
-      throw err;
-    }
+	while (true){
+		let {done, value} = await reader.read();
+		if (done){
+			break;
+		}
+		chunks.push(value);
+		loaded += value.length;
 
-    let loaded = 0;
-    let total = parseInt(response.headers.get("Content-Length"), 10);
-    let computable = total ? true : false;
+		callback(loaded, total);
+	}
 
-    let reader = response.body.getReader();
-    let chunks = [];
-
-    while (true){
-      let {done, value} = await reader.read();
-      if (done){
-        break;
-      }
-      chunks.push(value);
-      loaded += value.length;
-
-      allprogress[i] = {computable, total, loaded};
-
-      blobProgress(allprogress, progress);
-    }
-
-    dl.blob = new Blob(chunks);
-    return dl;
-  }
+	return new Blob(chunks);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function blobProgress(allprogress, progress){
-  let current = allprogress.flat();
+async function downloadBlob(blob, filename, meta){
+	let message = await browser.runtime.sendMessage({
+		function: "blob",
+		blob,
+		filename,
+		meta
+	});
 
-  let [total, loaded] = current.reduce((acc, c) => [c.total + acc[0], c.loaded + acc[1]], [0, 0]);
-
-  if (current.some(d => !d.computable)){
-    progress.width(100);
-    progress.say(`... ${fileSize(loaded)}`);
-  }
-  else {
-    let percent = (loaded / total * 100) * (current.length / allprogress.length);
-    progress.width(percent);
-    progress.say(`${fileSize(loaded)} ${Math.floor(percent)}%`);
-  }
-}
-
-function fileSize(bytes){
-  for (let size of ["bytes", "KB", "MB", "GB", "TB"]){
-    if (bytes < 1024 || size === "TB"){
-      return `${bytes.toFixed(2)} ${size}`;
-    }
-    bytes = bytes / 1024;
-  }
+	logDownloadResponse(message);
+	return message;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-async function downloadBlobs(blobs){
-  let results = [];
-  for (let blob of blobs){
-    let message = await browser.runtime.sendMessage({
-      function: "blob",
-      ...blob
-    });
+async function handleAllDownloads(downloads, progress){
+	progress.start("Starting download");
 
-    //I don't know garbage collection already handles this,
-    //but since blobs can take a lot of space (especially large files)
-    //manually clear the blob after saving to clear memory.
-    blob.blob = '';
-    
-    logDownloadResponse(message);
-    results.push(message);
-  }
-  return results;
+	let bytes = 0;
+	let total = downloads.length;
+	let results = [];
+
+	for (let i = 0; i < total; i += 1){
+		let blob;
+		if (downloads[i].blob){
+			blob = downloads[i].blob;
+			progress.blobProgress(i, total, bytes, blob.size, blob.size);
+		}
+		else {
+			blob = await fetchBlob(downloads[i].url, (loaded, blobtotal) => {
+				progress.blobProgress(i, total, bytes, loaded, blobtotal)
+			});
+		}
+		bytes += blob.size;
+
+		let result = await downloadBlob(blob, downloads[i].filename, downloads[i].meta);
+		results.push(result);
+	}
+
+	return results;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function logDownloadResponse(message){
-  if (message.response === "Success"){
-    asLog("%cDownloading:", "color: #006efe", message.filename);
-  }
-  else if (message.response === "Failure"){
-    asLog("%cFailed to download:", "color: #d70022", message.filename);
-  }
+	if (message.response === "Success"){
+		asLog("%cDownloading:", "color: #006efe", message.filename);
+	}
+	else if (message.response === "Failure"){
+		asLog("%cFailed to download:", "color: #d70022", message.filename);
+	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-async function updateList(site, user, id){
-  let message = await browser.runtime.sendMessage({function: "updatelist", site, user, id});
-  if (message.response === "Success"){
-    globaluserlist = message.list;
-  }
-  else if (message.response === "Failure"){
-    asLog("%cFailed to update list:", "color: #d70022", message.error);
-  }
+async function updateSavedInfo(site, user, id){
+	let message = await browser.runtime.sendMessage({function: "updatesavedinfo", site, user, id});
+	if (message.response === "Success"){
+		globalsavedinfo = message.list;
+	}
+	else if (message.response === "Failure"){
+		asLog("%cFailed to update list:", "color: #d70022", message.error);
+	}
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -493,70 +689,85 @@ async function updateList(site, user, id){
 //---------------------------------------------------------------------------------------------------------------------
 
 browser.runtime.onMessage.addListener(message => {
-  switch (message.command){
-    case "downloadall":
-      downloadAll();
-      break;
+	switch (message.command){
+		case "downloadall":
+			downloadAll();
+			break;
 
-    case "recheck":
-      reCheck();
-      setTimeout(() => sendStats(), 300);
-      break;
+		case "recheck":
+			reCheck();
+			setTimeout(() => sendStats(), 300);
+			break;
 
-    case "sitestats":
-      sendStats();
-  }
+		case "sitestats":
+			sendStats();
+	}
 });
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function downloadAll(){
-  $$(".artsaver-download").forEach(d => d.click());
+	globalbuttons.cleanButtons();
+	for (let b of globalbuttons.idsMap.values()){
+		if (b.type === "download" && b.status === "idle"){
+			b.buttons[0].button.click();
+		}
+	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function sendStats(){
-  let downloads = $$(".artsaver-download").length;
-  let saved = $$(".artsaver-check").length;
-  let page;
-  try {
-    page = pageInfo();
-  }
-  catch (err){
-    browser.runtime.sendMessage({
-      function: "pageerror"
-    });
-    return;
-  }
+	globalbuttons.cleanButtons();
+	let downloads = 0;
+	let saved = 0
+	for (let b of globalbuttons.idsMap.values()){
+		if (b.type === "download" && b.status === "idle"){
+			downloads += 1;
+		}
+		if (b.type === "check" && b.status === "idle"){
+			saved += 1;
+		}
+	}
+	let page;
+	try {
+		page = pageInfo();
+	}
+	catch (err){
+		browser.runtime.sendMessage({
+			function: "pageerror"
+		});
+		return;
+	}
 
-  let isuser = page.user ? true : false;
-  browser.runtime.sendMessage({
-    function: "sitestats",
-    total: {saved, downloads},
-    links: page.links,
-    site: page.site,
-    user: isuser
-  });
+	let isuser = page.user ? true : false;
+	browser.runtime.sendMessage({
+		function: "sitestats",
+		total: {saved, downloads},
+		//links: page.links,
+		site: page.site,
+		user: isuser
+	});
 
-  if (isuser){
-    userInfo(page);
-  }
+	if (isuser){
+		userInfo(page);
+	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function userInfo(page){
-  let user = {
-    site: page.site,
-    name: page.user
-  };
+	let user = {
+		site: page.site,
+		name: page.user
+	};
 
-  let item = await browser.storage.local.get("userlist");
-  let savedlist = item.userlist ? item.userlist[user.site] : {};
-  user = await as[user.site].userInfo(user, page, savedlist);
+	let key = savedKey(page.site);
+	let item = await browser.storage.local.get(key);
+	let savedlist = item[key] || {};
+	user = await as[user.site].userInfo(user, page, savedlist);
 
-  browser.runtime.sendMessage({function: "userstats", user, submissionUrl: page.links.submissionUrl});
+	browser.runtime.sendMessage({function: "userstats", site: page.site, user});
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -564,290 +775,229 @@ async function userInfo(page){
 //---------------------------------------------------------------------------------------------------------------------
 
 async function timer(s){
-  return await new Promise((resolve, reject) => {
-    setTimeout(resolve, s * 1000); //seconds
-  });
+	return await new Promise((resolve, reject) => {
+		setTimeout(resolve, s * 1000); //seconds
+	});
 }
 
 function createPageQueue(usequeue, options){
-  let concurrent = usequeue ? options.concurrent || 1 : Infinity;
-  let waittime = usequeue ? options.waittime || 0 : 0;
-  let infobar = options.infobar;
+	let concurrent = usequeue ? options.concurrent || 1 : Infinity;
+	let waittime = usequeue ? options.waittime || 0 : 0;
+	let infobar = options.infobar;
 
-  let queue = {
-    list: [],
-    downloading: 0,
-    inprogress: 0,
-    threads: 0
-  };
+	let queue = {
+		list: [],
+		downloading: 0,
+		inprogress: 0,
+		threads: 0
+	};
 
-  queue.addDownload = function(site, url, bar){
-    this.list.push({site, url, bar});
-    this.downloading += 1;
-    this.updateDownloadInfo();
+	queue.addDownload = function(site, subid){
+		globalbuttons.setValue(subid, "status", "inprogress");
+		this.list.push([site, subid]);
+		this.downloading += 1;
+		this.updateDownloadInfo();
 
-    if (this.threads < concurrent){
-      this.addThread();
-    }
-  }
+		if (this.threads < concurrent){
+			this.addThread();
+		}
+	}
 
-  queue.addThread = async function(){
-    this.threads += 1;
-    while (this.list.length > 0){
-      await this.downloadNext();
-      if (waittime > 0){
-        await timer(waittime);
-      }
-    }
-    this.threads -= 1;
+	queue.addThread = async function(){
+		this.threads += 1;
+		while (this.list.length > 0){
+			await this.downloadNext();
+			if (waittime > 0){
+				await timer(waittime);
+			}
+		}
+		this.threads -= 1;
 
-    if (this.threads <= 0){
-      this.downloading = 0;
-    }
+		if (this.threads <= 0){
+			this.downloading = 0;
+		}
 
-    this.updateDownloadInfo();
-  }
+		this.updateDownloadInfo();
+	}
 
-  queue.downloadNext = async function(){
-    this.inprogress += 1;
-    let {site, url, bar} = this.list.shift();
-    this.updateDownloadInfo();
-    try {
-      let result = await as[site].download.startDownloading(url, bar);
+	queue.downloadNext = async function(){
+		this.inprogress += 1;
+		let [site, subid] = this.list.shift();
+		this.updateDownloadInfo();
+		try {
+			let result = await as[site].download.startDownloading(subid, createProgress(subid));
 
-      if (infobar){
-        if (result.status === "Success"){
-          infobar.addSaved(result);
-        }
-        else {
-          infobar.addError(result);
-        }
-      }
-    }
-    catch (err){
-      asLog("Uncaught download error", err);
-    }
-    this.inprogress -= 1;
-    this.updateDownloadInfo();
-    return;
-  }
+			if (infobar){
+				if (result.status === "Success"){
+					infobar.addSaved(result);
+				}
+				else {
+					infobar.addError(result);
+				}
+			}
+		}
+		catch (err){
+			asLog("Uncaught download error", err);
+		}
+		this.inprogress -= 1;
+		this.updateDownloadInfo();
+		return;
+	}
 
-  queue.updateDownloadInfo = function(){
-    this.list.forEach((place, i) => {
-      place.bar.say(`In queue pos: ${i + 1}`);
-    });
+	queue.updateDownloadInfo = function(){
+		this.list.map(l => l[1]).forEach((subid, i) => {
+			globalbuttons.setValue(subid, "text", `In queue pos: ${i + 1}`);
+		});
 
-    if (infobar){
-      infobar.setProgress(this.downloading, this.inprogress, this.list.length);
-    }
-  }
+		if (infobar){
+			infobar.setProgress(this.downloading, this.inprogress, this.list.length);
+		}
+	}
 
-  return queue
+	return queue
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 // Page Info Bar
 //---------------------------------------------------------------------------------------------------------------------
 
-function createPageInfoBar(){
-  $remove($(".artsaver-infobar"));
-  $remove($(".artsaver-show-infobar"));
+async function createPageInfoBar(){
+	$remove($("#artsaver-info-bar"));
+	$remove($("#artsaver-show-info-bar"));
 
-  //all this to avoid using innerHTML
-  let ib = $insert(document.body, "div", {class: "artsaver-infobar", "data-display": "hide"});
+	let infobarui = await fetcher(browser.runtime.getURL("/content_ui/infobar.html"), "document");
+	document.body.append(...infobarui.body.childNodes);
 
-  let l1 = $insert(ib, "div", {id: "list-recent", class: "list-box"});
-  $insert(l1, "div", {class: "list"});
-  $insert(l1, "div", {class: "list-bar", text: "Recent"});
+	let infobar = {
+		element: $("#artsaver-info-bar"),
+		tab: $("#artsaver-show-info-bar"),
+		saved: [],
+		errors: [],
+		state: "initial"
+	};
 
-  let l2 = $insert(ib, "div", {id: "list-files", class: "list-box hide-folders"});
-  $insert(l2, "div", {class: "list"});
-  let l2b = $insert(l2, "div", {class: "list-bar"});
-  $insert(l2b, "div", {text: "Recent"});
-  let l2s = $insert(l2b, "label", {text: "Show folders"})
-  let l2si = $insert(l2s, "input", {type: "checkbox"});
-  l2si.oninput = function(){
-    if (this.checked){
-      l2.classList.remove("hide-folders");
-    }
-    else {
-      l2.classList.add("hide-folders");
-    }
-  }
-  $insert(l2s, "div", {class: "switch"});
+	infobar.show = function(){
+		this.element.classList.remove("collapsed");
+		this.tab.classList.add("hide");
+	}
 
-  let l3 = $insert(ib, "div", {id: "list-errors", class: "list-box"});
-  $insert(l3, "div", {class: "list"});
-  $insert(l3, "div", {class: "list-bar", text: "Errors"});
+	infobar.hide = function(){
+		this.element.addEventListener("transitionend", () => {
+			this.tab.classList.remove("hide");
+		}, {once: true});
+		this.element.classList.add("collapsed");
+	}
 
-  let bar = $insert(ib, "div", {id: "infobar"});
-  let col = $insert(bar, "div", {id: "collapse"});
+	$(infobar.tab, "#show-tab").onclick = () => {
+		infobar.show();
+		infobar.state = "show";
+	}
+	$(infobar.element, "#collapse").onclick = () => {
+		infobar.hide();
+		if (parseInt($(infobar.element, "#stat-downloading").textContent, 10) > 0){
+			infobar.state = "staydown";
+		}
+	}
+	$(infobar.element, "#list-files input").oninput = function(){
+		classToggle(this.checked, $(infobar.element, "#list-files"), "show-folders");
+	}
 
-  let his = $insert(bar, "div", {id: "history-stats"});
+	infobar.addSaved = function(saved){
+		this.saved.push(saved);
 
-  let hs1 = $insert(his, "div", {id: "stat-recent", class: "expand"});
-  $insert(hs1, "div", {text: "Recently saved"});
-  $insert($insert(hs1, "div"), "span", {class: "badge", text: "-"});
+		let recentrow = $(this.element, "#recent-row-template").content.cloneNode(true);
 
-  let hs2 = $insert(his, "div", {id: "stat-files", class: "expand"});
-  $insert(hs2, "div", {text: "Files"});
-  $insert($insert(hs2, "div"), "span", {class: "badge", text: "-"});
+		rspans = $$(recentrow, "span");
+		rspans[0].textContent = saved.submission.user;
+		rspans[1].textContent = saved.submission.id;
+		if (saved.files.length > 1){
+			rspans[2].classList.remove("hide");
+			rspans[2].textContent = `(${saved.files.length})`;
+		}
+		rspans[3].textContent = saved.submission.title;
 
-  let hs3 = $insert(his, "div", {id: "stat-errors"});
-  $insert(hs3, "div", {text: "Errors"});
-  $insert($insert(hs3, "div"), "span", {class: "badge", text: "-"});
+		$(recentrow, "a").href = saved.submission.url;
 
-  let q = $insert(ib, "div", {id: "queue"});
+		$(this.element, "#list-recent .list").appendChild(recentrow);
 
-  let qs = $insert(q, "div", {id: "queue-stats"});
-  $insert($insert(qs, "div", {text: " downloading"}), "span", {position: "afterbegin", id: "stat-downloading", text: "-"});
-  $insert($insert(qs, "div", {text: " in progress"}), "span", {position: "afterbegin", id: "stat-progress", text: "-"});
-  $insert($insert(qs, "div", {text: " in queue"}), "span", {position: "afterbegin", id: "stat-queue", text: "-"});
+		for (let f of saved.files){
+			let filerow = $(this.element, "#file-row-template").content.cloneNode(true);
 
-  $insert($insert($insert(q, "div", {class: "artsaver-progress"}), "div", {class: "artsaver-bar"}), "div", {class: "artsaver-bar-text"});
+			let reg = /^(.*\/)?(.+)$/.exec(f.filename);
+			let fspans = $$(filerow, "span");
+			fspans[0].textContent = reg[1];
+			fspans[1].textContent = reg[2];
 
-  let sib = $insert(document.body, "div", {class: "artsaver-show-infobar"});
-  let st = $insert(sib, "div", {id: "show-tab"});
+			$(filerow, "button").onclick = () => {
+				browser.runtime.sendMessage({function: "showdownload", id: f.id});
+			}
 
-  let infobar = {
-    element: ib,
-    tab: sib,
-    collapse: col,
-    expand: st,
-    saved: [],
-    errors: [],
-    state: "initial"
-  };
+			$(this.element, "#list-files .list").appendChild(filerow);
+		}
 
-  infobar.show = function(){
-    this.element.removeAttribute("data-display");
-    this.tab.classList.add("hide");
-  }
+		this.updateHistoryInfo();
+	}
 
-  infobar.hide = function(){
-    this.element.addEventListener('transitionend', () => {
-      this.tab.classList.remove("hide");
-    }, {once: true});
-    this.element.setAttribute("data-display", "hide");
-  }
+	infobar.addError = function(error){
+		this.errors.push(error);
+		let errorrow = $(this.element, "#error-row-template").content.cloneNode(true);
 
-  infobar.expand.onclick = () => {
-    infobar.show();
-    infobar.state = "show";
-  }
-  infobar.collapse.onclick = () => {
-    infobar.hide();
-    if (parseInt($(infobar.element, "#stat-downloading").textContent, 10) > 0){
-      infobar.state = "staydown";
-    }
-  }
+		let espans = $$(errorrow, "span");
+		espans[0].textContent = error.url;
+		espans[1].textContent = error.error;
+		$(errorrow, "a").href = error.url;
 
-  infobar.addSaved = function(saved){
-    this.saved.push(saved);
-    let recentrow = $insert($(this.element, "#list-recent .list"), "div", {class: "row"});
-    let recenttext = $insert(recentrow, "div", {class: "row-text"});
-    $insert(recenttext, "div", {text: saved.submission.user});
-    $insert(recenttext, "div", {text: saved.submission.id});
-    $insert(recenttext, "div", {text: `(${saved.files.length})`});
-    $insert(recenttext, "div", {text: saved.submission.title});
+		$(this.element, "#list-errors .list").appendChild(errorrow);
 
-    let link = $insert($insert(recentrow, "div", {class: "row-buttons"}), "a", {class: "link"});
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.href = saved.submission.url;
+		this.updateHistoryInfo();
+	}
 
-    for (let f of saved.files){
-      let filerow = $insert($(this.element, "#list-files .list"), "div", {class: "row"});
-      let filetext = $insert(filerow, "div", {class: "row-text"});
+	infobar.updateHistoryInfo = function(){
+		let total = {
+			recent: this.saved.length,
+			files: this.saved.reduce((acc, s) => acc += s.files.length, 0),
+			errors: this.errors.length
+		};
 
-      let reg = /^(.*\/)?(.+)$/.exec(f.filename);
-      $insert(filetext, "span", {text: reg[1]});
-      $insert(filetext, "span", {text: reg[2]});
+		for (let [name, stat] of Object.entries(total)){
+			let statrow = $(this.element, `#stat-${name}`);
+			$(statrow, ".badge").textContent = stat;
+			let statlist = $(this.element, `#list-${name}`);
 
-      let folder = $insert($insert(filerow, "div", {class: "row-buttons"}), "button", {class: "folder"});
-      folder.onclick = () => {
-        browser.runtime.sendMessage({function: "showdownload", id: f.id});
-      }
-    }
+			classToggle(stat > 0, statrow, "stat-button");
+			if (stat > 0) {
+				statrow.onclick = function(){
+					classToggle(!statlist.classList.toggle("hide"), this, "active");
+				};
+			}
+			else {
+				statlist.classList.add("hide");
+			}
+		}
 
-    this.updateHistoryInfo();
-  }
+		classToggle(total.errors <= 0, $(this.element, "#stat-errors"), "hide");
+	}
 
-  infobar.addError = function(error){
-    this.errors.push(error);
-    let errorrow = $insert($(this.element, "#list-errors .list"), "div", {class: "row"});
-    let errortext = $insert(errorrow, "div", {class: "row-text"});
-    $insert(errortext, "span", {text: error.url});
+	infobar.setProgress = function(downloading = 0, inprogress = 0, inqueue = 0){
+		classToggle(downloading <= 0, $(this.element, "#queue"), "hide");
+		if (downloading > 0){
+			if (this.state !== "staydown"){
+				this.show();
+			}
+			let percent = (downloading - (inqueue + inprogress)) / downloading * 100;
+			$(this.element, ".artsaver-bar").style.width = `${percent}%`;
+			$(this.element, ".artsaver-bar-text").textContent = `${Math.floor(percent)}%`;
+		}
 
-    let buttonrow = $insert(errorrow, "div", {class: "row-buttons"});
-    let link = $insert(buttonrow, "a", {class: "link"});
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.href = error.url;
+		$(this.element, "#stat-downloading").textContent = downloading;
+		$(this.element, "#stat-progress").textContent = inprogress;
+		let queue = $(this.element, "#stat-queue");
+		queue.textContent = inqueue;
 
-    this.updateHistoryInfo();
-  }
+		classToggle(inqueue <= 0, queue.parentElement, "hide");
+	}
 
-  infobar.updateHistoryInfo = function(){
-    let tsaved = this.saved.length;
-    let tfiles = this.saved.reduce((acc, s) => acc += s.files.length, 0);
-    let terrors = this.errors.length;
-
-    for (let [stat, name] of [[tsaved, "recent"], [tfiles, "files"], [terrors, "errors"]]){
-      let statrow = $(this.element, `#stat-${name}`);
-      $(statrow, ".badge").textContent = stat;
-      let statlist = $(this.element, `#list-${name}`);
-      if (stat > 0) {
-        statrow.classList.add("stat-button");
-        statrow.onclick = () => {
-          statlist.classList.toggle("hide");
-        };
-      }
-      else {
-        statrow.classList.remove("stat-button");
-        statlist.classList.add("hide");
-      }
-    }
-
-    let errorselem = $(this.element, `#stat-errors`);
-    if (terrors <= 0){
-      errorselem.classList.add("hide");
-    }
-    else {
-      errorselem.classList.remove("hide");
-    }
-  }
-
-  infobar.setProgress = function(downloading = 0, inprogress = 0, inqueue = 0){
-    let bar = $(this.element, "#queue");
-    if (downloading > 0){
-      if (this.state !== "staydown"){
-        this.show();
-      }
-      bar.classList.remove("hide");
-      let percent = (downloading - (inqueue + inprogress)) / downloading * 100;
-      $(this.element, ".artsaver-bar").style.width = `${percent}%`;
-      $(this.element, ".artsaver-bar-text").textContent = `${Math.floor(percent)}%`;
-    }
-    else {
-      bar.classList.add("hide");
-    }
-
-    $(this.element, "#stat-downloading").textContent = downloading;
-    $(this.element, "#stat-progress").textContent = inprogress;
-    $(this.element, "#stat-queue").textContent = inqueue;
-
-    let statqc = $(this.element, "#stat-queue").parentElement.classList;
-    if (inqueue > 0){
-      statqc.remove("hide");
-    }
-    else {
-      statqc.add("hide");
-    }
-  }
-
-  infobar.updateHistoryInfo();
-  infobar.setProgress();
-  return infobar;
+	infobar.updateHistoryInfo();
+	infobar.setProgress();
+	return infobar;
 }
-

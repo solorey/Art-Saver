@@ -2,537 +2,546 @@
 @use "template" as *;
 
 %checktop{
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 9;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 9;
 }
 
 %checkicon {
-  @extend %checktop;
-  cursor: pointer;
-  margin: 0;
-  padding: 0;
-  border: 0 none;
-  background: {
-    repeat: no-repeat;
-    size: $size-icon $size-icon;
-  }
-  height: $size-icon;
-  width: $size-icon;
+	@extend %checktop;
+	cursor: pointer;
+	margin: 0;
+	padding: 0;
+	border: 0 none;
+	background: {
+		repeat: no-repeat;
+		size: $size-icon $size-icon;
+	}
+	height: $size-icon;
+	width: $size-icon;
 }
 
 .artsaver-check{
-  @extend %checkicon;
+	@extend %checkicon;
 
-  &[data-color=green]{
-    background-image: $icon-check-green;
-  }
+	&[data-color=green]{
+		background-image: $icon-check-green;
+	}
 
-  &[data-color=yellow]{
-    background-image: $icon-check-yellow;
-  }
+	&[data-color=yellow]{
+		background-image: $icon-check-yellow;
+	}
 
-  &:hover, &:active{
-    background-image: $icon-remove;
-  }
+	&:hover, &:active{
+		background-image: $icon-remove;
+	}
 }
 
 .artsaver-download{
-  @extend %checkicon;
-  background-image: $icon-download;
-  display: none;
+	@extend %checkicon;
+	background-image: $icon-download;
+	display: none;
 
-  :hover > &{
-    display: block;
-  }
+	:hover > &{
+		display: block;
+	}
 
-  &:hover, &:active{
-    background-image: $icon-download-hover;
-  }
+	&:hover, &:active{
+		background-image: $icon-download-hover;
+	}
 }
 
 @keyframes rotation{
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
 }
 
 .artsaver-loading{
-  @extend %checkicon;
-  animation: rotation 0.5s steps(12, end) infinite;
-  background-image: $icon-loading;
+	@extend %checkicon;
+	animation: rotation 0.5s steps(12, end) infinite;
+	background-image: $icon-loading;
 
-  .artsaver-progress + &{
-    background-size: $size-bar $size-bar;
-    height: $size-bar;
-    width: $size-bar;
-  }
+	.artsaver-progress + &{
+		background-size: $size-bar $size-bar;
+		height: $size-bar;
+		width: $size-bar;
+	}
 }
 
 .artsaver-error{
-  @extend %checkicon;
-  background-image: $icon-error;
+	@extend %checkicon;
+	background-image: $icon-error;
 
-  &:hover, &:active{
-    background-image: $icon-error;
-  }
+	&:hover, &:active{
+		background-image: $icon-error;
+	}
 }
 
 .artsaver-tip {
-  @extend %font;
-  top: 0;
+	@extend %font;
+	top: 0;
 	background-color: $color-0;
-  border-radius: $radius;
-  color: $color-text;
+	border-radius: $radius;
+	color: $color-text;
 	position: absolute;
 	text-align: center;
 	width: auto;
-  z-index: 1000;
-  overflow: hidden;
+	z-index: 1000;
+	overflow: hidden;
 
-  transition: 0.5s ease-in;
-  visibility: hidden;
-  opacity: 0;
+	transition: 0.5s ease-in;
+	visibility: hidden;
+	opacity: 0;
 
-  &:hover, &:active, &[data-display=show] {
-    transition: none;
-    visibility: visible;
-    opacity: 1;
-  }
+	&:hover, &:active, &[data-display=show] {
+		transition: none;
+		visibility: visible;
+		opacity: 1;
+	}
 
-  table{
-    border-collapse: collapse;
-    border-spacing: 0;
+	table{
+		border-collapse: collapse;
+		border-spacing: 0;
 
-    td{
-      padding: $pad ($pad * 2);
+		td{
+			padding: $pad ($pad * 2);
 
-      &:first-child{
-        background-color: $color-1;
-      }
-    }
+			&:first-child{
+				background-color: $color-1;
+			}
+		}
 
-    tr:last-child{
-      border-top: $style-border;
-    }
-  }
+		tr:last-child{
+			border-top: $style-border;
+		}
+	}
 }
 
 .artsaver-holder{
-  position: relative;
-  display: table;
-  margin: auto;
-  border-collapse: collapse;
-  text-align: center;
+	position: relative;
+	display: table;
+	margin: auto;
+	border-collapse: collapse;
+	text-align: center;
 }
 
 .artsaver-progress {
-  @extend %checktop;
-  @extend %font;
-  height: $size-bar;
-  border-radius: $radius;
-  overflow: hidden;
-  width: 100%;
-  background-color: $color-progress;
+	@extend %checktop;
+	@extend %font;
+	height: $size-bar;
+	border-radius: $radius;
+	overflow: hidden;
+	width: 100%;
+	background-color: $color-progress;
 }
 
 @keyframes animate-stripes {
-  0% { background-position: 0 0; }
-  100% { background-position: ($size-bar * -4) 0; }
+	0% {
+		background-position: 0 0;
+	}
+	100% {
+		background-position: ($size-bar * -4) 0;
+	}
 }
 
 .artsaver-bar {
-  @extend %checktop;
-  height: 100%;
+	@extend %checktop;
+	height: 100%;
 
-  animation: animate-stripes 1s linear infinite;
-  background: {
-    color: $blue;
-    image: 
-      linear-gradient(
-        135deg,
-        $blue-light-1 25%,
-        transparent 25%,
-        transparent 50%,
-        $blue-light-1 50%,
-        $blue-light-1 75%,
-        transparent 75%,
-        transparent
-      );
-    size: ($size-bar * 2) ($size-bar * 2);
-  }
-  border-radius: $radius;
-  box-sizing: border-box;
-  color: $color-progress-text;
+	animation: animate-stripes 1s linear infinite;
+	background: {
+		color: $blue;
+		image:
+			linear-gradient(
+				135deg,
+				$blue-light-1 25%,
+				transparent 25%,
+				transparent 50%,
+				$blue-light-1 50%,
+				$blue-light-1 75%,
+				transparent 75%,
+				transparent
+			);
+		size: ($size-bar * 2) ($size-bar * 2);
+	}
+	border-radius: $radius;
+	box-sizing: border-box;
+	color: $color-progress-text;
 }
 
 .artsaver-bar-text{
-  padding: {
-    left: calc(#{$size-bar} + #{$pad});
-    right: $pad;
-  }
-  text-align: right;
-  white-space: nowrap;
-  line-height: normal;
+	padding: {
+		left: calc(#{$size-bar} + #{$pad});
+		right: $pad;
+	}
+	text-align: right;
+	white-space: nowrap;
+	line-height: normal;
 }
 
 .artsaver-screen {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  pointer-events: none;
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	pointer-events: none;
 
-  background-color: $color-screen;
-  display: flex;
-  
-  > div {
-    $maxsize: 200px;
-    $scale: 80%;
+	background-color: $color-screen;
+	display: flex;
 
-    margin: auto;
-    max: {
-      width: $maxsize;
-      height: $maxsize;
-    }
-    position: relative;
-    display: block;
-    width: $scale;
-    height: $scale;
-    object-fit: contain;
-    background: {
-      image: $icon-check-flat;
-      size: contain;
-      repeat: no-repeat;
-      position: center;
-    }
-  }
+	> div {
+		$maxsize: 200px;
+		$scale: 80%;
+
+		margin: auto;
+		max: {
+			width: $maxsize;
+			height: $maxsize;
+		}
+		position: relative;
+		display: block;
+		width: $scale;
+		height: $scale;
+		object-fit: contain;
+		background: {
+			image: $icon-check-flat;
+			size: contain;
+			repeat: no-repeat;
+			position: center;
+		}
+	}
 }
 
-.artsaver-infobar {
-  @extend %font;
+#artsaver-info-bar {
+	@extend %font;
 
-  position: fixed;
-  bottom: 8px;
-  left: 8px;
-  width: 350px;
-  border-radius: $radius;
-  box-shadow: $shadow;
-  min-width: 150px;
-  overflow: hidden;
-  resize: horizontal;
-  z-index: 1001;
-  background-color: $color-0;
-  color: $color-text;
-  visibility: visible;
-  opacity: 1;
+	position: fixed;
+	bottom: 8px;
+	left: 8px;
+	width: 350px;
+	border-radius: $radius;
+	box-shadow: $shadow;
+	min-width: 150px;
+	overflow: hidden;
+	resize: horizontal;
+	z-index: 1001;
+	background-color: $color-0;
+	color: $color-text;
+	visibility: visible;
+	opacity: 1;
 
-  transition: {
-    property: visibility,opacity,bottom;
-    duration: .2s;
-    timing-function: ease-out;
-  };
+	transition: {
+		property: visibility,opacity,bottom;
+		duration: .2s;
+		timing-function: ease-out;
+	};
 
-  &[data-display=hide] {
-    visibility: hidden;
-    opacity: 0;
-    bottom: 0;
-  }
-  
-  #infobar {
-    display: flex;
-  }
-  
-  #collapse {
-    padding: $base-padding;
-    width: u(16);
-    flex-shrink: 0;
+	&.collapsed {
+		visibility: hidden;
+		opacity: 0;
+		bottom: 0;
+	}
 
-    background: {
-      position: center;
-      size: u(16) u(16);
-      repeat: no-repeat;
-      image: $icon-collapse;
-    }
-    cursor: pointer;
-    
-    &:hover {
-      background-color: $color-1;
-    }
-  }
-  
-  #queue {
-    padding: $pad ($pad * 2);
-    background-color: $color-1;
-    border-top: $style-border;
-  
-    &-stats > div {
-      margin: 0 auto;
-      padding: 0 $pad; 
-    }
-  }
-  
-  
-  .list-box {
-    border-bottom: $style-border;
+	#info-bar {
+		display: flex;
+	}
+	
+	#collapse {
+		padding: $base-padding;
+		width: u(16);
+		flex-shrink: 0;
+	
+		background: {
+			position: center;
+			size: u(16) u(16);
+			repeat: no-repeat;
+			image: $icon-collapse;
+		}
+		cursor: pointer;
+	
+		&:hover {
+			background-color: $color-1;
+		}
+	}
+	
+	#queue {
+		padding: $pad ($pad * 2);
+		background-color: $color-1;
+		border-top: $style-border;
+	}
 
-    .list {
-      max-height: 300px;
-      overflow-y: auto;
-    }
+	.queue-stat {
+		margin: 0 auto;
+		padding: 0 $pad;
+	}
+	
+	.list-box {
+		border-bottom: $style-border;
+	}
+	
+	.list {
+		max-height: 300px;
+		overflow-y: auto;
+	}
+	
+	.row {
+		display: flex;
+	
+		&:not(:last-child) {
+			border-bottom: $style-border;
+		}
+	}
+	
+	.row-text {
+		flex: 1;
+		display: flex;
+		padding: u(3) u(9);
+		white-space: nowrap;
+		overflow: hidden;
+	}
 
-    .row {
-      display: flex;
+	#list-recent .row-text {
+		gap: u(3);
+	}
+	
+	.row-buttons {
+		line-height: 0;
+		display: flex;
+	}
 
-      &:not(:last-of-type) {
-        border-bottom: $style-border;
-      }
+	.row-button {
+		display: inline-block;
+		border: none;
+		line-height: inherit;
+		color: $color-text !important;
+		box-sizing: border-box;
+		padding: 0;
+		width: u(24);
+		height: 100%;
+		font: {
+			size: inherit !important;
+			family: inherit;
+		}
+		background: {
+			color: $color-1;
+			position: center;
+			size: 1em 1em;
+			repeat: no-repeat;
+		}
 
-      .row-text {
-        flex: 1;
-        display: flex;
-        padding: .25em .75em;
-        white-space: nowrap;
-        overflow: hidden;
+		&.link-icon {
+			background-image: $icon-ex-link;
+		}
+		&.folder-icon {
+			background-image: $icon-folder;
+		}
 
-        > div {
-          &:nth-of-type(1){
-            flex-basis: 25%;
-          }
-          &:nth-of-type(2){
-            flex-basis: 25%;
-          }
-          &:nth-of-type(3){
-            flex-basis: 10%;
-          }
-          &:nth-of-type(4){
-            flex-basis: 40%;
-          }
+		&:hover {
+			background-color: $color-2;
+		}
+	}
 
-          &:not(:last-of-type) {
-            padding-right: u(3);
-          }
-        }
-      }
+	.file-folder {
+		display: none;
+	}
 
-      .row-buttons {
-        line-height: 0;
-        display: flex;
-      }
+	#list-files.show-folders .file-folder{
+		display: block;
+	}
+	
+	.list-bar {
+		padding: u(3) u(9);
+		background-color: $color-1;
+		border-top: $style-border;
+	}
+	
+	#list-errors .row {
+		color: $color-error-text;
+		background-color: $color-error-1;
+	
+		&:not(:last-child) {
+			border-bottom: u(1) solid $color-error-2;
+		}
+	}
+	
+	#history-stats {
+		flex: 1;
+	}
 
-      button, a {
-        display: inline-block;
-        border: none;
-        line-height: inherit;
-        color: $color-text !important;
-        box-sizing: border-box;
-        padding: 0;
-        width: u(24);
-        height: 100%;
-        font: {
-          size: inherit !important;
-          family: inherit;
-        }
-        background: {
-          color: $color-1;
-          position: center;
-          size: 1em 1em;
-          repeat: no-repeat;
-        }
+	.stat {
+		display: flex;
+		padding: $base-padding;
+		white-space: nowrap;
+		flex: 1;
 
-        &.link {
-          background-image: $icon-ex-link;
-        }
-        &.folder {
-          background-image: $icon-folder;
-        }
+		&.stat-button:hover, &.stat-button.active {
+			background-color: $color-1;
 
-        &:hover {
-          background-color: $color-2;
-        }
-      }
-    }
+			.badge {
+				background-color: $color-0;
+			}
+		}
+	}
 
-    .list-bar {
-      padding: $base-padding;
-      background-color: $color-1;
-      border-top: $style-border;
-    }
-  }
+	.stat-label {
+		margin: auto auto auto 0;
+	}
 
-  #list-errors .row {
-    color: $color-error-text;
-    background-color: $color-error-1;
-    border-bottom: none;
+	.stat-badge {
+		margin: auto 0 auto $horz-pad;
+	}
 
-    &:not(:last-of-type) {
-      .row-text {
-        border-bottom: u(1) solid $color-error-2;
-      }
-      .row-buttons {
-        border-bottom: u(1) solid $color-2;
-      }
-    }
-  }
+	.stat-button {
+		cursor: pointer;
+	}
 
-  #stat-errors {
-    color: $color-error-text;
-    background-color: $color-error-1;
+	.stat-error {
+		display: flex;
+		padding: $base-padding;
+		white-space: nowrap;
 
-    &:hover, .badge {
-      background-color: $color-error-2;
-    }
-  }
-  
-  #history-stats {
-    flex: 1;
-  
-    > div {
-      display: flex;
-      padding: $base-padding;
-      white-space: nowrap;
+		color: $color-error-text;
+		background-color: $color-error-1;
+	
+		.badge {
+			background-color: $color-error-2;
+		}
 
-      &.stat-button {
-        cursor: pointer;
+		&.stat-button:hover, &.stat-button.active {
+			background-color: $color-error-2;
 
-        &:hover:not(#stat-errors) {
-          background-color: $color-1;
-        }
-      }
-  
-      > :first-child {
-        margin: auto auto auto 0;
-      }
-    
-      > :last-child {
-        margin: auto 0 auto $horz-pad;
-      }
-  
-      &.expand {
-        flex: 1;
-      }
-    }
-  }
-  
-  #queue-stats, #history-stats {
-    display: flex;
-    white-space: nowrap;
-  }
+			.badge {
+				background-color: $color-error-1;
+			}
+		}
+	}
 
-  #list-files {
-    &.hide-folders .row-text > span:first-of-type {
-      display: none;
-    }
+	#queue-stats, #history-stats {
+		display: flex;
+		white-space: nowrap;
+	}
+	
+	#list-files .list-bar{
+		display: flex;
 
-    .list-bar {
-      display: flex;
+		input {
+			display: none;
+		}
 
-      > div {
-        padding-right: u(3);
-      }
+		label {
+			display: flex;
+			margin: 0 auto;
+			cursor: pointer;
+		}
+	}
 
-      input {
-        display: none;
-      }
-    
-      label {
-        display: flex;
-        margin: 0 auto;
-        cursor: pointer;
-      }
-    
-      .switch {
-        @extend %switch;
+	.switch {
+		@extend %switch;
 
-        margin: {
-          left: u(6);
-          right: 0
-        }
-        background-color: $color-2;
-      }
-    }
-  }
+		margin: {
+			left: 0;
+			right: u(6);
+		}
+		background-color: $color-2;
+	}
+	
+	.hide {
+		display: none !important;
+	}
+	
+	.artsaver-progress {
+		margin-top: $pad;
+		position: relative;
+		height: u(16);
+	}
 
-  .hide {
-    display: none !important;
-  }
-    
-  .artsaver-progress {
-    margin-top: $pad;
-    position: relative;
-    height: u(16);
+	.artsaver-bar[style="width: 100%;"]{
+		background: $blue;
+	}
 
-    .artsaver-bar[style="width: 100%;"]{
-      background: $blue;
-    }
-  
-    .artsaver-bar-text {
-      padding-left: $pad;
-    }
-  }
-  
-  .badge {
-    display: inline;
-    background-color: $color-1;
-    border-radius: $radius;
-    padding: $base-button-padding;
-    font-weight: 600;
-  }
+	.artsaver-bar-text {
+		padding-left: $pad;
+	}
+	
+	.badge {
+		display: inline;
+		background-color: $color-1;
+		border-radius: $radius;
+		padding: $base-button-padding;
+		font-weight: 600;
+	}
 }
 
-.artsaver-show-infobar {
-  $size: u(36);
+#artsaver-show-info-bar {
+	$size: u(36);
 
-  width: $size * 2;
-  height: $size;
-  position: fixed;
-  bottom: 0;
-  left: calc(-#{u(19)} + 8px);
-  border-radius: $size $size 0 0;
-  overflow: hidden;
-  opacity: 0;
-  z-index: 1002;
-  font-size: 12px;
+	width: $size * 2;
+	height: $size;
+	position: fixed;
+	bottom: 0;
+	left: calc(-#{u(19)} + 8px);
+	border-radius: $size $size 0 0;
+	overflow: hidden;
+	opacity: 0;
+	z-index: 1002;
+	font-size: 12px;
 
-  &:hover {
-    opacity: 1;
-  }
+	&:hover {
+		opacity: 1;
+	}
 
-  #show-tab {
-    padding: $base-padding;
-    width: u(16);
-    flex-shrink: 0;
-    background-color: white;
-    height: u(16);
-    bottom: u(-20);
-    position: relative;
-    margin: auto;
-    scale: -1;
-    border-radius: 0 0 u(3) u(3);
-    opacity: .5;
-    transition: {
-      property: opacity,bottom;
-      duration: .1s;
-      timing-function: ease-out;
-    };
-    box-shadow: $shadow;
+	&.hide {
+		display: none !important;
+	}
 
-    &:hover {
-      opacity: 1;
-      bottom: u(-14);
-    }
+	#show-tab {
+		padding: $base-padding;
+		width: u(16);
+		flex-shrink: 0;
+		background-color: white;
+		height: u(16);
+		bottom: u(-20);
+		position: relative;
+		margin: auto;
+		scale: -1;
+		border-radius: 0 0 u(3) u(3);
+		opacity: .5;
+		transition: {
+			property: opacity, bottom;
+			duration: .1s;
+			timing-function: ease-out;
+		};
+		box-shadow: $shadow;
+	
+		&:hover {
+			opacity: 1;
+			bottom: u(-14);
+		}
+	
+		background: {
+			position: center;
+			size: u(16) u(16);
+			repeat: no-repeat;
+			image: $icon-collapse;
+		}
+		cursor: pointer;
+	}
+}
 
-    background: {
-      position: center;
-      size: u(16) u(16);
-      repeat: no-repeat;
-      image: $icon-collapse;
-    }
-    cursor: pointer;
-  }
+#artsaver-test-button {
+	position: fixed;
+	top: 0;
+	left: 0;
+}
 
-  &.hide, .hide {
-    display: none !important;
-  }
+.artsaver-text-render {
+	width: 0;
+	height: 0;
+	overflow: hidden;
+	padding: 0;
+	margin: 0;
+	opacity: 0;
+	white-space: pre-wrap;
 }

@@ -1,262 +1,232 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="options.css" type="text/css">
-    <link rel="stylesheet" href="/css/iconfont.css"/>
-  </head>
+	<head>
+		<meta charset="utf-8">
+		<title>Art Saver Settings</title>
+		<link rel="stylesheet" href="options.css" type="text/css">
+		<link rel="stylesheet" href="/css/iconfont.css"/>
+	</head>
 
-  <body>
-    <div id="options-container">
-      <table id="saved-table">
-        <caption>Total users and submissions saved</caption>
-        <tr>
-          <th>Site</th>
-          <th>Users</th>
-          <th>Submissions</th>
-        </tr>
-      </table>
+	<body>
+		<template id="options-section-template">
+			<section class="site-options">
+				<h3 class="site-header"><a class="question" target="_blank"><div>?</div></a></h3>
+			</section>
+		</template>
+		<template id="checkbox-template">
+			<div class="option-checkbox">
+				<label>
+					<input type="checkbox"/>
+					<div class="switch"></div>
+					<div></div>
+				</label>
+			</div>
+		</template>
+		<template id="number-template">
+			<div class="option-number">
+				<label>
+					<div class="custom-number">
+						<input type="number"/>
+						<div class="number-buttons">
+							<button class="increase"></button>
+							<button class="decrease"></button>
+						</div>
+					</div>
+				</label>
+			</div>
+		</template>
+		<template id="select-template">
+			<div class="option-select">
+				<label></label>
+				<select class="custom-select">
+				</select>
+			</div>
+		</template>
+		<template id="slider-template">
+			<div class="option-slider">
+				<div class="option-number">
+					<label>
+						<div class="custom-number">
+							<input type="number"/>
+							<div class="number-buttons">
+								<button class="increase"></button>
+								<button class="decrease"></button>
+							</div>
+						</div>
+					</label>
+				</div>
+				<div class="option-range">
+					<input type="range" class="slider">
+				</div>
+			</div>
+		</template>
+		<template id="textarea-template">
+			<div class="option-textarea">
+				<label></label>
+				<textarea spellcheck="false" rows="1"></textarea>
+				<button class="help-button default-button">Show Help</button>
+				<table class="help-table hide"></table>
+			</div>
+		</template>
+		<template id="meta-row-template">
+			<tr>
+				<td><li><strong></strong></li></td>
+				<td></td>
+			</tr>
+		</template>
+		<template id="stats-row-template">
+			<tr class="stat-row">
+				<td class="stat-site"></td>
+				<td><span class="badge"></span></td>
+				<td><span class="badge"></span></td>
+			</tr>
+			<tr class="info-row hide">
+				<td colspan="3">
+					<div class="info-boxes">
+						<div class="info-box">
+							<div class="search-box">
+								<div class="input-holder">
+									<input type="text" placeholder="Search users">
+								</div>
+								<button class="search-clear"><i class="icon-x"></i></button>
+								<button class="search-sort" title="Sorted by descending" data-sort="descend"><i class="icon-descend"></i></button>
+							</div>
+							<div class="list-box"></div>
+						</div>
+						<div class="info-box">
+							<div class="search-box">
+								<div class="input-holder">
+									<input type="text" placeholder="Search submissions">
+								</div>
+								<button class="search-clear hide"><i class="icon-x"></i></button>
+								<button class="search-sort" title="Sorted by descending" data-sort="descend"><i class="icon-descend"></i></button>
+							</div>
+							<div class="list-box"></div>
+						</div>
+					</div>
+				</td>
+			</tr>
+		</template>
+		<template id="user-row-template">
+			<div class="list-row">
+				<button class="row-delete"><i class="icon-x"></i></button>
+				<div class="row-label">
+					<span></span><strong></strong><span></span>
+				</div>
+				<a target="_blank" rel="noopener noreferrer" title="Open user page"><i class="icon-home"></i></a>
+				<a target="_blank" rel="noopener noreferrer" title="Open gallery page"><i class="icon-gallery"></i></a>
+				<a target="_blank" rel="noopener noreferrer" title="Open favorites page"><i class="icon-star"></i></a>
+			</div>
+		</template>
+		<template id="submission-row-template">
+			<div class="list-row">
+				<button class="row-delete"><i class="icon-x"></i></button>
+				<div class="row-label">
+					<span></span><strong></strong><span></span>
+				</div>
+				<a target="_blank" rel="noopener noreferrer" title="Open submission page"><i class="icon-link"></i></a>
+			</div>
+		</template>
+		<template id="site-toggle-template">
+			<div class="site-toggle active">
+				<button class="site-radio"><div></div></button>
+				<button class="site-button"></button>
+			</div>
+		</template>
 
-      <div id="userlist-undo" class="undo-bar">
-        <div>The userlist has been reset</div>
-        <div class="undo-button">Undo</div>
-      </div>
+		<div id="main-container">
+			<div id="tabs">
+				<div id="extension-icon"><img src="/icons/icon.svg" /></div>
+				<button id="global-options-tab" class="tab-button" data-tab="global">Global Options</button>
+				<button id="site-options-tab" class="tab-button" data-tab="sites">Site Options</button>
+				<button id="saved-info-tab" class="tab-button" data-tab="saved">Saved Information</button>
+				<button id="about-tab" class="tab-button" data-tab="about">About</button>
+			</div>
+			<div id="options-container">
+				<form id="options">
+					<div id="saved-info-content" class="tab-content hide">
+						<div id="saved-info-input">
+							<label>Upload saved information</label>
+							<div class="custom-input">
+								<input id="saved-info" accept=".json" type="file" />
+								<label for="saved-info">
+									<div class="before">Browse</div>
+									<div id="filename"><i class="icon-upload"></i>Choose file</div>
+								</label>
+							</div>
+						</div>
+						<div id="saved-info-undo" class="undo-bar hide">
+							<div>The saved information has been <span></span></div>
+							<div class="undo-button">Undo</div>
+							<div class="close-button"><i class="icon-x"></i></div>
+						</div>
+						<div id="info-table" class="hide">
+							<div id="table-side">
+								<button id="table-refresh" class="default-button"><i class="icon-reset"></i>Refresh</button>
+								<div id="saved-info-edit-switch" class="single-switch">
+									<label>
+										<input type="checkbox"/>
+										<div class="switch"></div>
+										<div>Enable editing</div>
+									</label>
+								</div>
+								<button id="table-open-all" class="default-button">Open all</button>
+								<button id="table-close-all" class="default-button">Close all</button>
+								<button id="export-list" class="blue-button"><i class="icon-download"></i>Export</button>
+								<button id="reset-list" class="blue-button"><i class="icon-reset"></i>Reset</button>
+							</div>
+							<table id="saved-table">
+								<caption>Total users and submissions saved</caption>
+								<tr>
+									<th>Site</th>
+									<th>Users</th>
+									<th>Submissions</th>
+								</tr>
+							</table>
+						</div>
+					</div>
 
-      <form id="options">
+					<div id="global-options-content" class="tab-content hide">
+						<div id="settings-buttons">
+							<input id="import-options"accept=".json" type="file"/>
+							<button id="click-import" class="blue-button"><i class="icon-upload"></i>Import settings</button>
+							<button id="export-options" class="blue-button"><i class="icon-download"></i>Export settings</button>
+							<button id="reset-options" class="blue-button"><i class="icon-reset"></i>Reset to default</button>
+						</div>
+						<div id="options-undo" class="undo-bar hide">
+							<div>The options have been reset to default</div>
+							<div class="undo-button">Undo</div>
+							<div class="close-button"><i class="icon-x"></i></div>
+						</div>
+						<div id="global-options"></div>
+					</div>
 
-        <h3>Global<a class="question" target="_blank" href="https://github.com/solorey/Art-Saver/wiki/Options">?</a></h3>
-        <div id="userlist-input">
-          <label>Upload own saved userlist, or export/reset current list</label>
-          <div class="input-bar">
-            <div class="custom-input">
-              <input id="userlist" accept=".json" type="file" />
-              <label for="userlist">
-                <div class="before">Browse</div>
-                <div id="filename"><i class="icon-upload"></i>Choose file</div>
-              </label>
-            </div>
-            <button id="submit-list">Set</button>
-            <button id="export-list"><i class="icon-download"></i>Export</button>
-            <button id="reset-list"><i class="icon-reset"></i>Reset</button>
-          </div>
-        </div>
-        <div class="option-select">
-          <label for="conflict">File Conflict</label>
-          <select id="conflict" class="custom-select">
-            <option value="overwrite">Overwrite</option>
-            <option value="uniquify">Uniquify</option>
-          </select>
-        </div>
-        <div class="option-toggle">
-          <label for="replace-spaces">
-            <input id="replace-spaces" type="checkbox"/>
-            <div class="switch"></div>
-            <div>Replace spaces with underscore</div>
-          </label>
-        </div>
-        <div class="option-toggle">
-          <label for="use-saveas">
-            <input id="use-saveas" type="checkbox"/>
-            <div class="switch"></div>
-            <div>Open Save As prompt when downloading a file</div>
-          </label>
-        </div>
-        <div class="option-number">
-          <label for="icon-size">
-            Icons size
-            <div class="custom-number">
-              <input id="icon-size" type="number" value="16" min="0" />
-              <div class="number-buttons">
-                <button class="increase"></button>
-                <button class="decrease"></button>
-              </div>
-            </div>
-            px
-          </label>
-        </div>
-        <div class="option-toggle">
-          <label for="add-screen">
-            <input id="add-screen" type="checkbox"/>
-            <div class="switch"></div>
-            <div>Add screen over saved thumbnails</div>
-          </label>
-        </div>
-        <div class="screen-options">
-          <div class="number-range">
-            <div class="option-number">
-              <label for="screen-opacity">
-                Screen opacity
-                <div class="custom-number">
-                  <input id="screen-opacity" type="number" value="50" min="0" max="100"/>
-                  <div class="number-buttons">
-                    <button class="increase"></button>
-                    <button class="decrease"></button>
-                  </div>
-                </div>
-                %
-              </label>
-            </div>
-            <div class="option-range">
-              <input type="range" min="0" max="100" value="50" class="slider" id="myRange">
-            </div>
-          </div>
-        </div>
-        <div class="option-toggle">
-          <label for="use-queue">
-            <input id="use-queue" type="checkbox"/>
-            <div class="switch"></div>
-            <div>Download submissions using a queue</div>
-          </label>
-        </div>
-        <div class="queue-options">
-          <div class="option-number">
-            <label for="queue-concurrent">
-              Concurrent downloads
-              <div class="custom-number">
-                <input id="queue-concurrent" type="number" value="1" min="1" />
-                <div class="number-buttons">
-                  <button class="increase"></button>
-                  <button class="decrease"></button>
-                </div>
-              </div>
-            </label>
-          </div>
-          <div class="option-number">
-            <label for="queue-wait">
-              Wait time between downloads
-              <div class="custom-number">
-                <input id="queue-wait" type="number" value="0" min="0" />
-                <div class="number-buttons">
-                  <button class="increase"></button>
-                  <button class="decrease"></button>
-                </div>
-              </div>
-              seconds
-            </label>
-          </div>
-        </div>
-        <div class="option-toggle">
-          <label for="infobar">
-            <input id="infobar" type="checkbox"/>
-            <div class="switch"></div>
-            <div>Show page info bar</div>
-          </label>
-        </div>
+					<div id="site-options-content" class="tab-content hide">
+						<div id="sites-options">
+							<div id="sites-side">
+								<button id="sites-open-all" class="default-button">Open all</button>
+								<button id="sites-close-all" class="default-button">Close all</button>
+								<div id="sites-toggles"></div>
+							</div>
+							<div id="sites-list"></div>
+						</div>
+					</div>
 
-        <h3>Deviantart<a class="question" target="_blank" href="https://github.com/solorey/Art-Saver/wiki/DeviantArt">?</a></h3>
-        <div class="option-textarea">
-          <label for="dev-user-folder">User folder</label>
-          <textarea id="dev-user-folder" spellcheck="false"></textarea>
-          <button class="help-button">Show Help</button>
-        </div>
-        <div class="option-textarea">
-          <label for="dev-file">Save File as</label>
-          <textarea id="dev-file" spellcheck="false"></textarea>
-          <button class="help-button">Show Help</button>
-        </div>
-        <div class="option-toggle">
-          <label for="dev-larger">
-            <input id="dev-larger" type="checkbox"/>
-            <div class="switch"></div>
-            <div>Try to download larger images</div>
-          </label>
-        </div>
-        <div class="option-toggle">
-          <label for="stash">
-            <input id="stash" type="checkbox"/>
-            <div class="switch"></div>
-            <div>Download stash links in description</div>
-          </label>
-        </div>
-
-        <div class="stash-options">
-          <div class="option-textarea">
-            <label for="dev-stash">Save Stash File as</label>
-            <textarea id="dev-stash" spellcheck="false"></textarea>
-            <button class="help-button">Show Help</button>
-          </div>
-          <div class="option-toggle">
-            <label for="dev-move">
-              <input id="dev-move" type="checkbox"/>
-              <div class="switch"></div>
-              <div>Save submission file in stash folder</div>
-            </label>
-          </div>
-        </div>
-
-        <h3>Pixiv<a class="question" target="_blank" href="https://github.com/solorey/Art-Saver/wiki/Pixiv">?</a></h3>
-        <div class="option-textarea">
-          <label for="pix-user-folder">User folder</label>
-          <textarea id="pix-user-folder" spellcheck="false"></textarea>
-          <button class="help-button">Show Help</button>
-        </div>
-        <div class="option-textarea">
-          <label for="pix-file">Save File as</label>
-          <textarea id="pix-file" spellcheck="false"></textarea>
-          <button class="help-button">Show Help</button>
-        </div>
-        <div class="option-textarea">
-          <label for="pix-multiple">Save Multiple Files as</label>
-          <textarea id="pix-multiple" spellcheck="false"></textarea>
-          <button class="help-button">Show Help</button>
-        </div>
-        <div class="option-select">
-          <label for="ugoira" >Save Uqoira as</label>
-          <select id="ugoira" class="custom-select">
-            <option value="multiple">Multiple Files</option>
-            <option value="zip">ZIP</option>
-            <option value="apng">APNG</option>
-            <option value="gif">GIF</option>
-            <option value="webm">WEBM</option>
-          </select>
-        </div>
-
-        <h3>Furaffinity<a class="question" target="_blank" href="https://github.com/solorey/Art-Saver/wiki/FurAffinity">?</a></h3>
-        <div class="option-textarea">
-          <label for="fur-user-folder">User folder</label>
-          <textarea id="fur-user-folder" spellcheck="false"></textarea>
-          <button class="help-button">Show Help</button>
-        </div>
-        <div class="option-textarea">
-          <label for="fur-file">Save File as</label>
-          <textarea id="fur-file" spellcheck="false"></textarea>
-          <button class="help-button">Show Help</button>
-        </div>
-
-        <h3>Inkbunny<a class="question" target="_blank" href="https://github.com/solorey/Art-Saver/wiki/Inkbunny">?</a></h3>
-        <div class="option-textarea">
-          <label for="ink-user-folder">User folder</label>
-          <textarea id="ink-user-folder" spellcheck="false"></textarea>
-          <button class="help-button">Show Help</button>
-        </div>
-        <div class="option-textarea">
-          <label for="ink-file">Save File as</label>
-          <textarea id="ink-file" spellcheck="false"></textarea>
-          <button class="help-button">Show Help</button>
-        </div>
-        <div class="option-textarea">
-          <label for="ink-multiple">Save Multiple Files as</label>
-          <textarea id="ink-multiple" spellcheck="false"></textarea>
-          <button class="help-button">Show Help</button>
-        </div>
-      </form>
-
-      <div id="options-undo" class="undo-bar">
-        <div>The options have been reset to default</div>
-        <div class="undo-button">Undo</div>
-      </div>
-
-      <div id="settings-buttons">
-        <input id="import-options"accept=".json" type="file"/>
-        <button id="click-import"><i class="icon-upload"></i>Import settings</button>
-        <button id="export-options"><i class="icon-download"></i>Export settings</button>
-        <button id="reset-options"><i class="icon-reset"></i>Reset to default</button>
-      </div>
-    </div>
-    <script src="/general_scripts/selectors.js"></script>
-    <script src="/background/settings.js"></script>
-    <script src="options.js"></script>
-    <script src="/general_scripts/virtuallist.js"></script>
-  </body>
+					<div id="about-content" class="tab-content hide">
+						<div id="about-info">
+							<p>Art Saver v<span id="version"></span></p>
+							<p><a class="about-link" href="https://github.com/solorey/Art-Saver" target="_blank" rel="noopener noreferrer">Github</a></p>
+							<p><a class="about-link" href="https://github.com/solorey/Art-Saver/wiki" target="_blank" rel="noopener noreferrer">Wiki</a></p>
+						</div>
+					</div>
+				</form>
+			</div>
+			
+		</div>
+		<script src="/general_scripts/selectors.js"></script>
+		<script src="/background/settings.js"></script>
+		<script src="/general_scripts/virtuallist.js"></script>
+		<script src="options.js"></script>
+	</body>
 </html>
 
