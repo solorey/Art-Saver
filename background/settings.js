@@ -123,7 +123,7 @@ const deviantart_options = {
 	},
 	embedImages: {
 		type: "checkbox",
-		label: "Embed images in the html file",
+		label: "Embed images in the HTML file",
 		default: false,
 		related: [{option: "literature", value: "html"}]
 	},
