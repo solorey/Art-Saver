@@ -11,7 +11,7 @@ onmessage = async function(m){
 }
 
 create.gif = async function(data){
-	importScripts('/lib/gif.js');
+	importScripts("/lib/gif.js");
 
 	let gif = new GIF({
 		workers: 2,
@@ -26,19 +26,19 @@ create.gif = async function(data){
 	gif.render();
 
 	return new Promise((resolve, reject)=>{
-		gif.on('finished', blob =>{
+		gif.on("finished", blob =>{
 			resolve(blob);
 		});
 	});
 }
 
 create.apng = async function(data){
-	importScripts('/lib/pako_deflate.js', '/lib/UPNG.js');
+	importScripts("/lib/pako_deflate.js", "/lib/UPNG.js");
 
 	let imgdata = data.frames.map(f => f.data);
 
 	let png = UPNG.encode(imgdata, data.width, data.height, 0, data.delays);
-	return new Blob([png], {type : 'image/png'});
+	return new Blob([png], {type: "image/png"});
 }
 
 create.zip = async function(data){
@@ -56,7 +56,7 @@ create.zip = async function(data){
 		zip.file(`${n}_${d}ms.${data.exts[i]}`, data.blobs[i]);
 	}
 
-	return await zip.generateAsync({type:"blob"});
+	return await zip.generateAsync({type: "blob"});
 }
 
 create.bitmaps = async function(data){

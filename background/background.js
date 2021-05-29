@@ -67,24 +67,6 @@ async function setupOptions(){
 	await browser.storage.local.set(initaloptions);
 }
 
-async function getOptions(){
-	let res = await browser.storage.local.get("options");
-	return updateOptions(res.options || {});
-}
-
-//if new settings have been added
-function updateOptions(current){
-	for (let s of settingsList()){
-		if (!current[s.site]){
-			current[s.site] = {};
-		}
-		if (!current[s.site][s.option]){
-			current[s.site][s.option] = s.default;
-		}
-	}
-	return current;
-}
-
 //---------------------------------------------------------------------------------------------------------------------
 // state functions
 //---------------------------------------------------------------------------------------------------------------------
@@ -131,12 +113,6 @@ async function messageActions(request){
 
 		case "openuserfolder":
 			return openFolder(request.folderFile, request.meta);
-
-		case "getoptions":
-			return getOptions();
-
-		case "updateoptions":
-			return updateOptions(request.newoptions);
 
 		case "showdownload":
 			return browser.downloads.show(request.id);

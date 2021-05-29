@@ -262,7 +262,7 @@ as.deviantart.check.checkSubmission = function(user, url){
 		if (submission){
 			let holder = $(stage, ".artsaver-holder")
 			if (!holder){
-				holder = $insert(submission, "div", {position: "parent", class: "artsaver-holder", style:"margin:0;text-align:initial;"});
+				holder = $insert(submission, "div", {position: "parent", class: "artsaver-holder", style: "margin:0;text-align:initial;"});
 			}
 			addButton("deviantart", user, subid, holder, false);
 			return;

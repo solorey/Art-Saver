@@ -610,6 +610,9 @@ h3.site-header {
   padding-left: 2em;
   padding-right: 1em;
   margin: 0.5em auto;
+  position: fixed;
+  bottom: 9px;
+  left: 9px;
 }
 
 .undo-button {
