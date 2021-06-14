@@ -123,7 +123,7 @@ as.pixiv.check.getThumbnails = function(){
 		//try to get the highest element that relates to a single submission
 		while (true){
 			let parent = thumb.parentElement;
-			if ($$(parent, 'a[href*="/artworks/"] img').length === 1 && parent.nodeName !== 'UL'){
+			if ($$(parent, 'a[href*="/artworks/"] img').length === 1 && !['UL', 'NAV'].includes(parent.nodeName)){
 				thumb = parent;
 			}
 			else {
@@ -318,7 +318,7 @@ as.pixiv.download.handleDownloads = async function(downloads, info, options, pro
 	}
 
 	progress.start('Getting ugoira frames');
-	
+
 	let bytes = 0;
 	let total = downloads.length;
 	let blobs = [];

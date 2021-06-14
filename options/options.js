@@ -369,7 +369,7 @@ function createTextareaOption(optionid, values, savedvalue){
 	textareaelem.oninput = function(){
 		textareaResize(this);
 	};
-	
+
 	let table = $(option, 'table');
 	for (let tm of values.metas){
 		let metarow = $('#meta-row-template').content.cloneNode(true);
@@ -490,7 +490,7 @@ function setFormOptions(alloptions){
 			if (values.related){
 				related.push([site, values.related, optionblock]);
 			}
-			
+
 			if (!alloptions[site] || typeof alloptions[site][key] === 'undefined'){
 				continue;
 			}
