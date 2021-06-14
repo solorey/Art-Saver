@@ -265,6 +265,7 @@ function createNumberOption(optionid, values, savedvalue){
 
 	let inputelem = $(option, 'input');
 	inputelem.id = optionid;
+	inputelem.setAttribute('min', values.min);
 	inputelem.value = (typeof savedvalue != 'undefined')? savedvalue : values.default;
 
 	$(option, '.increase').onmousedown = function(){ numberChange(inputelem, this, 1) };
