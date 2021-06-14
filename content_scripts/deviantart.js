@@ -7,26 +7,26 @@ var as = {deviantart: {check: {}, download: {}}};
 function pageInfo(){
 	let page = {
 		url: window.location.href,
-		site: "deviantart"
+		site: 'deviantart'
 	};
 
 	let path = new URL(page.url).pathname;
 
 	let reg = /^\/[^\/]+(?:\/([^\/]+))?/.exec(path);
 	if (reg){
-		page.page = (!reg[1] && $("title").textContent.endsWith(" | DeviantArt"))? "user" : reg[1];
+		page.page = (!reg[1] && $('title').textContent.endsWith(' | DeviantArt'))? 'user' : reg[1];
 	}
 	//group pages that still have the old site layout
-	let group = $("#group");
+	let group = $('#group');
 	if (group){
-		page.page = "group";
+		page.page = 'group';
 	}
 
-	if (["art", "journal"].includes(page.page)){
-		page.user = /by\ ([^\ ]+)\ on\ DeviantArt$/.exec($("title").textContent)[1];
+	if (['art', 'journal'].includes(page.page)){
+		page.user = /by\ ([^\ ]+)\ on\ DeviantArt$/.exec($('title').textContent)[1];
 	}
-	else if (["about", "user", "gallery", "prints", "favourites", "posts", "shop"].includes(page.page)){
-		page.user = $("#content-container [data-username]").title;
+	else if (['about', 'user', 'gallery', 'prints', 'favourites', 'posts', 'shop'].includes(page.page)){
+		page.user = $('#content-container [data-username]').title;
 	}
 
 	return page;
@@ -45,9 +45,9 @@ as.deviantart.userInfo = async function(user, page, savedlist){
 
 		let us = userstats.pageData.stats;
 		user.stats = new Map([
-			["Deviations", us.deviations],
-			["Favourites", us.favourites],
-			["Views", us.pageviews]
+			['Deviations', us.deviations],
+			['Favourites', us.favourites],
+			['Views', us.pageviews]
 		]);
 	}
 	else {
@@ -72,25 +72,25 @@ as.deviantart.userInfo = async function(user, page, savedlist){
 //---------------------------------------------------------------------------------------------------------------------
 
 as.deviantart.check.startChecking = function(){
-	asLog("Checking Deviantart");
+	asLog('Checking Deviantart');
 	let page = pageInfo();
 	this.checkPage(page);
 
-	let thumbselect = ".thumb, [data-hook=deviation_link]";
+	let thumbselect = '.thumb, [data-hook=deviation_link]';
 
 	let pageobserver = new MutationObserver((mutationsList, observer) => {
 		let diffpage = false;
 		let newnodes = mutationsList.flatMap(m => [...m.addedNodes]);
 
-		if (page.url !== window.location.href || newnodes.some(n => $("title").contains(n))){
+		if (page.url !== window.location.href || newnodes.some(n => $('title').contains(n))){
 			diffpage = true;
 			page = pageInfo();
 		}
 
-		if (page.page === "art" && diffpage){
-			let submission = $("[data-hook=art_stage]");
-			$$(submission, "[data-checkstatus]").forEach(e => e.removeAttribute("data-checkstatus"));
-			$$(submission, "[class^=artsaver]:not(.artsaver-holder)").forEach(e => $remove(e));
+		if (page.page === 'art' && diffpage){
+			let submission = $('[data-hook=art_stage]');
+			$$(submission, '[data-checkstatus]').forEach(e => e.removeAttribute('data-checkstatus'));
+			$$(submission, '[class^=artsaver]:not(.artsaver-holder)').forEach(e => $remove(e));
 
 			this.checkPage(page);
 		}
@@ -109,14 +109,14 @@ as.deviantart.check.checkPage = function(page){
 	//old thumbnails still show in art groups
 	this.checkOldThumbnails(this.getOldThumbnails());
 
-	let popup = $("[id^=popper] > *");
+	let popup = $('[id^=popper] > *');
 	if (popup){
 		this.checkPopup(popup);
 	}
 
 	this.checkThumbnails(this.getThumbnails());
 
-	if (page.page === "art"){
+	if (page.page === 'art'){
 		this.checkSubmission(page.user, page.url);
 	}
 }
@@ -127,21 +127,21 @@ as.deviantart.check.checkPage = function(page){
 as.deviantart.check.getOldThumbnails = function(){
 	let thumbnails = [];
 
-	for (let thumb of $$(".thumb, .embedded-image-deviation")){
+	for (let thumb of $$('.thumb, .embedded-image-deviation')){
 		//----------------------------------------------
 		//current unsupported thumbs
 		//                 journals,  gallery folder preview images
-		if (thumb.matches(".freeform:not(.literature), div.stream.col-thumbs *")){
+		if (thumb.matches('.freeform:not(.literature), div.stream.col-thumbs *')){
 			continue;
 		}
 		//----------------------------------------------
-		//devations in "more from <user>/deviantart" or in "<user> added to this collection"
-		if (thumb.matches(".tt-crop, #gmi-ResourceStream > *")){
-			thumb.style.position = "relative";
+		//devations in 'more from <user>/deviantart' or in '<user> added to this collection'
+		if (thumb.matches('.tt-crop, #gmi-ResourceStream > *')){
+			thumb.style.position = 'relative';
 		}
 		//devations in texts
-		else if (thumb.matches(".shadow > *:not(.lit)") && !$(thumb, ".artsaver-holder")){
-			$insert($(thumb, "img"), "div", {position: "parent", class: "artsaver-holder"});
+		else if (thumb.matches('.shadow > *:not(.lit)') && !$(thumb, '.artsaver-holder')){
+			$insert($(thumb, 'img'), 'div', {position: 'parent', class: 'artsaver-holder'});
 		}
 
 		thumbnails.push(thumb);
@@ -155,27 +155,27 @@ as.deviantart.check.getOldThumbnails = function(){
 as.deviantart.check.checkOldThumbnails = function(thumbnails){
 	for (let thumb of thumbnails){
 		try {
-			let url = thumb.getAttribute("href") || $(thumb, "a").href;
+			let url = thumb.getAttribute('href') || $(thumb, 'a').href;
 			if (/https?:\/\/sta\.sh/.test(url)){ //currently unable to directly download stash links
 				continue;
 			}
-			let subid = parseInt(url.split("-").pop(), 10);
-			let user = thumb.getAttribute("data-super-alt");
+			let subid = parseInt(url.split('-').pop(), 10);
+			let user = thumb.getAttribute('data-super-alt');
 			let sub;
-			if (thumb.matches(".lit")){
-				sub = $(thumb, "span.wrap");
-				user = "";
+			if (thumb.matches('.lit')){
+				sub = $(thumb, 'span.wrap');
+				user = '';
 			}
-			else if (thumb.matches(".literature")){
-				sub = $(thumb, "a.torpedo-thumb-link");
-				user = $(thumb, "a.username").textContent;
+			else if (thumb.matches('.literature')){
+				sub = $(thumb, 'a.torpedo-thumb-link');
+				user = $(thumb, 'a.username').textContent;
 			}
 			else {
-				sub = $(thumb, "img");
-				user = user ? user.split(" ").pop() : sub.alt.split(" ").pop();
+				sub = $(thumb, 'img');
+				user = user ? user.split(' ').pop() : sub.alt.split(' ').pop();
 			}
 
-			addButton("deviantart", user, subid, sub.parentElement);
+			addButton('deviantart', user, subid, sub.parentElement);
 		}
 		catch (err){}
 	}
@@ -185,13 +185,13 @@ as.deviantart.check.checkOldThumbnails = function(thumbnails){
 
 as.deviantart.check.getThumbnails = function(){
 	let thumbnails = [];
-	for (let thumb of $$("[data-hook=deviation_link]")){
+	for (let thumb of $$('[data-hook=deviation_link]')){
 		//filter out journals
 		if (/\/journal\//.test(thumb.href)){
 			continue;
 		}
 		//main gallery thumbnail title
-		else if (thumb.matches("span > a")){
+		else if (thumb.matches('span > a')){
 			continue;
 		}
 		//deviation spotlight widget title
@@ -199,12 +199,12 @@ as.deviantart.check.getThumbnails = function(){
 			continue
 		}
 		//main gallery thumbnail
-		if (thumb.matches("[data-hook=deviation_std_thumb] > a")){
+		if (thumb.matches('[data-hook=deviation_std_thumb] > a')){
 			thumb = thumb.parentElement;
 		}
 		//literature thumbnail
-		if (!$(thumb, "img") && $(thumb, "section")){
-			thumb.style.position = "relative";
+		if (!$(thumb, 'img') && $(thumb, 'section')){
+			thumb.style.position = 'relative';
 		}
 
 		thumbnails.push(thumb);
@@ -217,11 +217,11 @@ as.deviantart.check.getThumbnails = function(){
 as.deviantart.check.checkThumbnails = function(thumbnails){
 	for (let thumb of thumbnails){
 		try {
-			let url = thumb.getAttribute("href") || $(thumb, "a").href;
-			let subid = parseInt(url.split("-").pop(), 10);
-			let user = ($(thumb, ".user-link") || thumb).getAttribute("title").split(" ").pop();
+			let url = thumb.getAttribute('href') || $(thumb, 'a').href;
+			let subid = parseInt(url.split('-').pop(), 10);
+			let user = ($(thumb, '.user-link') || thumb).getAttribute('title').split(' ').pop();
 
-			addButton("deviantart", user, subid, thumb);
+			addButton('deviantart', user, subid, thumb);
 		}
 		catch (err){}
 	}
@@ -230,14 +230,14 @@ as.deviantart.check.checkThumbnails = function(thumbnails){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 as.deviantart.check.checkPopup = function(popup){
-	let user = $(popup, "[data-hook=user_link]").title;
-	for (let thumb of $$(popup, "[data-hook=deviation_link]")){
+	let user = $(popup, '[data-hook=user_link]').title;
+	for (let thumb of $$(popup, '[data-hook=deviation_link]')){
 		try {
-			thumb.style.position = "relative";
+			thumb.style.position = 'relative';
 			let url = thumb.href;
-			let subid = parseInt(url.split("-").pop(), 10);
+			let subid = parseInt(url.split('-').pop(), 10);
 
-			addButton("deviantart", user, subid, thumb);
+			addButton('deviantart', user, subid, thumb);
 		}
 		catch (err){}
 	}
@@ -247,24 +247,24 @@ as.deviantart.check.checkPopup = function(popup){
 
 as.deviantart.check.checkSubmission = function(user, url){
 	try {
-		let subid = parseInt(url.split("-").pop(), 10);
-		let stage = $("[data-hook=art_stage]");
+		let subid = parseInt(url.split('-').pop(), 10);
+		let stage = $('[data-hook=art_stage]');
 		//art, pdf
 		let submission = $(stage, 'img, [data-hook=react-playable], object[type="application/pdf"]');
 		if (submission){
 			let parent = submission.parentElement
-			parent.style.position = "relative";
-			addButton("deviantart", user, subid, parent, false);
+			parent.style.position = 'relative';
+			addButton('deviantart', user, subid, parent, false);
 			return;
 		}
 		//literature
-		submission = $(stage, "h1");
+		submission = $(stage, 'h1');
 		if (submission){
-			let holder = $(stage, ".artsaver-holder")
+			let holder = $(stage, '.artsaver-holder')
 			if (!holder){
-				holder = $insert(submission, "div", {position: "parent", class: "artsaver-holder", style: "margin:0;text-align:initial;"});
+				holder = $insert(submission, 'div', {position: 'parent', class: 'artsaver-holder', style: 'margin:0;text-align:initial;'});
 			}
-			addButton("deviantart", user, subid, holder, false);
+			addButton('deviantart', user, subid, holder, false);
 			return;
 		}
 	}
@@ -280,17 +280,17 @@ as.deviantart.check.checkSubmission = function(user, url){
 //rss					- https://backend.deviantart.com/rss.xml?q=+sort:time+by:<userName>+-in:journals&type=deviation
 
 as.deviantart.download.startDownloading = async function(subid, progress){
-	progress.say("Getting submission");
-	let options = await getOptions("deviantart");
+	progress.say('Getting submission');
+	let options = await getOptions('deviantart');
 	let pageurl = `https://www.deviantart.com/deviation/${subid}`;
 
 	try {
 		let params = new URLSearchParams({
 			deviationid: subid,
-			type: "art",
+			type: 'art',
 			include_session: false
 		});
-		let response = await fetcher(`https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch?${params}`, "json");
+		let response = await fetcher(`https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch?${params}`, 'json');
 		let {info, meta} = await this.getMeta(response, options, progress);
 
 		let downloads = [{url: info.downloadurl, meta, filename: options.file}];
@@ -303,23 +303,23 @@ as.deviantart.download.startDownloading = async function(subid, progress){
 
 		let stashworker;
 		if (options.stash && info.stash.length > 0){
-			progress.say("Found stash");
-			stashworker = new Worker(browser.runtime.getURL("/workers/stashworker.js"));
+			progress.say('Found stash');
+			stashworker = new Worker(browser.runtime.getURL('/workers/stashworker.js'));
 
-			let stashurls = await stashMessage(stashworker, "getstashurls", info.stash);
+			let stashurls = await stashMessage(stashworker, 'getstashurls', info.stash);
 
 			let parser = new DOMParser();
 			let count = 0;
 			for (let stashurl of stashurls){
 				count += 1;
-				progress.onOf("Getting stash", count, stashurls.length);
+				progress.onOf('Getting stash', count, stashurls.length);
 
-				let stashstring = await stashMessage(stashworker, "fetchstash", stashurl);
-				if (typeof(stashstring) === "number"){
-					asLog(`%cError ${stashstring}:`, "color: #d70022", stashurl);
+				let stashstring = await stashMessage(stashworker, 'fetchstash', stashurl);
+				if (typeof(stashstring) === 'number'){
+					//asLog(`%cError ${stashstring}:`, 'color: #d70022', stashurl);
 					continue;
 				}
-				let stashresponse = parser.parseFromString(stashstring, "text/html");
+				let stashresponse = parser.parseFromString(stashstring, 'text/html');
 
 				let {stashinfo, stashmeta} = await this.getStashMeta(stashresponse, {url: info.url, ...meta}, options, progress);
 
@@ -337,17 +337,17 @@ as.deviantart.download.startDownloading = async function(subid, progress){
 		}
 
 		let results = await this.handleDownloads(downloads, options, progress, stashworker);
-		if (results.some(r => r.response === "Success")){
-			progress.say("Updating");
+		if (results.some(r => r.response === 'Success')){
+			progress.say('Updating');
 			await updateSavedInfo(info.savedSite, info.savedUser, info.savedId);
 		}
 		else {
-			throw new Error("Files failed to download.");
+			throw new Error('Files failed to download.');
 		}
 
 		progress.finished();
 		return {
-			status: "Success",
+			status: 'Success',
 			submission: {
 				url: pageurl,
 				user: info.savedUser,
@@ -362,7 +362,7 @@ as.deviantart.download.startDownloading = async function(subid, progress){
 		progress.error();
 
 		return {
-			status: "Failure",
+			status: 'Failure',
 			error: err,
 			url: pageurl,
 			progress
@@ -374,9 +374,9 @@ as.deviantart.download.startDownloading = async function(subid, progress){
 
 as.deviantart.download.getMeta = async function(r, options, progress){
 	r = r.deviation;
-	progress.say("Getting meta");
+	progress.say('Getting meta');
 	let info = {}, meta = {};
-	meta.site = "deviantart";
+	meta.site = 'deviantart';
 	meta.title = r.title;
 	meta.userName = r.author.username;
 	meta.submissionId = r.deviationId;
@@ -403,15 +403,15 @@ as.deviantart.download.getMeta = async function(r, options, progress){
 		info.downloadurl = r.extended.download.url;
 		info.filesize = r.extended.download.filesize;
 	}
-	else if (r.type === "literature"){
-		if (options.literature === "html"){
-			progress.say("Creating html");
-			meta.ext = "html";
+	else if (r.type === 'literature'){
+		if (options.literature === 'html'){
+			progress.say('Creating html');
+			meta.ext = 'html';
 			info.blob = await literatureToHtml(r, meta, options);
 		}
-		else { //options.literature === "txt"
-			progress.say("Creating txt");
-			meta.ext = "txt";
+		else { //options.literature === 'txt'
+			progress.say('Creating txt');
+			meta.ext = 'txt';
 			info.blob = await literatureToText(r, meta, options);
 		}
 		return {info, meta};
@@ -421,9 +421,9 @@ as.deviantart.download.getMeta = async function(r, options, progress){
 		//type.c = image
 		//type.s = swf
 		//type.b = mp4, gif
-		let type = r.media.types.filter(m => m.f && (m.t === "fullview" || m.s || m.b)).pop();
+		let type = r.media.types.filter(m => m.f && (m.t === 'fullview' || m.s || m.b)).pop();
 
-		let url = (type.t === "fullview") ? (type.c ? `${r.media.baseUri}/${type.c}` : r.media.baseUri) : type.s || type.b;
+		let url = (type.t === 'fullview') ? (type.c ? `${r.media.baseUri}/${type.c}` : r.media.baseUri) : type.s || type.b;
 
 		if (r.media.prettyName){
 			url = url.replace(/<prettyName>/g, r.media.prettyName);
@@ -434,19 +434,19 @@ as.deviantart.download.getMeta = async function(r, options, progress){
 		//Make sure quailty is 100
 		//Replacing .jpg with .png can lead to better quailty
 		if (/\/v1\/fill\//.test(url)){
-			url = url.replace(/q_\d+/, "q_100").replace(".jpg?", ".png?");
+			url = url.replace(/q_\d+/, 'q_100').replace('.jpg?', '.png?');
 		}
 		//flash with no download button
 		if (/\/\/sandbox/.test(url)){
-			let embedded = await fetcher(url, "document");
-			url = $(embedded, "#sandboxembed").src;
+			let embedded = await fetcher(url, 'document');
+			url = $(embedded, '#sandboxembed').src;
 		}
 
 		info.downloadurl = url;
 	}
 
-	if (r.type === "pdf"){
-		meta.ext = "pdf";
+	if (r.type === 'pdf'){
+		meta.ext = 'pdf';
 		return {info, meta};
 	}
 
@@ -457,10 +457,10 @@ as.deviantart.download.getMeta = async function(r, options, progress){
 	let reg = /\/[^\/?]+\.(\w+)(?:\?token=.+)?$/;
 	meta.ext = reg.exec(info.downloadurl)[1];
 
-	if (info.downloadurl.search("/v1/fill/") < 0 || !options.larger){
+	if (info.downloadurl.search('/v1/fill/') < 0 || !options.larger){
 		return {info, meta};
 	}
-	progress.say("Comparing images");
+	progress.say('Comparing images');
 	info.downloadurl = await compareUrls(info.downloadurl, options);
 	//update extension in case it is different
 	meta.ext = reg.exec(info.downloadurl)[1];
@@ -469,19 +469,19 @@ as.deviantart.download.getMeta = async function(r, options, progress){
 
 as.deviantart.download.getStashMeta = async function(sr, meta, options, progress){
 	let stashinfo = {}, stashmeta = {};
-	let url = $(sr, "link[rel=canonical]").href;
-	stashmeta.stashSubmissionId = $(sr, "div.dev-page-view").getAttribute("gmi-deviationid");
-	stashmeta.stashTitle = $(sr, ".dev-title-container .title").textContent;
-	stashmeta.stashUserName = $(sr, ".dev-title-container .username:not(.group)").textContent;
-	stashmeta.stashUrlId = url.split("/0").pop();
+	let url = $(sr, 'link[rel=canonical]').href;
+	stashmeta.stashSubmissionId = $(sr, 'div.dev-page-view').getAttribute('gmi-deviationid');
+	stashmeta.stashTitle = $(sr, '.dev-title-container .title').textContent;
+	stashmeta.stashUserName = $(sr, '.dev-title-container .username:not(.group)').textContent;
+	stashmeta.stashUrlId = url.split('/0').pop();
 	let sid = parseInt(stashmeta.stashSubmissionId, 10);
 	stashmeta.stashFileName = deviantArtFileName(stashmeta.stashTitle, stashmeta.stashUserName, sid);
 
-	let timestring = $(sr, "span[ts]").getAttribute("ts");
+	let timestring = $(sr, 'span[ts]').getAttribute('ts');
 	let time = new Date();
 	time.setTime(`${timestring}000`); //set time by milliseconds
 
-	let pad = (n) => `${n}`.padStart(2, "0");
+	let pad = (n) => `${n}`.padStart(2, '0');
 	stashmeta.stashYYYY = pad(time.getFullYear());
 	stashmeta.stashMM = pad(time.getMonth() + 1);
 	stashmeta.stashDD = pad(time.getDate());
@@ -490,30 +490,30 @@ as.deviantart.download.getStashMeta = async function(sr, meta, options, progress
 	stashmeta.stashss = pad(time.getSeconds());
 
 	//literature
-	if ($(sr, ".journal-wrapper font")){
-		if (options.literature === "html"){
-			progress.say("Creating html");
-			stashmeta.stashExt = "html";
+	if ($(sr, '.journal-wrapper font')){
+		if (options.literature === 'html'){
+			progress.say('Creating html');
+			stashmeta.stashExt = 'html';
 			stashinfo.blob = await stashLiteratureToHtml(sr, {...meta, ...stashmeta}, options);
 		}
-		else { //options.literature === "txt"
-			progress.say("Creating txt");
-			stashmeta.stashExt = "txt";
+		else { //options.literature === 'txt'
+			progress.say('Creating txt');
+			stashmeta.stashExt = 'txt';
 			stashinfo.blob = await stashLiteratureToText(sr, {...meta, ...stashmeta}, options);
 		}
 		return {stashinfo, stashmeta};
 	}
 
-	stashinfo.downloadurl = $(sr, ".dev-page-download").href;
+	stashinfo.downloadurl = $(sr, '.dev-page-download').href;
 
-	let nopreview = $(sr, ".nopreview h2");
+	let nopreview = $(sr, '.nopreview h2');
 	if (nopreview){
 		stashmeta.stashExt = nopreview.textContent.toLowerCase();
 		return {stashinfo, stashmeta};
 	}
 
-	let dlbuttontext = $(sr, ".dev-page-download .text");
-	stashmeta.stashExt = dlbuttontext.textContent.split(" ")[0].toLowerCase();
+	let dlbuttontext = $(sr, '.dev-page-download .text');
+	stashmeta.stashExt = dlbuttontext.textContent.split(' ')[0].toLowerCase();
 	return {stashinfo, stashmeta};
 }
 
@@ -522,7 +522,7 @@ as.deviantart.download.getStashMeta = async function(sr, meta, options, progress
 as.deviantart.download.handleDownloads = async function(downloads, options, progress, stashworker){
 	if (options.moveFile && downloads.length > 1){
 		let stashfolder = /.*\//.exec(options.stashFile);
-		let newf = options.file.split("/").pop();
+		let newf = options.file.split('/').pop();
 		if (stashfolder){
 			newf = stashfolder[0] + newf;
 		}
@@ -530,7 +530,7 @@ as.deviantart.download.handleDownloads = async function(downloads, options, prog
 		downloads[0].meta = downloads[1].meta;
 	}
 
-	progress.start("Starting download");
+	progress.start('Starting download');
 
 	let bytes = 0;
 	let total = downloads.length;
@@ -563,7 +563,7 @@ as.deviantart.download.handleDownloads = async function(downloads, options, prog
 			progress.blobProgress(i, total, bytes, blob.size, blob.size);
 		}
 		else {
-			stashblob = await stashMessage(stashworker, "downloadstash", downloads[i].url, (data) => {
+			stashblob = await stashMessage(stashworker, 'downloadstash', downloads[i].url, (data) => {
 				progress.blobProgress(i, total, bytes, data.loaded, data.total);
 			});
 		}
@@ -583,9 +583,9 @@ as.deviantart.download.handleDownloads = async function(downloads, options, prog
 
 async function compareUrls(url, options){
 	//old larger url link
-	//downloadurl = `https://${u[2]}/intermediary/f/${u[4]}/${u[5]}/v1/fill/w_5100,h_5100,q_100,bl/${u[9].split("?token=")[0]}`;
+	//downloadurl = `https://${u[2]}/intermediary/f/${u[4]}/${u[5]}/v1/fill/w_5100,h_5100,q_100,bl/${u[9].split('?token=')[0]}`;
 	//possible new larger link
-	let u = url.split("/");
+	let u = url.split('/');
 	let newurl = `https://${u[2]}/intermediary/f/${u[4]}/${u[5]}`;
 
 	let compare = await Promise.all([getImage(url), getImage(newurl)]);
@@ -608,7 +608,7 @@ async function getImage(imgsrc){
 
 	async function imgSize(src){
 		let imgres = await fetcher(src);
-		return (imgres.ok) ? parseInt(imgres.headers.get("content-length"), 10) : 0;
+		return (imgres.ok) ? parseInt(imgres.headers.get('content-length'), 10) : 0;
 	}
 
 	function imgDim(src){
@@ -625,7 +625,7 @@ async function getImage(imgsrc){
 
 function deviantArtFileName(title, user, subid){
 	let id36 = subid.toString(36);
-	let titlelower = title.replace(/[\s\W]/g, "_").toLowerCase();
+	let titlelower = title.replace(/[\s\W]/g, '_').toLowerCase();
 	let userlower = user.toLowerCase();
 	return `${titlelower}_by_${userlower}_d${id36}`;
 }
@@ -636,14 +636,14 @@ async function stashMessage(worker, func, data, callback){
 	let result = new Promise((resolve, reject) => {
 		worker.onmessage = m => {
 			switch (m.data.message){
-				case "progress":
+				case 'progress':
 					callback(m.data);
 					break;
 
-				case "result":
+				case 'result':
 					resolve(m.data.result);
 
-				case "error":
+				case 'error':
 					let error = new Error(m.data.description);
 					error.name = m.data.name;
 					reject(error);
@@ -662,24 +662,24 @@ async function stashMessage(worker, func, data, callback){
 // to html
 
 async function literatureToHtml(r, meta, options){
-	let page = await fetcher(r.url, "document");
+	let page = await fetcher(r.url, 'document');
 
-	let storyelem = $(page, "section .da-editor-journal > div > div > div, section .legacy-journal") || $create("div");
+	let storyelem = $(page, 'section .da-editor-journal > div > div > div, section .legacy-journal') || $create('div');
 	let story = cleanContent(storyelem);
-	story.firstElementChild.id = "content";
+	story.firstElementChild.id = 'content';
 
-	let words = getElementText(story.cloneNode(true)).replace(/[^\w\s]+/g, "").match(/\w+/g).length;
+	let words = getElementText(story.cloneNode(true)).replace(/[^\w\s]+/g, '').match(/\w+/g).length;
 
 	if (options.includeImage){
 		let iconurl = await getImageIcon(meta.submissionId);
 		if (iconurl && !story.innerHTML.includes(iconurl)){
-			$insert($insert(story, "div", {position: "afterbegin", id: "image"}), "img", {src: iconurl});
+			$insert($insert(story, 'div', {position: 'afterbegin', id: 'image'}), 'img', {src: iconurl});
 		}
 	}
 
-	let descelem = $(page, "[role=complementary] + div .legacy-journal") || $create("div");
+	let descelem = $(page, '[role=complementary] + div .legacy-journal') || $create('div');
 	let description = cleanContent(descelem);
-	description.firstElementChild.id = "description";
+	description.firstElementChild.id = 'description';
 
 	//make sure images in the story are all full quality
 	story = await upgradeContentImages(story, options.embedImages);
@@ -695,7 +695,7 @@ async function literatureToHtml(r, meta, options){
 
 	let html = options.literatureHTML;
 	for (let [key, value] of Object.entries(storymeta)){
-		html = html.replace(RegExp(`{${key}}`, "g"), `${value}`);
+		html = html.replace(RegExp(`{${key}}`, 'g'), `${value}`);
 	}
 
 	return new Blob([html], {type : 'text/html'});
@@ -704,15 +704,15 @@ async function literatureToHtml(r, meta, options){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function stashLiteratureToHtml(sr, meta, options){
-	let storyelem = $(sr, ".journal-wrapper font") || $create("div");
+	let storyelem = $(sr, '.journal-wrapper font') || $create('div');
 	let story = cleanContent(storyelem);
-	story.firstElementChild.id = "content";
+	story.firstElementChild.id = 'content';
 
-	let words = getElementText(story.cloneNode(true)).replace(/[^\w\s]+/g, "").match(/\w+/g).length;
+	let words = getElementText(story.cloneNode(true)).replace(/[^\w\s]+/g, '').match(/\w+/g).length;
 
-	let descelem = $(sr, ".dev-description") || $create("div");
+	let descelem = $(sr, '.dev-description') || $create('div');
 	let description = cleanContent(descelem);
-	description.firstElementChild.id = "description";
+	description.firstElementChild.id = 'description';
 
 	//make sure images in the story are all full quality
 	story = await upgradeContentImages(story, options.embedImages);
@@ -722,13 +722,13 @@ async function stashLiteratureToHtml(sr, meta, options){
 		story: story.innerHTML,
 		stashDescription: description.innerHTML,
 		wordCount: words,
-		stashUrl: $(sr, "link[rel=canonical]").href,
+		stashUrl: $(sr, 'link[rel=canonical]').href,
 		...meta
 	}
 
 	let html = options.stashLiteratureHTML;
 	for (let [key, value] of Object.entries(storymeta)){
-		html = html.replace(RegExp(`{${key}}`, "g"), `${value}`);
+		html = html.replace(RegExp(`{${key}}`, 'g'), `${value}`);
 	}
 
 	return new Blob([html], {type : 'text/html'});
@@ -739,25 +739,25 @@ async function stashLiteratureToHtml(sr, meta, options){
 async function getImageIcon(submissionId){
 	let params = new URLSearchParams({
 		url: `https://www.deviantart.com/deviation/${submissionId}`,
-		format: "json"
+		format: 'json'
 	});
-	let back = await fetcher(`https://backend.deviantart.com/oembed?${params}`, "json");
+	let back = await fetcher(`https://backend.deviantart.com/oembed?${params}`, 'json');
 	return back.fullsize_url;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function cleanContent(element){
-	$$(element, "script, style").forEach(s => $remove(s));
+	$$(element, 'script, style').forEach(s => $remove(s));
 	//simplify thumbnail journal links
-	$$(element, "a.lit").forEach(l => l.textContent = l.href);
+	$$(element, 'a.lit').forEach(l => l.textContent = l.href);
 
 	//clean attributes
 	//remove if matches
-	let list1 = ["id", "class", "style", "srcset"];
+	let list1 = ['id', 'class', 'style', 'srcset'];
 	//remove if starts with
-	let list2 = ["on", "data"];
-	for (let elem of $$(element, "*")){
+	let list2 = ['on', 'data'];
+	for (let elem of $$(element, '*')){
 		for (let attr of [...elem.attributes].map(a => a.name)){
 			if (list1.includes(attr) || list2.some(a => attr.startsWith(a))){
 				elem.removeAttribute(attr);
@@ -765,7 +765,7 @@ function cleanContent(element){
 		}
 	}
 	//remove unecessary div and span elements
-	for (let elem of $$(element, "div, span")){
+	for (let elem of $$(element, 'div, span')){
 		if (elem.attributes.length <= 0){
 			while (elem.firstChild){
 				elem.parentElement.insertBefore(elem.firstChild, elem);
@@ -775,12 +775,12 @@ function cleanContent(element){
 	}
 	//deviant art treats paragraphs like line breaks
 	//combine paragraphs
-	if (element.matches(".da-editor-journal div") && element.firstChild){
+	if (element.matches('.da-editor-journal div') && element.firstChild){
 		let child = element.firstChild;
 		while(child.nextSibling){
 			let next = child.nextSibling;
-			if (child.nodeName === "P" && next.nodeName === "P"){
-				child.append($create("br"), ...next.childNodes);
+			if (child.nodeName === 'P' && next.nodeName === 'P'){
+				child.append($create('br'), ...next.childNodes);
 				$remove(next);
 			}
 			else {
@@ -789,12 +789,12 @@ function cleanContent(element){
 		}
 	}
 	//remove double spacing
-	for (let elem of $$(element, "p + br + p, p + br + br")){
+	for (let elem of $$(element, 'p + br + p, p + br + br')){
 		$remove(elem.previousElementSibling);
 	}
 
-	let content = $create("div");
-	let wrap = $insert(content, "section");
+	let content = $create('div');
+	let wrap = $insert(content, 'section');
 	wrap.append(...element.childNodes);
 	return content;
 }
@@ -802,11 +802,11 @@ function cleanContent(element){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function upgradeContentImages(content, embed){
-	for (let img of $$(content, "img")){
+	for (let img of $$(content, 'img')){
 		let url = img.src;
 		let reg = /.+\w{12}\.\w+/.exec(url);
 		if (/token=/.test(url)){
-			url = url.replace(/q_\d+/, "q_100").replace(".jpg?", ".png?");
+			url = url.replace(/q_\d+/, 'q_100').replace('.jpg?', '.png?');
 		}
 		else if (reg){
 			url = reg[0];
@@ -821,7 +821,7 @@ async function upgradeContentImages(content, embed){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function urlToDataUrl(url){
-	let blob = await fetcher(url, "blob");
+	let blob = await fetcher(url, 'blob');
 	return await new Promise((resolve, reject) => {
 		let fr = new FileReader();
 		fr.onload = data => resolve(data.target.result);
@@ -833,13 +833,13 @@ async function urlToDataUrl(url){
 // to txt
 
 async function literatureToText(r, meta, options){
-	let page = await fetcher(r.url, "document");
-	let storyelem = $(page, "section .da-editor-journal > div > div > div, section .legacy-journal") || $create("div");
+	let page = await fetcher(r.url, 'document');
+	let storyelem = $(page, 'section .da-editor-journal > div > div > div, section .legacy-journal') || $create('div');
 	let story = getElementText(storyelem);
 
-	let words = story.replace(/[^\w\s]+/g, "").match(/\w+/g).length;
+	let words = story.replace(/[^\w\s]+/g, '').match(/\w+/g).length;
 
-	let descelem = $(page, "[role=complementary] + div .legacy-journal") || $create("div");
+	let descelem = $(page, '[role=complementary] + div .legacy-journal') || $create('div');
 	let description = getElementText(descelem);
 
 	let storymeta = {
@@ -852,7 +852,7 @@ async function literatureToText(r, meta, options){
 
 	let text = options.literatureText;
 	for (let [key, value] of Object.entries(storymeta)){
-		text = text.replace(RegExp(`{${key}}`, "g"), `${value}`);
+		text = text.replace(RegExp(`{${key}}`, 'g'), `${value}`);
 	}
 
 	return new Blob([text], {type : 'text/txt'});
@@ -861,25 +861,25 @@ async function literatureToText(r, meta, options){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function stashLiteratureToText(sr, meta, options){
-	let storyelem = $(sr, ".journal-wrapper font") || $create("div");
+	let storyelem = $(sr, '.journal-wrapper font') || $create('div');
 	let story = getElementText(storyelem);
 
-	let words = story.replace(/[^\w\s]+/g, "").match(/\w+/g).length;
+	let words = story.replace(/[^\w\s]+/g, '').match(/\w+/g).length;
 
-	let descelem = $(sr, ".dev-description") || $create("div");
+	let descelem = $(sr, '.dev-description') || $create('div');
 	let description = getElementText(descelem);
 
 	let storymeta = {
 		story: story,
 		stashDescription: description,
 		wordCount: words,
-		stashUrl: $(sr, "link[rel=canonical]").href,
+		stashUrl: $(sr, 'link[rel=canonical]').href,
 		...meta
 	}
 
 	let text = options.stashLiteratureText;
 	for (let [key, value] of Object.entries(storymeta)){
-		text = text.replace(RegExp(`{${key}}`, "g"), `${value}`);
+		text = text.replace(RegExp(`{${key}}`, 'g'), `${value}`);
 	}
 
 	return new Blob([text], {type : 'text/txt'});
@@ -889,18 +889,18 @@ async function stashLiteratureToText(sr, meta, options){
 
 function getElementText(elem){
 	elem = cleanContent(elem);
-	$$(elem, "li").forEach(li => li.insertAdjacentText("afterbegin", "  ●  "));
-	for (let a of $$(elem, "a")){
-		a.href = a.href.replace(/https?:\/\/www\.deviantart\.com\/users\/outgoing\?/g, "");
+	$$(elem, 'li').forEach(li => li.insertAdjacentText('afterbegin', '  ●  '));
+	for (let a of $$(elem, 'a')){
+		a.href = a.href.replace(/https?:\/\/www\.deviantart\.com\/users\/outgoing\?/g, '');
 		a.textContent = a.href;
 	}
 
-	let renderer = $insert(document.body, "div", {class: "artsaver-text-render"});
+	let renderer = $insert(document.body, 'div', {class: 'artsaver-text-render'});
 	renderer.append(...elem.childNodes);
 
 	let text = renderer.innerText;
 	//fix for lists
-	text = text.replace(/  ●  \n\n/g, "  ●  ");
+	text = text.replace(/  ●  \n\n/g, '  ●  ');
 	$remove(renderer);
 
 	return text;

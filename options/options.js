@@ -2,51 +2,51 @@ var globalrunningobservers = [];
 
 const METAS = {
 	site:              "The name of the website. 'pixiv', 'deviantart', etc.",
-	userName:          "The user name of the artist.",
-	title:             "Title of the submission.",
-	submissionId:      "Id of the submission. Different according to each site.",
-	submissionId36:    "submissionId in base 36 format.",
-	fileName:          "Original site filename of the submission. Does not include extension.",
+	userName:          'The user name of the artist.',
+	title:             'Title of the submission.',
+	submissionId:      'Id of the submission. Different according to each site.',
+	submissionId36:    'submissionId in base 36 format.',
+	fileName:          'Original site filename of the submission. Does not include extension.',
 	ext:               "File extension. 'jpg', 'png', 'gif', etc.",
-	stashUrlId:        "The digits and letters at the end of a the stash url.",
-	stashUserName:     "The user name of the artist of the stash submission.",
-	stashTitle:        "Title of the stash submission.",
-	stashSubmissionId: "Id of the stash submission.",
-	stashFileName:     "The original file name of the stash submission. Does not include extension.",
-	stashExt:          "File extension of the stash submission.",
-	userId:            "The user Id of the artist.",
-	page:              "The page number of the file in the submission set. Pages start at 1.",
-	fileId:            "Id of the submission file.",
-	userLower:         "The way the user name appears in the url bar.",
-	YYYY:              "The year the submission was posted.",
-	MM:                "Month, 01 - 12",
-	DD:                "Day, 01 - 31",
-	hh:                "Hours, 00 - 23",
-	mm:                "Minutes, 00 - 59",
-	ss:                "Seconds, 00 - 59",
-	stashYYYY:         "The year the stash submission was posted.",
-	stashMM:           "Month, 01 - 12",
-	stashDD:           "Day, 01 - 31",
-	stashhh:           "Hours, 00 - 23",
-	stashmm:           "Minutes, 00 - 59",
-	stashss:           "Seconds, 00 - 59",
-	story:             "Story content from written submissions.",
-	wordCount:         "Number of words from the story.",
-	description:       "Description from the submission page.",
-	url:               "Submission page url.",
-	stashUrl:          "Stash page url.",
-	stashDescription:  "Description from the stash page.",
+	stashUrlId:        'The digits and letters at the end of a the stash url.',
+	stashUserName:     'The user name of the artist of the stash submission.',
+	stashTitle:        'Title of the stash submission.',
+	stashSubmissionId: 'Id of the stash submission.',
+	stashFileName:     'The original file name of the stash submission. Does not include extension.',
+	stashExt:          'File extension of the stash submission.',
+	userId:            'The user Id of the artist.',
+	page:              'The page number of the file in the submission set. Pages start at 1.',
+	fileId:            'Id of the submission file.',
+	userLower:         'The way the user name appears in the url bar.',
+	YYYY:              'The year the submission was posted.',
+	MM:                'Month, 01 - 12',
+	DD:                'Day, 01 - 31',
+	hh:                'Hours, 00 - 23',
+	mm:                'Minutes, 00 - 59',
+	ss:                'Seconds, 00 - 59',
+	stashYYYY:         'The year the stash submission was posted.',
+	stashMM:           'Month, 01 - 12',
+	stashDD:           'Day, 01 - 31',
+	stashhh:           'Hours, 00 - 23',
+	stashmm:           'Minutes, 00 - 59',
+	stashss:           'Seconds, 00 - 59',
+	story:             'Story content from written submissions.',
+	wordCount:         'Number of words from the story.',
+	description:       'Description from the submission page.',
+	url:               'Submission page url.',
+	stashUrl:          'Stash page url.',
+	stashDescription:  'Description from the stash page.',
 };
 
 initalSetup();
 
 async function initalSetup(){
-	let statekey = stateKey("settings");
+	let statekey = stateKey('settings');
 	let settingsstate = await browser.storage.local.get(statekey);
 	openTab(settingsstate[statekey].tab);
 	setupOptions();
 	await savedInfoDetails();
-	classToggle($("#saved-info-edit-switch input").checked, $("#saved-table"), "editable");
+	classToggle($('#saved-info-edit-switch input').checked, $('#saved-table'), 'editable');
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -65,8 +65,8 @@ function getJSON(file){
 
 function updateState(component, value){
 	browser.runtime.sendMessage({
-		function: "updatestate",
-		ui: "settings",
+		function: 'updatestate',
+		ui: 'settings',
 		component,
 		value
 	});
@@ -77,33 +77,33 @@ function updateState(component, value){
 //---------------------------------------------------------------------------------------------------------------------
 
 function openTab(tab){
-	$$("#tabs > button").forEach(t => t.classList.remove("active"));
-	$$(".tab-content").forEach(t => t.classList.add("hide"));
+	$$('#tabs > button').forEach(t => t.classList.remove('active'));
+	$$('.tab-content').forEach(t => t.classList.add('hide'));
 
-	$(`#tabs > button[data-tab=${tab}]`).classList.add("active");
+	$(`#tabs > button[data-tab=${tab}]`).classList.add('active');
 
 	let content;
 	switch (tab){
-		case "global":
-			content = "global-options-content";
+		case 'global':
+			content = 'global-options-content';
 			break;
-		case "sites":
-			content = "site-options-content";
+		case 'sites':
+			content = 'site-options-content';
 			break;
-		case "saved":
-			content = "saved-info-content";
+		case 'saved':
+			content = 'saved-info-content';
 			break;
-		case "about":
-			content = "about-content";
+		case 'about':
+			content = 'about-content';
 			break;
 	}
-	$(`#${content}`).classList.remove("hide");
-	updateState("tab", tab);
+	$(`#${content}`).classList.remove('hide');
+	updateState('tab', tab);
 }
 
-for (let t of $$("#tabs > button")){
+for (let t of $$('#tabs > button')){
 	t.onclick = function(){
-		openTab(this.getAttribute("data-tab"));
+		openTab(this.getAttribute('data-tab'));
 	};
 }
 
@@ -115,40 +115,40 @@ async function setupOptions(){
 	let alloptions = await browser.storage.local.get(ALLOPTIONSKEYS);
 
 	let globalinfo = {
-		label: "Global",
-		helplink: "https://github.com/solorey/Art-Saver/wiki/Options"
+		label: 'Global',
+		helplink: 'https://github.com/solorey/Art-Saver/wiki/Options'
 	}
 
-	createOptions($("#global-options"), "global", globalinfo, GLOBALOPTIONS, alloptions.global_options)
+	createOptions($('#global-options'), 'global', globalinfo, GLOBALOPTIONS, alloptions.global_options)
 	for (let site of SITES){
-		createOptions($("#sites-list"), site, SITEINFO[site], SITEOPTIONS[site], alloptions[optionsKey(site)] || {});
-		createSiteToggle($("#sites-toggles"), site, SITEINFO[site], $("#sites-list"));
+		createOptions($('#sites-list'), site, SITEINFO[site], SITEOPTIONS[site], alloptions[optionsKey(site)] || {});
+		createSiteToggle($('#sites-toggles'), site, SITEINFO[site], $('#sites-list'));
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#sites-open-all").onclick = () => {
-	$$("#sites-toggles .site-toggle").forEach(sb => sb.classList.add("active"));
-	$$("#sites-toggles .site-radio").forEach(sr => sr.classList.remove("active"));
-	$$("#sites-list .site-options").forEach(so => so.classList.remove("hide"));
+$('#sites-open-all').onclick = () => {
+	$$('#sites-toggles .site-toggle').forEach(sb => sb.classList.add('active'));
+	$$('#sites-toggles .site-radio').forEach(sr => sr.classList.remove('active'));
+	$$('#sites-list .site-options').forEach(so => so.classList.remove('hide'));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#sites-close-all").onclick = () => {
-	$$("#sites-toggles .site-toggle").forEach(sb => sb.classList.remove("active"));
-	$$("#sites-toggles .site-radio").forEach(sr => sr.classList.remove("active"));
-	$$("#sites-list .site-options").forEach(so => so.classList.add("hide"));
+$('#sites-close-all').onclick = () => {
+	$$('#sites-toggles .site-toggle').forEach(sb => sb.classList.remove('active'));
+	$$('#sites-toggles .site-radio').forEach(sr => sr.classList.remove('active'));
+	$$('#sites-list .site-options').forEach(so => so.classList.add('hide'));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createOptions(parent, site, info, options, savedoptions){
-	let section = $("#options-section-template").content.cloneNode(true).firstElementChild;
+	let section = $('#options-section-template').content.cloneNode(true).firstElementChild;
 	section.id = `${site}-options`;
-	$(section, ".site-header").insertAdjacentText("afterbegin", info.label);
-	$(section, ".question").href = info.helplink;
+	$(section, '.site-header').insertAdjacentText('afterbegin', info.label);
+	$(section, '.question').href = info.helplink;
 
 	parent.appendChild(section);
 
@@ -157,19 +157,19 @@ function createOptions(parent, site, info, options, savedoptions){
 		let optionid = `${site}-${name}`;
 
 		switch (values.type){
-			case "select":
+			case 'select':
 				newoption = createSelectOption(optionid, values, savedoptions[name]);
 				break;
-			case "slider":
+			case 'slider':
 				newoption = createSliderOption(optionid, values, savedoptions[name]);
 				break;
-			case "checkbox":
+			case 'checkbox':
 				newoption = createCheckboxOption(optionid, values, savedoptions[name]);
 				break;
-			case "number":
+			case 'number':
 				newoption = createNumberOption(optionid, values, savedoptions[name]);
 				break;
-			case "textarea":
+			case 'textarea':
 				newoption = createTextareaOption(optionid, values, savedoptions[name]);
 				break;
 		}
@@ -182,7 +182,7 @@ function createOptions(parent, site, info, options, savedoptions){
 		if (values.related){
 			for (let r of values.related){
 				let parentoption = $(`#${site}-${r.option}`);
-				parentoption.addEventListener("change", () => {
+				parentoption.addEventListener('change', () => {
 					showRelated(site, values.related, optionelem);
 				});
 			}
@@ -196,10 +196,10 @@ function createOptions(parent, site, info, options, savedoptions){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function getValue(input){
-	if (input.type === "checkbox"){
+	if (input.type === 'checkbox'){
 		return input.checked;
 	}
-	else if (input.type === "number"){
+	else if (input.type === 'number'){
 		return input.valueAsNumber;
 	}
 	else {
@@ -210,7 +210,7 @@ function getValue(input){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function setValue(input, value){
-	if (input.type === "checkbox"){
+	if (input.type === 'checkbox'){
 		input.checked = value;
 	}
 	else {
@@ -223,11 +223,11 @@ function setValue(input, value){
 function showRelated(site, related, option){
 	for (let r of related){
 		if (getValue($(`#${site}-${r.option}`)) !== r.value){
-			option.classList.add("hide");
+			option.classList.add('hide');
 			return;
 		}
 	}
-	option.classList.remove("hide");
+	option.classList.remove('hide');
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -235,18 +235,18 @@ function showRelated(site, related, option){
 //---------------------------------------------------------------------------------------------------------------------
 
 function createSelectOption(optionid, values, savedvalue){
-	let option = $("#select-template").content.cloneNode(true);
+	let option = $('#select-template').content.cloneNode(true);
 
-	let labelelem = $(option, "label");
+	let labelelem = $(option, 'label');
 	labelelem.textContent = values.label;
-	labelelem.setAttribute("for", optionid);
+	labelelem.setAttribute('for', optionid);
 
-	let selectelem = $(option, "select");
+	let selectelem = $(option, 'select');
 	for (opt of values.options){
-		$insert(selectelem, "option", {value: opt.value, text: opt.label});
+		$insert(selectelem, 'option', {value: opt.value, text: opt.label});
 	}
 	selectelem.id = optionid;
-	selectelem.value = savedvalue || values.default;
+	selectelem.value = (typeof savedvalue != 'undefined')? savedvalue : values.default;
 
 	return option;
 }
@@ -254,21 +254,21 @@ function createSelectOption(optionid, values, savedvalue){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createNumberOption(optionid, values, savedvalue){
-	let option = $("#number-template").content.cloneNode(true);
+	let option = $('#number-template').content.cloneNode(true);
 
-	let labelelem = $(option, "label");
-	labelelem.setAttribute("for", optionid);
-	labelelem.insertAdjacentText("afterbegin", values.label);
+	let labelelem = $(option, 'label');
+	labelelem.setAttribute('for', optionid);
+	labelelem.insertAdjacentText('afterbegin', values.label);
 	if (values.unit){
-		labelelem.insertAdjacentText("beforeend", values.unit);
+		labelelem.insertAdjacentText('beforeend', values.unit);
 	}
 
-	let inputelem = $(option, "input");
+	let inputelem = $(option, 'input');
 	inputelem.id = optionid;
-	inputelem.value = savedvalue || values.default;
+	inputelem.value = (typeof savedvalue != 'undefined')? savedvalue : values.default;
 
-	$(option, ".increase").onmousedown = function(){ numberChange(inputelem, this, 1) };
-	$(option, ".decrease").onmousedown = function(){ numberChange(inputelem, this, -1) };
+	$(option, '.increase').onmousedown = function(){ numberChange(inputelem, this, 1) };
+	$(option, '.decrease').onmousedown = function(){ numberChange(inputelem, this, -1) };
 
 	return option;
 }
@@ -276,25 +276,25 @@ function createNumberOption(optionid, values, savedvalue){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createSliderOption(optionid, values, savedvalue){
-	let option = $("#slider-template").content.cloneNode(true);
+	let option = $('#slider-template').content.cloneNode(true);
 
-	let labelelem = $(option, "label");
-	labelelem.setAttribute("for", optionid);
-	labelelem.insertAdjacentText("afterbegin", values.label);
-	labelelem.insertAdjacentText("beforeend", values.unit);
+	let labelelem = $(option, 'label');
+	labelelem.setAttribute('for', optionid);
+	labelelem.insertAdjacentText('afterbegin', values.label);
+	labelelem.insertAdjacentText('beforeend', values.unit);
 
-	let number = $(option, "input[type=number]");
+	let number = $(option, 'input[type=number]');
 	number.id = optionid;
-	let range = $(option, "input[type=range]");
+	let range = $(option, 'input[type=range]');
 
 	for (let inputelem of [number, range]){
-		inputelem.setAttribute("min", values.min);
-		inputelem.setAttribute("max", values.max);
-		inputelem.value = savedvalue || values.default;
+		inputelem.setAttribute('min', values.min);
+		inputelem.setAttribute('max', values.max);
+		inputelem.value = (typeof savedvalue != 'undefined')? savedvalue : values.default;
 	}
 
-	$(option, ".increase").onmousedown = function(){ numberChange(number, this, 1, range) };
-	$(option, ".decrease").onmousedown = function(){ numberChange(number, this, -1, range) };
+	$(option, '.increase').onmousedown = function(){ numberChange(number, this, 1, range) };
+	$(option, '.decrease').onmousedown = function(){ numberChange(number, this, -1, range) };
 
 	number.oninput = function(){
 		range.value = this.value;
@@ -334,15 +334,15 @@ function numberChange(num, elem, n, range){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createCheckboxOption(optionid, values, savedvalue){
-	let option = $("#checkbox-template").content.cloneNode(true);
+	let option = $('#checkbox-template').content.cloneNode(true);
 
-	let labelelem = $(option, "label");
-	labelelem.setAttribute("for", optionid);
+	let labelelem = $(option, 'label');
+	labelelem.setAttribute('for', optionid);
 	labelelem.lastElementChild.textContent = values.label;
 
-	let inputelem = $(option, "input");
+	let inputelem = $(option, 'input');
 	inputelem.id = optionid;
-	inputelem.checked = savedvalue || values.default;
+	inputelem.checked = (typeof savedvalue != 'undefined')? savedvalue : values.default;
 
 	return option;
 }
@@ -350,15 +350,15 @@ function createCheckboxOption(optionid, values, savedvalue){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createTextareaOption(optionid, values, savedvalue){
-	let option = $("#textarea-template").content.cloneNode(true);
+	let option = $('#textarea-template').content.cloneNode(true);
 
-	let labelelem = $(option, "label");
-	labelelem.setAttribute("for", optionid);
+	let labelelem = $(option, 'label');
+	labelelem.setAttribute('for', optionid);
 	labelelem.textContent = values.label;
 
-	let textareaelem = $(option, "textarea");
+	let textareaelem = $(option, 'textarea');
 	textareaelem.id = optionid;
-	textareaelem.value = savedvalue || values.default;
+	textareaelem.value = (typeof savedvalue != 'undefined')? savedvalue : values.default;
 
 	textareaResize(textareaelem);
 	let resize = new ResizeObserver(entries => {
@@ -369,22 +369,22 @@ function createTextareaOption(optionid, values, savedvalue){
 		textareaResize(this);
 	};
 	
-	let table = $(option, "table");
+	let table = $(option, 'table');
 	for (let tm of values.metas){
-		let metarow = $("#meta-row-template").content.cloneNode(true);
-		$(metarow, "strong").textContent = tm;
-		$$(metarow, "td")[1].textContent = METAS[tm];
+		let metarow = $('#meta-row-template').content.cloneNode(true);
+		$(metarow, 'strong').textContent = tm;
+		$$(metarow, 'td')[1].textContent = METAS[tm];
 
 		table.appendChild(metarow);
 	}
 
-	let helpbutton = $(option, "button");
+	let helpbutton = $(option, 'button');
 	helpbutton.onclick = function(){
-		if (table.classList.toggle("hide")){
-			this.textContent = "Show Help";
+		if (table.classList.toggle('hide')){
+			this.textContent = 'Show Help';
 		}
 		else {
-			this.textContent = "Hide Help";
+			this.textContent = 'Hide Help';
 		}
 	};
 
@@ -409,30 +409,30 @@ function textareaResize(textarea){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createSiteToggle(parent, site, info, optionslist){
-	let showtoggle = $("#site-toggle-template").content.cloneNode(true);
-	let toggle = $(showtoggle, ".site-toggle");
-	let button = $(showtoggle, ".site-button");
-	let radio = $(showtoggle, ".site-radio");
+	let showtoggle = $('#site-toggle-template').content.cloneNode(true);
+	let toggle = $(showtoggle, '.site-toggle');
+	let button = $(showtoggle, '.site-button');
+	let radio = $(showtoggle, '.site-radio');
 	button.textContent = info.label;
 	button.onclick = function(){
-		let isactive = toggle.classList.toggle("active");
-		classToggle(!isactive, $(`#${site}-options`), "hide");
-		$$(parent, ".site-radio").forEach(t => t.classList.remove("active"));
+		let isactive = toggle.classList.toggle('active');
+		classToggle(!isactive, $(`#${site}-options`), 'hide');
+		$$(parent, '.site-radio').forEach(t => t.classList.remove('active'));
 	}
 	radio.onclick = function(){
-		$$(parent, ".site-toggle").forEach(t => t.classList.remove("active"));
-		$$(parent, ".site-radio").forEach(t => t.classList.remove("active"));
-		$$(optionslist, ".site-options").forEach(o => o.classList.add("hide"));
+		$$(parent, '.site-toggle').forEach(t => t.classList.remove('active'));
+		$$(parent, '.site-radio').forEach(t => t.classList.remove('active'));
+		$$(optionslist, '.site-options').forEach(o => o.classList.add('hide'));
 
-		this.classList.add("active");
-		toggle.classList.add("active");
-		$(`#${site}-options`).classList.remove("hide");
+		this.classList.add('active');
+		toggle.classList.add('active');
+		$(`#${site}-options`).classList.remove('hide');
 	}
 	parent.appendChild(showtoggle);
 }
 
-$("form").onsubmit = s => s.preventDefault();
-$("form").oninput = () => saveOptions();
+$('form').onsubmit = s => s.preventDefault();
+$('form').oninput = () => saveOptions();
 
 //---------------------------------------------------------------------------------------------------------------------
 // form getting and setting
@@ -489,17 +489,17 @@ function setFormOptions(alloptions){
 			if (values.related){
 				related.push([site, values.related, optionblock]);
 			}
-
-			if (!alloptions[site] || alloptions[site][key] === undefined){
+			
+			if (!alloptions[site] || typeof alloptions[site][key] === 'undefined'){
 				continue;
 			}
 			let value = alloptions[site][key];
 			setValue(optionelem, value);
 
-			if (values.type === "slider"){
-				$(optionblock, "input[type=range]").value = value;
+			if (values.type === 'slider'){
+				$(optionblock, 'input[type=range]').value = value;
 			}
-			else if (values.type === "textarea"){
+			else if (values.type === 'textarea'){
 				textareaResize(optionelem);
 			}
 		}
@@ -522,44 +522,44 @@ function getOptionBlock(input, type){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#import-options").oninput = async function(){
+$('#import-options').oninput = async function(){
 	let jsonfile = await getJSON(this.files[0]);
 	setFormOptions(jsonfile);
 };
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#click-import").onclick = () => {
-	$("#import-options").click();
+$('#click-import').onclick = () => {
+	$('#import-options').click();
 };
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#export-options").onclick = () => {
-	let blob = new Blob([JSON.stringify(getFormOptions(), null, "\u0009")], {type: "application/json"});
+$('#export-options').onclick = () => {
+	let blob = new Blob([JSON.stringify(getFormOptions(), null, '\u0009')], {type: 'application/json'});
 
 	browser.downloads.download({
 		url: URL.createObjectURL(blob),
-		filename: "artsaver_settings.json",
+		filename: 'artsaver_settings.json',
 		saveAs: true
 	});
 };
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#reset-options").onclick = () => {
-	let undo = $("#options-undo");
-	if (!undo.classList.contains("hide")){
+$('#reset-options').onclick = () => {
+	let undo = $('#options-undo');
+	if (!undo.classList.contains('hide')){
 		return;
 	}
 
 	let oldoptions = getFormOptions();
 	setFormOptions(getDefalutOptions());
 
-	undo.classList.remove("hide");
-	$(undo, ".undo-button").onclick = () => {
+	undo.classList.remove('hide');
+	$(undo, '.undo-button').onclick = () => {
 		setFormOptions(oldoptions);
-		undo.classList.add("hide");
+		undo.classList.add('hide');
 	}
 }
 
@@ -576,45 +576,45 @@ async function savedInfoDetails(){
 		}
 	}
 
-	let savedtable = $("#info-table");
+	let savedtable = $('#info-table');
 	let tablestate = getSavedInfoTableState();
 
-	$$(savedtable, "tr:nth-child(n+2)").forEach(row => $remove(row));
+	$$(savedtable, 'tr:nth-child(n+2)').forEach(row => $remove(row));
 	globalrunningobservers.forEach(ob => ob.disconnect());
 
 	if (!list || Object.keys(list).length <= 0){
-		savedtable.classList.add("hide");
+		savedtable.classList.add('hide');
 		return;
 	}
 
-	let tbody = $(savedtable, "tbody");
+	let tbody = $(savedtable, 'tbody');
 
 	for (let site of Object.keys(list)){
-		let row = $("#stats-row-template").content.cloneNode(true);
-		let statrow = $(row, ".stat-row")
-		let inforow = $(row, ".info-row")
-		statrow.setAttribute("data-site", site);
+		let row = $('#stats-row-template').content.cloneNode(true);
+		let statrow = $(row, '.stat-row')
+		let inforow = $(row, '.info-row')
+		statrow.setAttribute('data-site', site);
 
 		statrow.onclick = function(){
-			classToggle(!inforow.classList.toggle("hide"), this, "active");
+			classToggle(!inforow.classList.toggle('hide'), this, 'active');
 		};
 
 		if (tablestate[site] && tablestate[site].toggle){
-			statrow.classList.add("active");
-			inforow.classList.remove("hide");
+			statrow.classList.add('active');
+			inforow.classList.remove('hide');
 		}
 
-		$(row, ".stat-site").textContent = SITEINFO[site].label;
+		$(row, '.stat-site').textContent = SITEINFO[site].label;
 
 		let stats = [
-			[...new Set(Object.keys(list[site]))].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: "base", numeric: true})), //users
+			[...new Set(Object.keys(list[site]))].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base', numeric: true})), //users
 			[...new Set(Object.values(list[site]).flat())].sort((a, b) => b - a) //submissions
 		];
 
-		let badges = $$(row, ".badge");
-		let searchboxes = $$(row, ".search-box");
-		let searchinputs = $$(row, ".search-box input");
-		let listboxes = $$(row, ".list-box");
+		let badges = $$(row, '.badge');
+		let searchboxes = $$(row, '.search-box');
+		let searchinputs = $$(row, '.search-box input');
+		let listboxes = $$(row, '.list-box');
 
 		let createrows = [
 			(u) => createUserRow(site, u),
@@ -655,13 +655,13 @@ async function savedInfoDetails(){
 		}
 	}
 
-	savedtable.classList.remove("hide");
+	savedtable.classList.remove('hide');
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function getSavedInfoTableState(){
-	let savedtable = $("#info-table");
+	let savedtable = $('#info-table');
 	let tablestate = {};
 	for (site of SITES){
 		let statrow = $(savedtable, `tr[data-site=${site}]`);
@@ -670,10 +670,10 @@ function getSavedInfoTableState(){
 		}
 		let inforow = statrow.nextElementSibling;
 		tablestate[site] = {
-			toggle: statrow.classList.contains("active"),
-			searches: $$(inforow, ".search-box input").map(s => s.value),
-			scrolls: $$(inforow, ".list-box").map(s => s.scrollTop),
-			height: $(inforow, ".list-box").style.height
+			toggle: statrow.classList.contains('active'),
+			searches: $$(inforow, '.search-box input').map(s => s.value),
+			scrolls: $$(inforow, '.list-box').map(s => s.scrollTop),
+			height: $(inforow, '.list-box').style.height
 		}
 	}
 	return tablestate;
@@ -684,21 +684,21 @@ function getSavedInfoTableState(){
 function createUserRow(site, reguser){
 	let links = SITEINFO[site].links;
 
-	let row = $("#user-row-template").content.cloneNode(true);
-	let spans = $$(row, "span");
+	let row = $('#user-row-template').content.cloneNode(true);
+	let spans = $$(row, 'span');
 	spans[0].textContent = reguser[1];
 	spans[1].textContent = reguser[reguser.length - 1];
-	$(row, "strong").textContent = reguser[2];
+	$(row, 'strong').textContent = reguser[2];
 
-	let alinks = $$(row, "a");
+	let alinks = $$(row, 'a');
 	alinks[0].href = links.user(reguser[0]);
 	alinks[1].href = links.gallery(reguser[0]);
 	alinks[2].href = links.favorites(reguser[0]);
 
-	$(row, ".row-delete").addEventListener("click", async function(){
-		this.classList.add("deleting");
+	$(row, '.row-delete').addEventListener('click', async function(){
+		this.classList.add('deleting');
 		await browser.runtime.sendMessage({
-			function: "removeuser",
+			function: 'removeuser',
 			site: site,
 			user: reguser[0]
 		});
@@ -712,18 +712,18 @@ function createUserRow(site, reguser){
 function createSubmissionRow(site, regsubmission){
 	let links = SITEINFO[site].links;
 
-	let row = $("#submission-row-template").content.cloneNode(true);
-	let spans = $$(row, "span")
+	let row = $('#submission-row-template').content.cloneNode(true);
+	let spans = $$(row, 'span')
 	spans[0].textContent = regsubmission[1];
 	spans[1].textContent = regsubmission[regsubmission.length - 1];
-	$(row, "strong").textContent = regsubmission[2];
+	$(row, 'strong').textContent = regsubmission[2];
 
-	$(row, "a").href = links.submission(regsubmission[0]);
+	$(row, 'a').href = links.submission(regsubmission[0]);
 
-	$(row, ".row-delete").addEventListener("click", async function(){
-		this.classList.add("deleting");
+	$(row, '.row-delete').addEventListener('click', async function(){
+		this.classList.add('deleting');
 		await browser.runtime.sendMessage({
-			function: "removesubmission",
+			function: 'removesubmission',
 			site: site,
 			sid: parseInt(regsubmission[0], 10)
 		});
@@ -735,25 +735,25 @@ function createSubmissionRow(site, regsubmission){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#table-refresh").onclick = () => savedInfoDetails();
+$('#table-refresh').onclick = () => savedInfoDetails();
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#table-open-all").onclick = () => {
-	$$("#saved-table .stat-row").forEach(sr => sr.classList.add("active"));
-	$$("#saved-table .info-row").forEach(ir => ir.classList.remove("hide"));
+$('#table-open-all').onclick = () => {
+	$$('#saved-table .stat-row').forEach(sr => sr.classList.add('active'));
+	$$('#saved-table .info-row').forEach(ir => ir.classList.remove('hide'));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#table-close-all").onclick = () => {
-	$$("#saved-table .stat-row").forEach(sr => sr.classList.remove("active"));
-	$$("#saved-table .info-row").forEach(ir => ir.classList.add("hide"));
+$('#table-close-all').onclick = () => {
+	$$('#saved-table .stat-row').forEach(sr => sr.classList.remove('active'));
+	$$('#saved-table .info-row').forEach(ir => ir.classList.add('hide'));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#export-list").onclick = async () => {
+$('#export-list').onclick = async () => {
 	let savedinfo = await browser.storage.local.get(SITESSAVEDKEYS);
 	let informationtosave = {};
 	for (let site of SITES){
@@ -761,35 +761,35 @@ $("#export-list").onclick = async () => {
 			informationtosave[site] = savedinfo[savedKey(site)];
 		}
 	}
-	let blob = new Blob([JSON.stringify(informationtosave, null, "\u0009")], {type: "application/json"});
+	let blob = new Blob([JSON.stringify(informationtosave, null, '\u0009')], {type: 'application/json'});
 
 	browser.downloads.download({
 		url: URL.createObjectURL(blob),
-		filename: "artsaver_saved_info.json",
+		filename: 'artsaver_saved_info.json',
 		saveAs: true
 	});
 };
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#reset-list").onclick = async () => {
-	let undo = $("#saved-info-undo");
-	$(undo, "span").textContent = "reset";
+$('#reset-list').onclick = async () => {
+	let undo = $('#saved-info-undo');
+	$(undo, 'span').textContent = 'reset';
 
 	await setUndoButton();
 	await browser.storage.local.remove(SITESSAVEDKEYS);
 	await savedInfoDetails();
 
-	undo.classList.remove("hide");
+	undo.classList.remove('hide');
 };
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#saved-info").oninput = async function(){
-	$("#filename").textContent = this.files[0].name;
+$('#saved-info').oninput = async function(){
+	$('#filename').textContent = this.files[0].name;
 
-	let undo = $("#saved-info-undo");
-	$(undo, "span").textContent = "overwritten";
+	let undo = $('#saved-info-undo');
+	$(undo, 'span').textContent = 'overwritten';
 	await setUndoButton();
 
 	try {
@@ -799,7 +799,7 @@ $("#saved-info").oninput = async function(){
 	}
 	catch (err){}
 
-	undo.classList.remove("hide");
+	undo.classList.remove('hide');
 };
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -828,29 +828,29 @@ function cleanSavedInfo(savefile){
 async function setUndoButton(){
 	let old = await browser.storage.local.get(SITESSAVEDKEYS);
 
-	$("#saved-info-undo .undo-button").onclick = async () => {
+	$('#saved-info-undo .undo-button').onclick = async () => {
 		await browser.storage.local.set(old);
 		await savedInfoDetails();
-		$("#saved-info-undo").classList.add("hide");
+		$('#saved-info-undo').classList.add('hide');
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-for (ub of $$(".close-button")){
+for (ub of $$('.close-button')){
 	ub.onclick = function(){
-		this.parentElement.classList.add("hide");
+		this.parentElement.classList.add('hide');
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$("#saved-info-edit-switch").oninput = function(){
-	classToggle($(this, "input").checked, $("#saved-table"), "editable");
+$('#saved-info-edit-switch').oninput = function(){
+	classToggle($(this, 'input').checked, $('#saved-table'), 'editable');
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 // about info
 //---------------------------------------------------------------------------------------------------------------------
 
-$("#version").textContent = browser.runtime.getManifest().version;
+$('#version').textContent = browser.runtime.getManifest().version;

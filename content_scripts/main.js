@@ -11,8 +11,8 @@ const savedKey = (s) => `${s}_saved`;
 main();
 
 async function main(){
-	globaloptions = await getOptions("global");
-	document.body.style.setProperty("--as-icon-size", `${globaloptions.iconSize}px`);
+	globaloptions = await getOptions('global');
+	document.body.style.setProperty('--as-icon-size', `${globaloptions.iconSize}px`);
 
 	globalqueue = createPageQueue(globaloptions.useQueue, {
 		concurrent: globaloptions.queueConcurrent,
@@ -25,7 +25,7 @@ async function main(){
 	await setSavedInfo(page.site);
 
 	as[page.site].check.startChecking();
-	//$insert(document.body, "button", {id: "artsaver-test-button", text: "test button"}).onclick = () => testing();
+	//$insert(document.body, 'button', {id: 'artsaver-test-button', text: 'test button'}).onclick = () => testing();
 }
 
 //function testing(){
@@ -70,8 +70,8 @@ async function reCheck(){
 	globalrunningobservers.forEach(ob => ob.disconnect());
 	globalrunningobservers = [];
 
-	$$("[data-checkstatus]").forEach(e => e.removeAttribute("data-checkstatus"));
-	$$(".artsaver-check, .artsaver-screen").forEach(e => $remove(e));
+	$$('[data-checkstatus]').forEach(e => e.removeAttribute('data-checkstatus'));
+	$$('.artsaver-check, .artsaver-screen').forEach(e => $remove(e));
 
 	as[page.site].check.startChecking();
 }
@@ -82,8 +82,8 @@ async function reCheck(){
 //themed console log
 
 function asLog(...texts){
-	let log = ["%c[Art Saver]%c", "color: #006efe", ""];
-	if (typeof(texts[0]) === "string"){
+	let log = ['%c[Art Saver]%c', 'color: #006efe', ''];
+	if (typeof(texts[0]) === 'string'){
 		log[0] += ` ${texts.shift()}`;
 	}
 	console.log(...log.concat(texts));
@@ -92,31 +92,31 @@ function asLog(...texts){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //simpler fetch function with document support
 
-async function fetcher(url, type = "response", init = {}){
+async function fetcher(url, type = 'response', init = {}){
 	init = {
-		credentials: "include",
+		credentials: 'include',
 		referrer: window.location.href,
 		...init
 	};
 
 	let response = await fetch(url, init);
 
-	if (!response.ok && type !== "response"){
+	if (!response.ok && type !== 'response'){
 		let err = new Error(url);
 		err.name = `Error ${response.status}`;
 		return err;
 	}
 
 	switch (type){
-		case "document":
+		case 'document':
 			let html = await response.text();
 			let parser = new DOMParser();
-			return parser.parseFromString(html, "text/html");
+			return parser.parseFromString(html, 'text/html');
 
-		case "json":
+		case 'json':
 			return await response.json();
 
-		case "blob":
+		case 'blob':
 			return await response.blob();
 
 		default:
@@ -137,18 +137,18 @@ function createButtonsState(){
 	state.createState = function(type, site, subid){
 		let base = {
 			type,
-			status: "idle",
+			status: 'idle',
 			site,
 			subid,
 			buttons: []
 		};
 
-		if (type === "check"){
+		if (type === 'check'){
 			this.idsMap.set(subid, base);
 		}
-		else if (type === "download"){
+		else if (type === 'download'){
 			this.idsMap.set(subid, {
-				text: "",
+				text: '',
 				width: 0,
 				...base
 			});
@@ -164,7 +164,7 @@ function createButtonsState(){
 			this.createState(type, site, subid);
 		}
 		this.idsMap.get(subid).buttons.push(button);
-		this.setValue(subid, "type", type);
+		this.setValue(subid, 'type', type);
 	}
 
 	state.setValue = function(subid, key, value){
@@ -197,7 +197,7 @@ function createButtonsState(){
 				}
 			}
 			info.buttons = info.buttons.filter(b => b.button.isConnected);
-			if (info.status === "idle" && info.buttons.length <= 0){
+			if (info.status === 'idle' && info.buttons.length <= 0){
 				this.removeState(subid);
 			}
 		}
@@ -211,29 +211,29 @@ function createButtonsState(){
 		for (let [subid, info] of this.idsMap){
 			let status = info.status;
 			switch (info.type){
-				case "check":
+				case 'check':
 					updateCheck(subid, info);
-					if (status === "removing"){
+					if (status === 'removing'){
 						keeprunning = true;
 					}
-					else if (status === "finished"){
+					else if (status === 'finished'){
 						recheck = true;
 					}
 					break;
 
-				case "download":
+				case 'download':
 					updateDownload(subid, info);
-					if (status === "inprogress"){
+					if (status === 'inprogress'){
 						keeprunning = true;
 					}
-					else if (status === "finished"){
+					else if (status === 'finished'){
 						recheck = true;
 					}
 					break;
 
-				case "error":
+				case 'error':
 					updateError(subid, info);
-					if (status === "remove"){
+					if (status === 'remove'){
 						recheck = true;
 					}
 			}
@@ -258,34 +258,34 @@ function createButtonsState(){
 	}
 
 	function updateCheck(subid, info){
-		if (info.status === "removing"){
+		if (info.status === 'removing'){
 			for (let b of info.buttons){
-				if (b.button.className !== "artsaver-loading"){
-					b.button.className = "artsaver-loading";
+				if (b.button.className !== 'artsaver-loading'){
+					b.button.className = 'artsaver-loading';
 					removeListeners(b);
 				}
 			}
 		}
-		else if (info.status === "finished"){
+		else if (info.status === 'finished'){
 			info.buttons.forEach(b => $remove(b.button));
 			state.removeState(subid);
 		}
 	}
 
 	function updateDownload(subid, info){
-		if (info.status === "inprogress"){
+		if (info.status === 'inprogress'){
 			for (let b of info.buttons){
-				if (b.button.className !== "artsaver-loading"){
-					b.button.className = "artsaver-loading";
-					b.bar = $insert(b.button, "div", {position: "beforebegin", class: "artsaver-progress"});
-					$insert($insert(b.bar, "div", {class: "artsaver-bar"}), "div", {class: "artsaver-bar-text"});
+				if (b.button.className !== 'artsaver-loading'){
+					b.button.className = 'artsaver-loading';
+					b.bar = $insert(b.button, 'div', {position: 'beforebegin', class: 'artsaver-progress'});
+					$insert($insert(b.bar, 'div', {class: 'artsaver-bar'}), 'div', {class: 'artsaver-bar-text'});
 					removeListeners(b);
 				}
 				b.bar.firstElementChild.style.width = `${info.width}%`;
 				b.bar.firstElementChild.firstElementChild.textContent = info.text;
 			}
 		}
-		else if (info.status === "finished"){
+		else if (info.status === 'finished'){
 			for (let b of info.buttons){
 				$remove(b.button);
 				$remove(b.bar);
@@ -296,19 +296,19 @@ function createButtonsState(){
 
 	function updateError(subid, info){
 		for (let b of info.buttons){
-			if (b.button.className !== "artsaver-error"){
-				b.button.className = "artsaver-error";
+			if (b.button.className !== 'artsaver-error'){
+				b.button.className = 'artsaver-error';
 				$remove(b.bar);
-				b.button.addEventListener("click", event => {
+				b.button.addEventListener('click', event => {
 					event.preventDefault();
 					event.stopPropagation();
 
-					state.setValue(subid, "status", "remove");
+					state.setValue(subid, 'status', 'remove');
 				}, {once: true});
 			}
 		}
 
-		if (info.status === "remove"){
+		if (info.status === 'remove'){
 			info.buttons.forEach(b => $remove(b.button));
 			state.removeState(subid);
 		}
@@ -318,31 +318,31 @@ function createButtonsState(){
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-// "create" functions
+// 'create' functions
 //---------------------------------------------------------------------------------------------------------------------
 
 function createTooltip(){
-	$remove($(".artsaver-tip"));
+	$remove($('.artsaver-tip'));
 
-	let tip = $insert(document.body, "div", {class: "artsaver-tip"});
-	let table = $insert(tip, "table");
-	let tr1 = $insert(table, "tr");
-	$insert(tr1, "td", {text: "User:"});
-	$insert(tr1, "td");
-	let tr2 = $insert(table, "tr");
-	$insert(tr2, "td", {text: "Id:"});
-	$insert(tr2, "td");
+	let tip = $insert(document.body, 'div', {class: 'artsaver-tip'});
+	let table = $insert(tip, 'table');
+	let tr1 = $insert(table, 'tr');
+	$insert(tr1, 'td', {text: 'User:'});
+	$insert(tr1, 'td');
+	let tr2 = $insert(table, 'tr');
+	$insert(tr2, 'td', {text: 'Id:'});
+	$insert(tr2, 'td');
 
 	tooltip = {tip};
 
 	tooltip.show = function(){
-		this.tip.setAttribute("data-display", "show");
+		this.tip.setAttribute('data-display', 'show');
 	}
 	tooltip.fade = function(){
-		this.tip.removeAttribute("data-display");
+		this.tip.removeAttribute('data-display');
 	}
 	tooltip.set = function(user, id){
-		let fields = $$(this.tip, "td:last-child");
+		let fields = $$(this.tip, 'td:last-child');
 		fields[0].textContent = user;
 		fields[1].textContent = id;
 	}
@@ -361,7 +361,7 @@ function createTooltip(){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createCheck(site, user, subid, color, anchor, screen){
-	let checkbutton = $insert(anchor, "div", {class: "artsaver-check", "data-color": color});
+	let checkbutton = $insert(anchor, 'div', {class: 'artsaver-check', 'data-color': color});
 
 	if (tooltip){
 		checkbutton.onmouseover = function(){
@@ -380,19 +380,19 @@ function createCheck(site, user, subid, color, anchor, screen){
 		globaltooltip.fade();
 	};
 
-	checkbutton.addEventListener("click", clickevent, {once: true});
+	checkbutton.addEventListener('click', clickevent, {once: true});
 
 	if (globaloptions.addScreen && screen){
-		let cover = $insert(checkbutton, "div", {position: "beforebegin", class: "artsaver-screen"});
+		let cover = $insert(checkbutton, 'div', {position: 'beforebegin', class: 'artsaver-screen'});
 		cover.style.opacity = `${globaloptions.screenOpacity}%`;
-		$insert(cover, "div");
+		$insert(cover, 'div');
 	}
 
 	let events = [
-		{target: checkbutton, type: "click", listener: clickevent}
+		{target: checkbutton, type: 'click', listener: clickevent}
 	];
 
-	globalbuttons.addButton("check", site, subid, {button: checkbutton, events});
+	globalbuttons.addButton('check', site, subid, {button: checkbutton, events});
 
 	return checkbutton;
 }
@@ -400,22 +400,22 @@ function createCheck(site, user, subid, color, anchor, screen){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function removeSubmission(site, subid){
-	globalbuttons.setValue(subid, "status", "removing");
+	globalbuttons.setValue(subid, 'status', 'removing');
 	try {
 		globalsavedinfo = await browser.runtime.sendMessage({
-			function: "removesubmission",
+			function: 'removesubmission',
 			site: site,
 			sid: subid
 		});
 	}
 	catch (err){}
-	globalbuttons.setValue(subid, "status", "finished");
+	globalbuttons.setValue(subid, 'status', 'finished');
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createDownload(site, subid, anchor){
-	let dlbutton = $insert(anchor, "div", {class: "artsaver-download"});
+	let dlbutton = $insert(anchor, 'div', {class: 'artsaver-download'});
 
 	let clickevent = event => {
 		event.preventDefault();
@@ -424,22 +424,22 @@ function createDownload(site, subid, anchor){
 		globalqueue.addDownload(site, subid);
 	};
 
-	dlbutton.addEventListener("click", clickevent, {once: true});
+	dlbutton.addEventListener('click', clickevent, {once: true});
 
 	let keyevent = event => {
-		if (anchor.matches(":hover") && event.key === "d"){
+		if (anchor.matches(':hover') && event.key === 'd'){
 			globalqueue.addDownload(site, subid);
 		}
 	};
 
-	document.addEventListener("keypress", keyevent);
+	document.addEventListener('keypress', keyevent);
 
 	let events = [
-		{target: dlbutton, type: "click", listener: clickevent},
-		{target: document, type: "keypress", listener: keyevent}
+		{target: dlbutton, type: 'click', listener: clickevent},
+		{target: document, type: 'keypress', listener: keyevent}
 	];
 
-	globalbuttons.addButton("download", site, subid, {button: dlbutton, events});
+	globalbuttons.addButton('download', site, subid, {button: dlbutton, events});
 
 	return dlbutton;
 }
@@ -447,8 +447,8 @@ function createDownload(site, subid, anchor){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function createError(dlbutton){
-	dlbutton.className = "artsaver-error";
-	dlbutton.addEventListener("click", function(event){
+	dlbutton.className = 'artsaver-error';
+	dlbutton.addEventListener('click', function(event){
 		event.preventDefault();
 		event.stopPropagation();
 
@@ -460,17 +460,17 @@ function createError(dlbutton){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function addButton(site, user, subid, anchor, screen = true){
-	if ($(anchor, ".artsaver-error, .artsaver-loading")){
+	if ($(anchor, '.artsaver-error, .artsaver-loading')){
 		return;
 	}
-	let button = $(anchor, ".artsaver-check, .artsaver-download");
+	let button = $(anchor, '.artsaver-check, .artsaver-download');
 
-	if (anchor.getAttribute("data-checkstatus") !== "checked" && !$(anchor, "[data-checkstatus]")){
+	if (anchor.getAttribute('data-checkstatus') !== 'checked' && !$(anchor, '[data-checkstatus]')){
 		let result = checkSavedInfo(site, user, subid);
-		anchor.setAttribute("data-checkstatus", "checked");
+		anchor.setAttribute('data-checkstatus', 'checked');
 
 		if (result.found){
-			$$(anchor, "[class^=artsaver]").forEach(e => $remove(e));
+			$$(anchor, '[class^=artsaver]').forEach(e => $remove(e));
 
 			button = createCheck(site, user, subid, result.color, anchor, screen);
 		}
@@ -488,7 +488,7 @@ function addButton(site, user, subid, anchor, screen = true){
 function checkSavedInfo(site, user, id){
 	let found = false;
 	let founduser = user;
-	let color = "green";
+	let color = 'green';
 
 	if (globalsavedinfo[user] && globalsavedinfo[user].includes(id)){
 		found = true;
@@ -501,7 +501,7 @@ function checkSavedInfo(site, user, id){
 
 			founduser = otheruser;
 			if (user){
-				color = "yellow";
+				color = 'yellow';
 			}
 			found = true;
 			break;
@@ -518,23 +518,23 @@ function createProgress(subid){
 
 
 	progress.say = function(text){
-		globalbuttons.setValue(subid, "text", text);
+		globalbuttons.setValue(subid, 'text', text);
 	}
 	progress.width = function(width){
-		globalbuttons.setValue(subid, "width", width);
+		globalbuttons.setValue(subid, 'width', width);
 	}
 	progress.start = function(text){
 		this.width(0);
 		this.say(text);
 	}
 	progress.onOf = function(message, index, total){
-		let multiple = (total > 1) ? ` ${index}/${total}` : "";
+		let multiple = (total > 1) ? ` ${index}/${total}` : '';
 		this.say(`${message}${multiple}`);
 	}
 	progress.blobProgress = function(index, total, bytes, loaded, blobtotal){
 		let block = (1 / total) * 100;
 		let initalwidth = (index / total) * 100;
-		let onof = (total > 1) ? `${index + 1}/${total} ` : "";
+		let onof = (total > 1) ? `${index + 1}/${total} ` : '';
 		let size = fileSize(bytes + loaded);
 		if (!blobtotal){
 			this.width(initalwidth + block);
@@ -547,11 +547,11 @@ function createProgress(subid){
 		}
 	}
 	progress.finished = function(){
-		globalbuttons.setValue(subid, "status", "finished");
+		globalbuttons.setValue(subid, 'status', 'finished');
 	}
 	progress.error = function(){
-		globalbuttons.setValue(subid, "type", "error");
-		globalbuttons.setValue(subid, "status", "error");
+		globalbuttons.setValue(subid, 'type', 'error');
+		globalbuttons.setValue(subid, 'status', 'error');
 	}
 
 	return progress;
@@ -560,8 +560,8 @@ function createProgress(subid){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function fileSize(bytes){
-	for (let size of ["bytes", "KB", "MB", "GB", "TB"]){
-		if (bytes < 1024 || size === "TB"){
+	for (let size of ['bytes', 'KB', 'MB', 'GB', 'TB']){
+		if (bytes < 1024 || size === 'TB'){
 			return `${bytes.toFixed(2)} ${size}`;
 		}
 		bytes = bytes / 1024;
@@ -575,7 +575,7 @@ function fileSize(bytes){
 function timeParse(timestring){
 	let time = new Date(timestring);
 
-	let pad = (n) => `${n}`.padStart(2, "0");
+	let pad = (n) => `${n}`.padStart(2, '0');
 
 	return {
 		YYYY: pad(time.getFullYear()),
@@ -599,7 +599,7 @@ async function fetchBlob(url, callback){
 	}
 
 	let loaded = 0;
-	let total = parseInt(response.headers.get("Content-Length"), 10);
+	let total = parseInt(response.headers.get('Content-Length'), 10);
 
 	let reader = response.body.getReader();
 	let chunks = [];
@@ -622,7 +622,7 @@ async function fetchBlob(url, callback){
 
 async function downloadBlob(blob, filename, meta){
 	let message = await browser.runtime.sendMessage({
-		function: "blob",
+		function: 'blob',
 		blob,
 		filename,
 		meta
@@ -635,7 +635,7 @@ async function downloadBlob(blob, filename, meta){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function handleAllDownloads(downloads, progress){
-	progress.start("Starting download");
+	progress.start('Starting download');
 
 	let bytes = 0;
 	let total = downloads.length;
@@ -664,23 +664,23 @@ async function handleAllDownloads(downloads, progress){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function logDownloadResponse(message){
-	if (message.response === "Success"){
-		asLog("%cDownloading:", "color: #006efe", message.filename);
+	if (message.response === 'Success'){
+		asLog('%cDownloading:', 'color: #006efe', message.filename);
 	}
-	else if (message.response === "Failure"){
-		asLog("%cFailed to download:", "color: #d70022", message.filename);
+	else if (message.response === 'Failure'){
+		asLog('%cFailed to download:', 'color: #d70022', message.filename);
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function updateSavedInfo(site, user, id){
-	let message = await browser.runtime.sendMessage({function: "updatesavedinfo", site, user, id});
-	if (message.response === "Success"){
+	let message = await browser.runtime.sendMessage({function: 'updatesavedinfo', site, user, id});
+	if (message.response === 'Success'){
 		globalsavedinfo = message.list;
 	}
-	else if (message.response === "Failure"){
-		asLog("%cFailed to update list:", "color: #d70022", message.error);
+	else if (message.response === 'Failure'){
+		asLog('%cFailed to update list:', 'color: #d70022', message.error);
 	}
 }
 
@@ -690,16 +690,16 @@ async function updateSavedInfo(site, user, id){
 
 browser.runtime.onMessage.addListener(message => {
 	switch (message.command){
-		case "downloadall":
+		case 'downloadall':
 			downloadAll();
 			break;
 
-		case "recheck":
+		case 'recheck':
 			reCheck();
 			setTimeout(() => sendStats(), 300);
 			break;
 
-		case "sitestats":
+		case 'sitestats':
 			sendStats();
 	}
 });
@@ -709,7 +709,7 @@ browser.runtime.onMessage.addListener(message => {
 function downloadAll(){
 	globalbuttons.cleanButtons();
 	for (let b of globalbuttons.idsMap.values()){
-		if (b.type === "download" && b.status === "idle"){
+		if (b.type === 'download' && b.status === 'idle'){
 			b.buttons[0].button.click();
 		}
 	}
@@ -722,10 +722,10 @@ function sendStats(){
 	let downloads = 0;
 	let saved = 0
 	for (let b of globalbuttons.idsMap.values()){
-		if (b.type === "download" && b.status === "idle"){
+		if (b.type === 'download' && b.status === 'idle'){
 			downloads += 1;
 		}
-		if (b.type === "check" && b.status === "idle"){
+		if (b.type === 'check' && b.status === 'idle'){
 			saved += 1;
 		}
 	}
@@ -735,14 +735,14 @@ function sendStats(){
 	}
 	catch (err){
 		browser.runtime.sendMessage({
-			function: "pageerror"
+			function: 'pageerror'
 		});
 		return;
 	}
 
 	let isuser = page.user ? true : false;
 	browser.runtime.sendMessage({
-		function: "sitestats",
+		function: 'sitestats',
 		total: {saved, downloads},
 		//links: page.links,
 		site: page.site,
@@ -767,7 +767,7 @@ async function userInfo(page){
 	let savedlist = item[key] || {};
 	user = await as[user.site].userInfo(user, page, savedlist);
 
-	browser.runtime.sendMessage({function: "userstats", site: page.site, user});
+	browser.runtime.sendMessage({function: 'userstats', site: page.site, user});
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -793,7 +793,7 @@ function createPageQueue(usequeue, options){
 	};
 
 	queue.addDownload = function(site, subid){
-		globalbuttons.setValue(subid, "status", "inprogress");
+		globalbuttons.setValue(subid, 'status', 'inprogress');
 		this.list.push([site, subid]);
 		this.downloading += 1;
 		this.updateDownloadInfo();
@@ -828,7 +828,7 @@ function createPageQueue(usequeue, options){
 			let result = await as[site].download.startDownloading(subid, createProgress(subid));
 
 			if (infobar){
-				if (result.status === "Success"){
+				if (result.status === 'Success'){
 					infobar.addSaved(result);
 				}
 				else {
@@ -837,7 +837,7 @@ function createPageQueue(usequeue, options){
 			}
 		}
 		catch (err){
-			asLog("Uncaught download error", err);
+			asLog('Uncaught download error', err);
 		}
 		this.inprogress -= 1;
 		this.updateDownloadInfo();
@@ -846,7 +846,7 @@ function createPageQueue(usequeue, options){
 
 	queue.updateDownloadInfo = function(){
 		this.list.map(l => l[1]).forEach((subid, i) => {
-			globalbuttons.setValue(subid, "text", `In queue pos: ${i + 1}`);
+			globalbuttons.setValue(subid, 'text', `In queue pos: ${i + 1}`);
 		});
 
 		if (infobar){
@@ -862,77 +862,77 @@ function createPageQueue(usequeue, options){
 //---------------------------------------------------------------------------------------------------------------------
 
 async function createPageInfoBar(){
-	$remove($("#artsaver-info-bar"));
-	$remove($("#artsaver-show-info-bar"));
+	$remove($('#artsaver-info-bar'));
+	$remove($('#artsaver-show-info-bar'));
 
-	let infobarui = await fetcher(browser.runtime.getURL("/content_ui/infobar.html"), "document");
+	let infobarui = await fetcher(browser.runtime.getURL('/content_ui/infobar.html'), 'document');
 	document.body.append(...infobarui.body.childNodes);
 
 	let infobar = {
-		element: $("#artsaver-info-bar"),
-		tab: $("#artsaver-show-info-bar"),
+		element: $('#artsaver-info-bar'),
+		tab: $('#artsaver-show-info-bar'),
 		saved: [],
 		errors: [],
-		state: "initial"
+		state: 'initial'
 	};
 
 	infobar.show = function(){
-		this.element.classList.remove("collapsed");
-		this.tab.classList.add("hide");
+		this.element.classList.remove('collapsed');
+		this.tab.classList.add('hide');
 	}
 
 	infobar.hide = function(){
-		this.element.addEventListener("transitionend", () => {
-			this.tab.classList.remove("hide");
+		this.element.addEventListener('transitionend', () => {
+			this.tab.classList.remove('hide');
 		}, {once: true});
-		this.element.classList.add("collapsed");
+		this.element.classList.add('collapsed');
 	}
 
-	$(infobar.tab, "#show-tab").onclick = () => {
+	$(infobar.tab, '#show-tab').onclick = () => {
 		infobar.show();
-		infobar.state = "show";
+		infobar.state = 'show';
 	}
-	$(infobar.element, "#collapse").onclick = () => {
+	$(infobar.element, '#collapse').onclick = () => {
 		infobar.hide();
-		if (parseInt($(infobar.element, "#stat-downloading").textContent, 10) > 0){
-			infobar.state = "staydown";
+		if (parseInt($(infobar.element, '#stat-downloading').textContent, 10) > 0){
+			infobar.state = 'staydown';
 		}
 	}
-	$(infobar.element, "#list-files input").oninput = function(){
-		classToggle(this.checked, $(infobar.element, "#list-files"), "show-folders");
+	$(infobar.element, '#list-files input').oninput = function(){
+		classToggle(this.checked, $(infobar.element, '#list-files'), 'show-folders');
 	}
 
 	infobar.addSaved = function(saved){
 		this.saved.push(saved);
 
-		let recentrow = $(this.element, "#recent-row-template").content.cloneNode(true);
+		let recentrow = $(this.element, '#recent-row-template').content.cloneNode(true);
 
-		rspans = $$(recentrow, "span");
+		rspans = $$(recentrow, 'span');
 		rspans[0].textContent = saved.submission.user;
 		rspans[1].textContent = saved.submission.id;
 		if (saved.files.length > 1){
-			rspans[2].classList.remove("hide");
+			rspans[2].classList.remove('hide');
 			rspans[2].textContent = `(${saved.files.length})`;
 		}
 		rspans[3].textContent = saved.submission.title;
 
-		$(recentrow, "a").href = saved.submission.url;
+		$(recentrow, 'a').href = saved.submission.url;
 
-		$(this.element, "#list-recent .list").appendChild(recentrow);
+		$(this.element, '#list-recent .list').appendChild(recentrow);
 
 		for (let f of saved.files){
-			let filerow = $(this.element, "#file-row-template").content.cloneNode(true);
+			let filerow = $(this.element, '#file-row-template').content.cloneNode(true);
 
 			let reg = /^(.*\/)?(.+)$/.exec(f.filename);
-			let fspans = $$(filerow, "span");
+			let fspans = $$(filerow, 'span');
 			fspans[0].textContent = reg[1];
 			fspans[1].textContent = reg[2];
 
-			$(filerow, "button").onclick = () => {
-				browser.runtime.sendMessage({function: "showdownload", id: f.id});
+			$(filerow, 'button').onclick = () => {
+				browser.runtime.sendMessage({function: 'showdownload', id: f.id});
 			}
 
-			$(this.element, "#list-files .list").appendChild(filerow);
+			$(this.element, '#list-files .list').appendChild(filerow);
 		}
 
 		this.updateHistoryInfo();
@@ -940,14 +940,14 @@ async function createPageInfoBar(){
 
 	infobar.addError = function(error){
 		this.errors.push(error);
-		let errorrow = $(this.element, "#error-row-template").content.cloneNode(true);
+		let errorrow = $(this.element, '#error-row-template').content.cloneNode(true);
 
-		let espans = $$(errorrow, "span");
+		let espans = $$(errorrow, 'span');
 		espans[0].textContent = error.url;
 		espans[1].textContent = error.error;
-		$(errorrow, "a").href = error.url;
+		$(errorrow, 'a').href = error.url;
 
-		$(this.element, "#list-errors .list").appendChild(errorrow);
+		$(this.element, '#list-errors .list').appendChild(errorrow);
 
 		this.updateHistoryInfo();
 	}
@@ -961,40 +961,40 @@ async function createPageInfoBar(){
 
 		for (let [name, stat] of Object.entries(total)){
 			let statrow = $(this.element, `#stat-${name}`);
-			$(statrow, ".badge").textContent = stat;
+			$(statrow, '.badge').textContent = stat;
 			let statlist = $(this.element, `#list-${name}`);
 
-			classToggle(stat > 0, statrow, "stat-button");
+			classToggle(stat > 0, statrow, 'stat-button');
 			if (stat > 0) {
 				statrow.onclick = function(){
-					classToggle(!statlist.classList.toggle("hide"), this, "active");
+					classToggle(!statlist.classList.toggle('hide'), this, 'active');
 				};
 			}
 			else {
-				statlist.classList.add("hide");
+				statlist.classList.add('hide');
 			}
 		}
 
-		classToggle(total.errors <= 0, $(this.element, "#stat-errors"), "hide");
+		classToggle(total.errors <= 0, $(this.element, '#stat-errors'), 'hide');
 	}
 
 	infobar.setProgress = function(downloading = 0, inprogress = 0, inqueue = 0){
-		classToggle(downloading <= 0, $(this.element, "#queue"), "hide");
+		classToggle(downloading <= 0, $(this.element, '#queue'), 'hide');
 		if (downloading > 0){
-			if (this.state !== "staydown"){
+			if (this.state !== 'staydown'){
 				this.show();
 			}
 			let percent = (downloading - (inqueue + inprogress)) / downloading * 100;
-			$(this.element, ".artsaver-bar").style.width = `${percent}%`;
-			$(this.element, ".artsaver-bar-text").textContent = `${Math.floor(percent)}%`;
+			$(this.element, '.artsaver-bar').style.width = `${percent}%`;
+			$(this.element, '.artsaver-bar-text').textContent = `${Math.floor(percent)}%`;
 		}
 
-		$(this.element, "#stat-downloading").textContent = downloading;
-		$(this.element, "#stat-progress").textContent = inprogress;
-		let queue = $(this.element, "#stat-queue");
+		$(this.element, '#stat-downloading').textContent = downloading;
+		$(this.element, '#stat-progress').textContent = inprogress;
+		let queue = $(this.element, '#stat-queue');
 		queue.textContent = inqueue;
 
-		classToggle(inqueue <= 0, queue.parentElement, "hide");
+		classToggle(inqueue <= 0, queue.parentElement, 'hide');
 	}
 
 	infobar.updateHistoryInfo();

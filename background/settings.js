@@ -1,6 +1,6 @@
 //Make sure to reload extension
 const popup_state = {
-	tab: "user",
+	tab: 'user',
 	downloadLock: true
 };
 
@@ -9,7 +9,7 @@ const infobar_state = {
 };
 
 const settings_state = {
-	tab: "global"
+	tab: 'global'
 };
 
 const UISTATES = {
@@ -22,114 +22,114 @@ const stateKey = (s) => `${s}_state`;
 
 const GLOBALOPTIONS = {
 	conflict: {
-		type: "select",
-		label: "File conflict",
+		type: 'select',
+		label: 'File conflict',
 		options: [
-			{value: "overwrite", label: "Overwrite"},
-			{value: "uniquify", label: "Uniquify"}
+			{value: 'overwrite', label: 'Overwrite'},
+			{value: 'uniquify', label: 'Uniquify'}
 		],
-		default: "overwrite"
+		default: 'overwrite'
 	},
 	replace: {
-		type: "checkbox",
-		label: "Replace spaces with underscore",
+		type: 'checkbox',
+		label: 'Replace spaces with underscore',
 		default: true
 	},
 	saveAs: {
-		type: "checkbox",
-		label: "Open Save As prompt when downloading a file",
+		type: 'checkbox',
+		label: 'Open Save As prompt when downloading a file',
 		default: false
 	},
 	iconSize: {
-		type: "number",
-		label: "Icons size",
+		type: 'number',
+		label: 'Icons size',
 		min: 0,
-		unit: "px",
+		unit: 'px',
 		default: 16
 	},
 	addScreen: {
-		type: "checkbox",
-		label: "Add screen over saved thumbnails",
+		type: 'checkbox',
+		label: 'Add screen over saved thumbnails',
 		default: false
 	},
 	screenOpacity: {
-		type: "slider",
-		label: "Screen opacity",
+		type: 'slider',
+		label: 'Screen opacity',
 		min: 0,
 		max: 100,
-		unit: "%",
+		unit: '%',
 		default: 50,
-		related: [{option: "addScreen", value: true}]
+		related: [{option: 'addScreen', value: true}]
 	},
 	useQueue: {
-		type: "checkbox",
-		label: "Download submissions using a queue",
+		type: 'checkbox',
+		label: 'Download submissions using a queue',
 		default: false
 	},
 	queueConcurrent: {
-		type: "number",
-		label: "Concurrent downloads",
+		type: 'number',
+		label: 'Concurrent downloads',
 		min: 1,
 		default: 1,
-		related: [{option: "useQueue", value: true}]
+		related: [{option: 'useQueue', value: true}]
 	},
 	queueWait: {
-		type: "number",
-		label: "Wait time between downloads",
+		type: 'number',
+		label: 'Wait time between downloads',
 		min: 0,
-		unit: "seconds",
+		unit: 'seconds',
 		default: 0,
-		related: [{option: "useQueue", value: true}]
+		related: [{option: 'useQueue', value: true}]
 	},
 	infoBar: {
-		type: "checkbox",
-		label: "Show page info bar",
+		type: 'checkbox',
+		label: 'Show page info bar',
 		default: false
 	}
 };
 
 const deviantart_options = {
 	userFolder: {
-		type: "textarea",
-		label: "User folder",
-		default: "Saved/{site}/{userName}/",
-		metas: ["site", "userName"]
+		type: 'textarea',
+		label: 'User folder',
+		default: 'Saved/{site}/{userName}/',
+		metas: ['site', 'userName']
 	},
 	file: {
-		type: "textarea",
-		label: "Save file as",
-		default: "Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}",
-		metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
+		type: 'textarea',
+		label: 'Save file as',
+		default: 'Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}',
+		metas: ['site', 'userName', 'title', 'submissionId', 'submissionId36', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss']
 	},
 	larger: {
-		type: "checkbox",
-		label: "Try to download larger images",
+		type: 'checkbox',
+		label: 'Try to download larger images',
 		default: false
 	},
 	literature: {
-		type: "select",
-		label: "Save literature as",
+		type: 'select',
+		label: 'Save literature as',
 		options: [
-			{value: "html", label: "HTML"},
-			{value: "txt", label: "Text"}
+			{value: 'html', label: 'HTML'},
+			{value: 'txt', label: 'Text'}
 		],
-		default: "html"
+		default: 'html'
 	},
 	includeImage: {
-		type: "checkbox",
-		label: "Include the main story image",
+		type: 'checkbox',
+		label: 'Include the main story image',
 		default: true,
-		related: [{option: "literature", value: "html"}]
+		related: [{option: 'literature', value: 'html'}]
 	},
 	embedImages: {
-		type: "checkbox",
-		label: "Embed images in the HTML file",
+		type: 'checkbox',
+		label: 'Embed images in the HTML file',
 		default: false,
-		related: [{option: "literature", value: "html"}]
+		related: [{option: 'literature', value: 'html'}]
 	},
 	literatureHTML: {
-		type: "textarea",
-		label: "Literature HTML template",
+		type: 'textarea',
+		label: 'Literature HTML template',
 		default: `<!DOCTYPE html>
 <html>
 	<head>
@@ -160,12 +160,12 @@ const deviantart_options = {
 		{description}
 	</body>
 </html>`,
-		metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss", "url", "story", "wordCount", "description"],
-		related: [{option: "literature", value: "html"}]
+		metas: ['site', 'userName', 'title', 'submissionId', 'submissionId36', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss', 'url', 'story', 'wordCount', 'description'],
+		related: [{option: 'literature', value: 'html'}]
 	},
 	literatureText: {
-		type: "textarea",
-		label: "Literature text template",
+		type: 'textarea',
+		label: 'Literature text template',
 		default: `{title}
 by {userName}
 
@@ -180,30 +180,30 @@ Source:    {url}
 --------------------------------------------------------------------------------
 
 {description}`,
-		metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss", "url", "story", "wordCount", "description"],
-		related: [{option: "literature", value: "txt"}]
+		metas: ['site', 'userName', 'title', 'submissionId', 'submissionId36', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss', 'url', 'story', 'wordCount', 'description'],
+		related: [{option: 'literature', value: 'txt'}]
 	},
 	stash: {
-		type: "checkbox",
-		label: "Download stash links in description",
+		type: 'checkbox',
+		label: 'Download stash links in description',
 		default: false
 	},
 	stashFile: {
-		type: "textarea",
-		label: "Save stash file as",
-		default: "Saved/{site}/{userName}/{submissionId}_{title}/{stashTitle}_by_{stashUserName}_{stashUrlId}.{stashExt}",
-		metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt", "stashYYYY", "stashMM", "stashDD", "stashhh", "stashmm", "stashss"],
-		related: [{option: "stash", value: true}]
+		type: 'textarea',
+		label: 'Save stash file as',
+		default: 'Saved/{site}/{userName}/{submissionId}_{title}/{stashTitle}_by_{stashUserName}_{stashUrlId}.{stashExt}',
+		metas: ['site', 'userName', 'title', 'submissionId', 'submissionId36', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss', 'stashUrlId', 'stashUserName', 'stashTitle', 'stashSubmissionId', 'stashFileName', 'stashExt', 'stashYYYY', 'stashMM', 'stashDD', 'stashhh', 'stashmm', 'stashss'],
+		related: [{option: 'stash', value: true}]
 	},
 	moveFile: {
-		type: "checkbox",
-		label: "Save submission file in stash folder",
+		type: 'checkbox',
+		label: 'Save submission file in stash folder',
 		default: false,
-		related: [{option: "stash", value: true}]
+		related: [{option: 'stash', value: true}]
 	},
 	stashLiteratureHTML: {
-		type: "textarea",
-		label: "Stash literature HTML template",
+		type: 'textarea',
+		label: 'Stash literature HTML template',
 		default: `<!DOCTYPE html>
 <html>
 	<head>
@@ -236,15 +236,15 @@ Source:    {url}
 		{stashDescription}
 	</body>
 </html>`,
-		metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt", "stashYYYY", "stashMM", "stashDD", "stashhh", "stashmm", "stashss", "url", "stashUrl", "story", "wordCount", "stashDescription"],
+		metas: ['site', 'userName', 'title', 'submissionId', 'submissionId36', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss', 'stashUrlId', 'stashUserName', 'stashTitle', 'stashSubmissionId', 'stashFileName', 'stashExt', 'stashYYYY', 'stashMM', 'stashDD', 'stashhh', 'stashmm', 'stashss', 'url', 'stashUrl', 'story', 'wordCount', 'stashDescription'],
 		related: [
-			{option: "stash", value: true},
-			{option: "literature", value: "html"}
+			{option: 'stash', value: true},
+			{option: 'literature', value: 'html'}
 		]
 	},
 	stashLiteratureText: {
-		type: "textarea",
-		label: "Stash literature text template",
+		type: 'textarea',
+		label: 'Stash literature text template',
 		default: `{stashTitle}
 by {stashUserName}
 
@@ -260,19 +260,19 @@ From:      {url}
 --------------------------------------------------------------------------------
 
 {stashDescription}`,
-		metas: ["site", "userName", "title", "submissionId", "submissionId36", "fileName", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss", "stashUrlId", "stashUserName", "stashTitle", "stashSubmissionId", "stashFileName", "stashExt", "stashYYYY", "stashMM", "stashDD", "stashhh", "stashmm", "stashss", "url", "stashUrl", "story", "wordCount", "stashDescription"],
+		metas: ['site', 'userName', 'title', 'submissionId', 'submissionId36', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss', 'stashUrlId', 'stashUserName', 'stashTitle', 'stashSubmissionId', 'stashFileName', 'stashExt', 'stashYYYY', 'stashMM', 'stashDD', 'stashhh', 'stashmm', 'stashss', 'url', 'stashUrl', 'story', 'wordCount', 'stashDescription'],
 		related: [
-			{option: "stash", value: true},
-			{option: "literature", value: "txt"}
+			{option: 'stash', value: true},
+			{option: 'literature', value: 'txt'}
 		]
 	}
 };
 
 const deviantart_info = {
-	label: "DeviantArt",
-	helplink: "https://github.com/solorey/Art-Saver/wiki/DeviantArt",
+	label: 'DeviantArt',
+	helplink: 'https://github.com/solorey/Art-Saver/wiki/DeviantArt',
 	links: {
-		main: "https://www.deviantart.com",
+		main: 'https://www.deviantart.com',
 		user: (userName) => `https://www.deviantart.com/${userName}`,
 		gallery: (userName) => `https://www.deviantart.com/${userName}/gallery/all`,
 		favorites: (userName) => `https://www.deviantart.com/${userName}/favourites/all`,
@@ -282,42 +282,42 @@ const deviantart_info = {
 
 const pixiv_options = {
 	userFolder: {
-		type: "textarea",
-		label: "User folder",
-		default: "Saved/{site}/{userName}_{userId}/",
-		metas: ["site", "userName", "userId"]
+		type: 'textarea',
+		label: 'User folder',
+		default: 'Saved/{site}/{userName}_{userId}/',
+		metas: ['site', 'userName', 'userId']
 	},
 	file: {
-		type: "textarea",
-		label: "Save file as",
-		default: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}_by_{userName}.{ext}",
-		metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
+		type: 'textarea',
+		label: 'Save file as',
+		default: 'Saved/{site}/{userName}_{userId}/{submissionId}_{title}_by_{userName}.{ext}',
+		metas: ['site', 'userName', 'userId', 'title', 'submissionId', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss']
 	},
 	multiple: {
-		type: "textarea",
-		label: "Save multiple files as",
-		default: "Saved/{site}/{userName}_{userId}/{submissionId}_{title}/{submissionId}_{title}_{page}_by_{userName}.{ext}",
-		metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "page", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
+		type: 'textarea',
+		label: 'Save multiple files as',
+		default: 'Saved/{site}/{userName}_{userId}/{submissionId}_{title}/{submissionId}_{title}_{page}_by_{userName}.{ext}',
+		metas: ['site', 'userName', 'userId', 'title', 'submissionId', 'fileName', 'page', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss']
 	},
 	ugoira: {
-		type: "select",
-		label: "Save uqoira as",
+		type: 'select',
+		label: 'Save uqoira as',
 		options: [
-			{value: "multiple", label: "Multiple files"},
-			{value: "zip", label: "ZIP"},
-			{value: "apng", label: "APNG"},
-			{value: "gif", label: "GIF"},
-			{value: "webm", label: "WEBM"}
+			{value: 'multiple', label: 'Multiple files'},
+			{value: 'zip', label: 'ZIP'},
+			{value: 'apng', label: 'APNG'},
+			{value: 'gif', label: 'GIF'},
+			{value: 'webm', label: 'WEBM'}
 		],
-		default: "multiple"
+		default: 'multiple'
 	}
 };
 
 const pixiv_info = {
-	label: "Pixiv",
-	helplink: "https://github.com/solorey/Art-Saver/wiki/Pixiv",
+	label: 'Pixiv',
+	helplink: 'https://github.com/solorey/Art-Saver/wiki/Pixiv',
 	links: {
-		main: "https://www.pixiv.net",
+		main: 'https://www.pixiv.net',
 		user: (userId) => `https://www.pixiv.net/users/${userId}/artworks`,
 		gallery: (userId) => `https://www.pixiv.net/users/${userId}/artworks`,
 		favorites: (userId) => `https://www.pixiv.net/users/${userId}/bookmarks/artworks`,
@@ -327,24 +327,24 @@ const pixiv_info = {
 
 const furaffinity_options = {
 	userFolder: {
-		type: "textarea",
-		label: "User folder",
-		default: "Saved/{site}/{userLower}/",
-		metas: ["site", "userName", "userLower"]
+		type: 'textarea',
+		label: 'User folder',
+		default: 'Saved/{site}/{userLower}/',
+		metas: ['site', 'userName', 'userLower']
 	},
 	file: {
-		type: "textarea",
-		label: "Save file as",
-		default: "Saved/{site}/{userLower}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
-		metas: ["site", "userName", "userLower", "title", "submissionId", "fileName", "fileId", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
+		type: 'textarea',
+		label: 'Save file as',
+		default: 'Saved/{site}/{userLower}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}',
+		metas: ['site', 'userName', 'userLower', 'title', 'submissionId', 'fileName', 'fileId', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss']
 	}
 };
 
 const furaffinity_info = {
-	label: "Fur Affinity",
-	helplink: "https://github.com/solorey/Art-Saver/wiki/Fur-Affinity",
+	label: 'Fur Affinity',
+	helplink: 'https://github.com/solorey/Art-Saver/wiki/Fur-Affinity',
 	links: {
-		main: "https://www.furaffinity.net/",
+		main: 'https://www.furaffinity.net/',
 		user: (userLower) => `https://www.furaffinity.net/user/${userLower}`,
 		gallery: (userLower) => `https://www.furaffinity.net/gallery/${userLower}`,
 		favorites: (userLower) => `https://www.furaffinity.net/favorites/${userLower}`,
@@ -354,30 +354,30 @@ const furaffinity_info = {
 
 const inkbunny_options = {
 	userFolder: {
-		type: "textarea",
-		label: "User folder",
-		default: "Saved/{site}/{userName}/",
-		metas: ["site", "userName", "userId"]
+		type: 'textarea',
+		label: 'User folder',
+		default: 'Saved/{site}/{userName}/',
+		metas: ['site', 'userName', 'userId']
 	},
 	file: {
-		type: "textarea",
-		label: "Save file as",
-		default: "Saved/{site}/{userName}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
-		metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
+		type: 'textarea',
+		label: 'Save file as',
+		default: 'Saved/{site}/{userName}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}',
+		metas: ['site', 'userName', 'userId', 'title', 'submissionId', 'fileName', 'fileId', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss']
 	},
 	multiple: {
-		type: "textarea",
-		label: "Save multiple files as",
-		default: "Saved/{site}/{userName}/{submissionId}_{title}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}",
-		metas: ["site", "userName", "userId", "title", "submissionId", "fileName", "fileId", "page", "ext", "YYYY", "MM", "DD", "hh", "mm", "ss"]
+		type: 'textarea',
+		label: 'Save multiple files as',
+		default: 'Saved/{site}/{userName}/{submissionId}_{title}/{fileId}_{submissionId}_{title}_by_{userName}.{ext}',
+		metas: ['site', 'userName', 'userId', 'title', 'submissionId', 'fileName', 'fileId', 'page', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss']
 	}
 };
 
 const inkbunny_info = {
-	label: "Inkbunny",
-	helplink: "https://github.com/solorey/Art-Saver/wiki/Inkbunny",
+	label: 'Inkbunny',
+	helplink: 'https://github.com/solorey/Art-Saver/wiki/Inkbunny',
 	links: {
-		main: "https://inkbunny.net",
+		main: 'https://inkbunny.net',
 		user: (userName) => `https://inkbunny.net/${userName}`,
 		gallery: (userName) => `https://inkbunny.net/gallery/${userName}`,
 		favorites: (userName) => `https://inkbunny.net/submissionsviewall.php?mode=search&favsby=${userName}`,
@@ -410,4 +410,4 @@ const ALLOPTIONS = {
 	global: GLOBALOPTIONS,
 	...SITEOPTIONS
 }
-const ALLOPTIONSKEYS = [optionsKey("global"), ...SITESOPTIONSKEYS];
+const ALLOPTIONSKEYS = [optionsKey('global'), ...SITESOPTIONSKEYS];

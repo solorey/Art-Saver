@@ -7,7 +7,7 @@ var as = {pixiv: {check: {}, download: {}}};
 function pageInfo(){
 	let page = {
 		url: window.location.href,
-		site: "pixiv"
+		site: 'pixiv'
 	};
 
 	let path = new URL(page.url).pathname;
@@ -15,22 +15,22 @@ function pageInfo(){
 	let reg1 = /^(?:\/en)?\/users\/\d+(?:\/([^\/\n]+))?/.exec(path);
 	let reg2 = /^(?:\/en)?\/(artwork|novel)/.exec(path);
 	if (reg1){
-		page.page = reg1[1] || "user";
+		page.page = reg1[1] || 'user';
 	}
 	else if (reg2){
 		page.page = reg2[1];
 	}
 
-	if (["artworks", "illustrations", "manga", "novels", "user", "bookmarks", "requests"].includes(page.page)){
-		page.user = $("h1").textContent;
+	if (['artworks', 'illustrations', 'manga', 'novels', 'user', 'bookmarks', 'requests'].includes(page.page)){
+		page.user = $('h1').textContent;
 		page.userId = /\/(\d+)/.exec(page.url)[1];
 	}
-	else if (["artwork", "novel"].includes(page.page)){
+	else if (['artwork', 'novel'].includes(page.page)){
 		let userelem = $('a[href*="/users/"] ~ div a[href*="/users/"] > div:first-child');
 		page.user = userelem.textContent;
-		page.userId = userelem.parentElement.href.split("/").pop();
+		page.userId = userelem.parentElement.href.split('/').pop();
 	}
-	else if (["following", "mypixiv"].includes(page.page)){
+	else if (['following', 'mypixiv'].includes(page.page)){
 		page.userId = /\/(\d+)/.exec(page.url)[1];
 		page.user = $$(`a[href$="/users/${page.userId}"]`).pop().textContent;
 	}
@@ -43,23 +43,23 @@ function pageInfo(){
 as.pixiv.userInfo = async function(user, page, savedlist){
 	user.id = page.userId;
 
-	let userpage = await fetcher(`https://www.pixiv.net/ajax/user/${user.id}`, "json");
-	let iconblob = await fetcher(userpage.body.imageBig, "blob");
+	let userpage = await fetcher(`https://www.pixiv.net/ajax/user/${user.id}`, 'json');
+	let iconblob = await fetcher(userpage.body.imageBig, 'blob');
 	user.icon = await browser.runtime.sendMessage({
-		function: "createobjecturl",
+		function: 'createobjecturl',
 		object: iconblob
 	});
 
 	let statspages = await Promise.all([
-		fetcher(`https://www.pixiv.net/touch/ajax/user/home?id=${user.id}`, "json"),
-		fetcher(`https://www.pixiv.net/ajax/user/${user.id}/illusts/bookmarks?tag=&offset=0&limit=1&rest=show`, "json")
+		fetcher(`https://www.pixiv.net/touch/ajax/user/home?id=${user.id}`, 'json'),
+		fetcher(`https://www.pixiv.net/ajax/user/${user.id}/illusts/bookmarks?tag=&offset=0&limit=1&rest=show`, 'json')
 	]);
 
 	user.stats = new Map([
-		["Submissions", statspages[0].body.work_sets.all.total]
+		['Submissions', statspages[0].body.work_sets.all.total]
 	]);
 	if (!(statspages[1] instanceof Error)){ //not available when logged out
-		user.stats.set("Bookmarks", statspages[1].body.total);
+		user.stats.set('Bookmarks', statspages[1].body.total);
 	}
 
 	user.folderMeta = {
@@ -78,29 +78,29 @@ as.pixiv.userInfo = async function(user, page, savedlist){
 //---------------------------------------------------------------------------------------------------------------------
 
 as.pixiv.check.startChecking = function(){
-	asLog("Checking Pixiv");
+	asLog('Checking Pixiv');
 	let page = pageInfo();
 	this.checkPage(page);
 
 	let observer = new MutationObserver((mutationsList, observer) => {
-		if (page.url !== window.location.href || (page.page === "artwork" && page.user !== $('a[href*="/users/"] ~ div a[href*="/users/"] > div:first-child').textContent)){
+		if (page.url !== window.location.href || (page.page === 'artwork' && page.user !== $('a[href*="/users/"] ~ div a[href*="/users/"] > div:first-child').textContent)){
 			page = pageInfo();
 		}
 
 		let newnodes = mutationsList.flatMap(m => [...m.addedNodes]).filter(n => n.nodeType === 1);
 
-		if (page.page === "artwork" && newnodes.some(n => n.matches(".artsaver-holder ~ *"))){
+		if (page.page === 'artwork' && newnodes.some(n => n.matches('.artsaver-holder ~ *'))){
 			$remove($('div[role="presentation"] .artsaver-holder'));
 			this.checkPage(page);
 		}
-		else if (newnodes.some(n => $(n, 'a[href*="/artworks/"], canvas') || n.nodeName === "IMG")){
+		else if (newnodes.some(n => $(n, 'a[href*="/artworks/"], canvas') || n.nodeName === 'IMG')){
 			this.checkPage(page);
 		}
 		return;
 	});
 
 	globalrunningobservers.push(observer);
-	observer.observe($("body"), { childList: true, subtree: true });
+	observer.observe($('body'), { childList: true, subtree: true });
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -108,7 +108,7 @@ as.pixiv.check.startChecking = function(){
 as.pixiv.check.checkPage = function(page){
 	this.checkThumbnails(this.getThumbnails(), page.userId);
 
-	if (page.page === "artwork"){
+	if (page.page === 'artwork'){
 		this.checkSubmission(page.userId, page.url);
 	}
 }
@@ -123,7 +123,7 @@ as.pixiv.check.getThumbnails = function(){
 		//try to get the highest element that relates to a single submission
 		while (true){
 			let parent = thumb.parentElement;
-			if ($$(parent, 'a[href*="/artworks/"] img').length === 1 && parent.nodeName !== "UL"){
+			if ($$(parent, 'a[href*="/artworks/"] img').length === 1 && parent.nodeName !== 'UL'){
 				thumb = parent;
 			}
 			else {
@@ -152,7 +152,7 @@ as.pixiv.check.checkThumbnails = function(thumbnails, user){
 				userlink = $$(element, 'a[href*="/users/"]').pop();
 				//if no user element is found the thumbail may be part of a group
 				//continue navigating up the element tree to try to find a user
-				if (userlink || element.nodeName === "SECTION"){
+				if (userlink || element.nodeName === 'SECTION'){
 					break;
 				}
 				else {
@@ -162,7 +162,7 @@ as.pixiv.check.checkThumbnails = function(thumbnails, user){
 
 			let subuser = userlink ? /\/(\d+)/.exec(userlink.href)[1] : user;
 
-			addButton("pixiv", subuser, subid, a);
+			addButton('pixiv', subuser, subid, a);
 		}
 		catch (err){}
 	}
@@ -171,21 +171,21 @@ as.pixiv.check.checkThumbnails = function(thumbnails, user){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 as.pixiv.check.checkSubmission = function(user, url){
-	let presentation = $("figure > [role=presentation]");
+	let presentation = $('figure > [role=presentation]');
 	if (!presentation){
 		return;
 	}
 
 	try {
-		let submission = $(presentation, "a > img, canvas");
-		if (submission.nodeName === "CANVAS"){
-			submission.parentElement.style = "display:flex; justify-content:center;";
+		let submission = $(presentation, 'a > img, canvas');
+		if (submission.nodeName === 'CANVAS'){
+			submission.parentElement.style = 'display:flex; justify-content:center;';
 		}
 		let subid = parseInt(/\/(\d+)$/.exec(url)[1], 10);
 
-		let holder = $(presentation, ".artsaver-holder");
+		let holder = $(presentation, '.artsaver-holder');
 		if (!holder){
-			holder = $insert(submission, "div", {position: "afterend", class: "artsaver-holder"});
+			holder = $insert(submission, 'div', {position: 'afterend', class: 'artsaver-holder'});
 		}
 
 		holder.style = `position:absolute; width:${submission.width}px; height:${submission.height}px;`;
@@ -198,7 +198,7 @@ as.pixiv.check.checkSubmission = function(user, url){
 		globalrunningobservers.push(resize);
 		resize.observe(submission);
 
-		addButton("pixiv", user, subid, holder, false);
+		addButton('pixiv', user, subid, holder, false);
 	}
 	catch (err){}
 }
@@ -208,30 +208,30 @@ as.pixiv.check.checkSubmission = function(user, url){
 //---------------------------------------------------------------------------------------------------------------------
 
 as.pixiv.download.startDownloading = async function(subid, progress){
-	progress.say("Getting submission");
-	let options = await getOptions("pixiv");
+	progress.say('Getting submission');
+	let options = await getOptions('pixiv');
 	let pageurl = `https://www.pixiv.net/artworks/${subid}`;
 
 	try {
 		let ajaxurl = `https://www.pixiv.net/ajax/illust/${subid}`;
 
-		let response = await fetcher(ajaxurl, "json");
+		let response = await fetcher(ajaxurl, 'json');
 
 		let {info, meta} = await this.getMeta(response, ajaxurl, options, progress);
 		let downloads = this.createDownloads(info, meta, options);
 
 		let results = await this.handleDownloads(downloads, info, options, progress);
-		if (results.some(r => r.response === "Success")){
-			progress.say("Updating");
+		if (results.some(r => r.response === 'Success')){
+			progress.say('Updating');
 			await updateSavedInfo(info.savedSite, info.savedUser, info.savedId);
 		}
 		else {
-			throw new Error("Files failed to download.");
+			throw new Error('Files failed to download.');
 		}
 
 		progress.finished();
 		return {
-			status: "Success",
+			status: 'Success',
 			submission: {
 				url: pageurl,
 				user: downloads[0].meta.userName,
@@ -246,7 +246,7 @@ as.pixiv.download.startDownloading = async function(subid, progress){
 		progress.error();
 
 		return {
-			status: "Failure",
+			status: 'Failure',
 			error: err,
 			url: pageurl,
 			progress
@@ -258,7 +258,7 @@ as.pixiv.download.startDownloading = async function(subid, progress){
 
 as.pixiv.download.getMeta = async function(r, url, options, progress){
 	let info = {}, meta = {};
-	meta.site = "pixiv";
+	meta.site = 'pixiv';
 	meta.submissionId = parseInt(r.body.id, 10);
 	meta.userName = r.body.userName;
 	meta.userId = r.body.userId;
@@ -277,8 +277,8 @@ as.pixiv.download.getMeta = async function(r, url, options, progress){
 
 	if (r.body.illustType === 2){
 		info.isUgoira = true;
-		progress.say("Getting ugoira meta");
-		let u = await fetcher(`${url}/ugoira_meta`, "json");
+		progress.say('Getting ugoira meta');
+		let u = await fetcher(`${url}/ugoira_meta`, 'json');
 		info.width = r.body.width;
 		info.height = r.body.height;
 		info.pages = u.body.frames.length;
@@ -313,11 +313,11 @@ as.pixiv.download.createDownloads = function(info, meta, options){
 
 as.pixiv.download.handleDownloads = async function(downloads, info, options, progress){
 	let type = options.ugoira;
-	if (!info.isUgoira || type === "multiple"){
+	if (!info.isUgoira || type === 'multiple'){
 		return await handleAllDownloads(downloads, progress);
 	}
 
-	progress.start("Getting ugoira frames");
+	progress.start('Getting ugoira frames');
 	
 	let bytes = 0;
 	let total = downloads.length;
@@ -335,23 +335,23 @@ as.pixiv.download.handleDownloads = async function(downloads, info, options, pro
 
 	let convertedblob;
 	switch (type){
-		case "apng":
-		case "gif":
+		case 'apng':
+		case 'gif':
 			convertedblob = await convertUgoira(type, blobs, info.width, info.height, info.delays, progress);
 			break;
 
-		case "webm":
+		case 'webm':
 			convertedblob = await recordUgoira(type, blobs, info.width, info.height, info.delays, progress);
 			break;
 
-		case "zip":
+		case 'zip':
 			let exts = downloads.map(d => d.meta.ext);
 			convertedblob = await createZip(blobs, exts, info.delays, progress);
 			break;
 	}
 
 	let convertedmeta = downloads[0].meta;
-	convertedmeta.ext = type.replace("apng", "png");
+	convertedmeta.ext = type.replace('apng', 'png');
 	delete convertedmeta.page;
 
 	let result = await downloadBlob(convertedblob, options.file, convertedmeta);
@@ -365,22 +365,22 @@ as.pixiv.download.handleDownloads = async function(downloads, info, options, pro
 
 async function createZip(blobs, exts, delays, progress){
 	progress.width(100);
-	progress.say("Creating zip");
+	progress.say('Creating zip');
 
-	return await fileWorker("zip", {blobs, exts, delays});
+	return await fileWorker('zip', {blobs, exts, delays});
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function convertUgoira(type, blobs, width, height, delays, progress){
-	progress.say("Preparing frames");
+	progress.say('Preparing frames');
 
-	let imgbitmaps = await fileWorker("bitmaps", {blobs, width, height});
+	let imgbitmaps = await fileWorker('bitmaps', {blobs, width, height});
 
-	let canvas = $create("canvas");
+	let canvas = $create('canvas');
 	canvas.width = width;
 	canvas.height = height;
-	let ctx = canvas.getContext("2d");
+	let ctx = canvas.getContext('2d');
 
 	let frames = [];
 	for (let bm of imgbitmaps){
@@ -397,14 +397,14 @@ async function convertUgoira(type, blobs, width, height, delays, progress){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function recordUgoira(type, blobs, width, height, delays, progress){
-	progress.say("Preparing frames");
+	progress.say('Preparing frames');
 
-	let imgbitmaps = await fileWorker("bitmaps", {blobs, width, height});
+	let imgbitmaps = await fileWorker('bitmaps', {blobs, width, height});
 	let frames = imgbitmaps.map((bm, i) => ({img: bm, delay: delays[i]}));
 
-	let canvas = $insert(document.body, "canvas", {width, height});
-	canvas.style.display = "none";
-	let ctx = canvas.getContext("2d");
+	let canvas = $insert(document.body, 'canvas', {width, height});
+	canvas.style.display = 'none';
+	let ctx = canvas.getContext('2d');
 
 	progress.width(100);
 	progress.say(`Recording ${type}`);
@@ -440,7 +440,7 @@ async function recordUgoira(type, blobs, width, height, delays, progress){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function fileWorker(type, data){
-	let fileworker = new Worker(browser.runtime.getURL("/workers/fileworker.js"));
+	let fileworker = new Worker(browser.runtime.getURL('/workers/fileworker.js'));
 	fileworker.postMessage({type, data});
 
 	return await new Promise((resolve, reject) => {

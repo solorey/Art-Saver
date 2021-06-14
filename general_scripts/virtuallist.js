@@ -9,7 +9,7 @@ function createVirtualList(listbox, listvalues, createRow){
 
 	let virtuallist = {
 		listbox: listbox,
-		list: $insert(listbox, "div", {class: "list"}),
+		list: $insert(listbox, 'div', {class: 'list'}),
 		values: listvalues,
 		viewportheight: listbox.offsetHeight,
 		rows: new Map(),
@@ -84,17 +84,17 @@ function createVirtualList(listbox, listvalues, createRow){
 
 //assumes list is already in descending order
 function searchResult(sbox, list){
-	let input = $(sbox, "input").value;
+	let input = $(sbox, 'input').value;
 
 	let results = [];
 	for (let l of list){
-		let result = RegExp(`^(.*?)(${input})(.*?)$`, "gi").exec(l);
+		let result = RegExp(`^(.*?)(${input})(.*?)$`, 'gi').exec(l);
 		if (result){
 			results.push(result);
 		}
 	}
 
-	if ($(sbox, ".search-sort").getAttribute("data-sort") === "ascend"){
+	if ($(sbox, '.search-sort').getAttribute('data-sort') === 'ascend'){
 		results.reverse();
 	}
 
@@ -102,27 +102,27 @@ function searchResult(sbox, list){
 }
 
 function showSearchClear(sbox){
-	let clearbutton = $(sbox, ".search-clear");
-	if ($(sbox, "input").value){
-		clearbutton.classList.remove("hide");
+	let clearbutton = $(sbox, '.search-clear');
+	if ($(sbox, 'input').value){
+		clearbutton.classList.remove('hide');
 	}
 	else {
-		clearbutton.classList.add("hide");
+		clearbutton.classList.add('hide');
 	}
 }
 
 function setupSearch(vlist, sbox, values){
-	let searchinput = $(sbox, "input");
+	let searchinput = $(sbox, 'input');
 	searchinput.oninput = () => {
 		vlist.updateList(searchResult(sbox, values));
 		showSearchClear(sbox);
 	};
-	$(sbox, "button.search-clear").onclick = () => {
-		searchinput.value = "";
+	$(sbox, 'button.search-clear').onclick = () => {
+		searchinput.value = '';
 		vlist.updateList(searchResult(sbox, values));
 		showSearchClear(sbox);
 	}
-	$(sbox, "button.search-sort").onclick = () => {
+	$(sbox, 'button.search-sort').onclick = () => {
 		toggleListSort(sbox);
 		vlist.updateList(searchResult(sbox, values));
 	}
@@ -132,17 +132,17 @@ function setupSearch(vlist, sbox, values){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function toggleListSort(sbox){
-	let sortbutton = $(sbox, "button.search-sort");
-	let sorticon = $(sortbutton, "i");
+	let sortbutton = $(sbox, 'button.search-sort');
+	let sorticon = $(sortbutton, 'i');
 
-	if (sortbutton.getAttribute("data-sort") === "descend"){
-		sortbutton.setAttribute("data-sort", "ascend");
-		sortbutton.title = "Sorted by ascending"
-		sorticon.className = "icon-ascend";
+	if (sortbutton.getAttribute('data-sort') === 'descend'){
+		sortbutton.setAttribute('data-sort', 'ascend');
+		sortbutton.title = 'Sorted by ascending'
+		sorticon.className = 'icon-ascend';
 	}
 	else {
-		sortbutton.setAttribute("data-sort", "descend");
-		sortbutton.title = "Sorted by descending"
-		sorticon.className = "icon-descend";
+		sortbutton.setAttribute('data-sort', 'descend');
+		sortbutton.title = 'Sorted by descending'
+		sorticon.className = 'icon-descend';
 	}
 }

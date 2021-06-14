@@ -19,7 +19,7 @@ function $create(element){
 
 function $insert(elem1, elem2, attrs = {}){
 	attrs = {
-		position: "beforeend",
+		position: 'beforeend',
 		...attrs
 	};
 
@@ -27,21 +27,21 @@ function $insert(elem1, elem2, attrs = {}){
 
 	for (let [attribute, value] of Object.entries(attrs)) {
 		switch (attribute){
-			case "position":
-				if (value === "parent"){
-					elem1.insertAdjacentElement("beforebegin", newelem);
-					newelem.insertAdjacentElement("beforeend", elem1);
+			case 'position':
+				if (value === 'parent'){
+					elem1.insertAdjacentElement('beforebegin', newelem);
+					newelem.insertAdjacentElement('beforeend', elem1);
 				}
 				else {
 					elem1.insertAdjacentElement(value, newelem);
 				}
 				break;
 
-			case "class":
+			case 'class':
 				newelem.className = value;
 				break;
 
-			case "text":
+			case 'text':
 				newelem.textContent = value;
 				break;
 

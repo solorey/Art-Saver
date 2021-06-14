@@ -3,39 +3,39 @@
 onmessage = async function(m){
 	try{
 		switch (m.data.function){
-			case "getstashurls":
+			case 'getstashurls':
 				let urls = await navigateStacks(m.data.data);
-				postMessage({message: "result", result: urls});
+				postMessage({message: 'result', result: urls});
 				break;
 
-			case "fetchstash":
-				let stash = await fetcher(m.data.data, "text");
-				postMessage({message: "result", result: stash});
+			case 'fetchstash':
+				let stash = await fetcher(m.data.data, 'text');
+				postMessage({message: 'result', result: stash});
 				break;
 
-			case "downloadstash":
+			case 'downloadstash':
 				let blob = await fetchBlob(m.data.data);
-				postMessage({message: "result", result: blob});
+				postMessage({message: 'result', result: blob});
 				break;
 		}
 	}
 	catch (err) {
-		postMessage({message: "error", name: err.name, description: err.message});
+		postMessage({message: 'error', name: err.name, description: err.message});
 	}
 }
 
 async function fetcher(url, type){
-	let response = await fetch(url, {credentials: "include"});
+	let response = await fetch(url, {credentials: 'include'});
 
-	if (!response.ok && type !== "response"){
+	if (!response.ok && type !== 'response'){
 		return response.status;
 	}
 
 	switch (type){
-		case "text":
+		case 'text':
 			return response.text();
 
-		case "blob":
+		case 'blob':
 			return await response.blob();
 
 		default:
@@ -74,7 +74,7 @@ async function navigateStacks(urls){
 	let urlslist = urls;
 	let stacks;
 	while ((stacks = urlslist.filter(u => /\/2/.test(u))).length > 0){
-		let responses = await Promise.all(stacks.map(g => fetcher(g, "text")));
+		let responses = await Promise.all(stacks.map(g => fetcher(g, 'text')));
 		let stackurls = responses.map(r => findStashUrlsInStack(r));
 
 		urlslist = [urlslist.filter(u => !/\/2/.test(u)), stackurls].flat(Infinity).filter(s => s);
@@ -87,8 +87,8 @@ async function navigateStacks(urls){
 function decodeStash(num){
 	num = parseInt(num, 10);
 
-	let link = "";
-	let chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+	let link = '';
+	let chars = '0123456789abcdefghijklmnopqrstuvwxyz';
 	let base = chars.length;
 	while (num){
 		remainder = num % base;
@@ -113,7 +113,7 @@ async function fetchBlob(url){
 	}
 
 	let loaded = 0;
-	let total = parseInt(response.headers.get("Content-Length"), 10);
+	let total = parseInt(response.headers.get('Content-Length'), 10);
 
 	let reader = response.body.getReader();
 	let chunks = [];
@@ -126,7 +126,7 @@ async function fetchBlob(url){
 		chunks.push(value);
 		loaded += value.length;
 
-		postMessage({message: "progress", loaded, total});
+		postMessage({message: 'progress', loaded, total});
 	}
 
 	return new Blob(chunks);

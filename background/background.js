@@ -7,7 +7,7 @@ async function initalSetup(details){
 		setState(state);
 	}
 	await setupOptions();
-	if (details.reason === "install"){
+	if (details.reason === 'install'){
 		browser.runtime.openOptionsPage();
 	}
 }
@@ -17,24 +17,24 @@ async function initalSetup(details){
 //---------------------------------------------------------------------------------------------------------------------
 
 async function updateOldStorage(){
-	browser.storage.local.remove(["popup", "infobar"]);
-	let oldoptions = await browser.storage.local.get("options");
+	browser.storage.local.remove(['popup', 'infobar']);
+	let oldoptions = await browser.storage.local.get('options');
 	if (Object.entries(oldoptions).length > 0){
-		console.log("Old options exists. Updating option storage")
+		console.log('Old options exists. Updating option storage')
 		for (let [key, values] of Object.entries(oldoptions.options)){
 			//console.log(key, values);
 			await browser.storage.local.set(Object.fromEntries([[optionsKey(key), values]]));
 		}
-		await browser.storage.local.remove("options");
+		await browser.storage.local.remove('options');
 	}
-	let olduserlist = await browser.storage.local.get("userlist");
+	let olduserlist = await browser.storage.local.get('userlist');
 	if (Object.entries(olduserlist).length > 0){
-		console.log("Old userlist exists. Updating saved information storage")
+		console.log('Old userlist exists. Updating saved information storage')
 		for (let [key, values] of Object.entries(olduserlist.userlist)){
 			//console.log(key, values);
 			await browser.storage.local.set(Object.fromEntries([[savedKey(key), values]]));
 		}
-		await browser.storage.local.remove("userlist");
+		await browser.storage.local.remove('userlist');
 	}
 	return;
 }
@@ -50,7 +50,7 @@ async function setupOptions(){
 		for (let [key, values] of Object.entries(ALLOPTIONS[site])){
 			let initialvalue;
 			if (!allsavedoptions[sitekey]){
-				console.log("New site", site);
+				console.log('New site', site);
 				allsavedoptions[sitekey] = {};
 			}
 			if (![...Object.keys(allsavedoptions[sitekey])].includes(key)){
@@ -97,33 +97,33 @@ browser.runtime.onMessage.addListener(request => {
 
 async function messageActions(request){
 	switch (request.function){
-		case "blob":
+		case 'blob':
 			let bloburl = URL.createObjectURL(request.blob);
 			return startDownload(bloburl, request.filename, request.meta);
 
-		case "updatesavedinfo":
+		case 'updatesavedinfo':
 			return updateSavedInfo(request.site, request.user, request.id);
 
-		case "createobjecturl":
+		case 'createobjecturl':
 			return URL.createObjectURL(request.object);
 
-		case "revokeobjecturl":
+		case 'revokeobjecturl':
 			URL.revokeObjectURL(request.url);
 			return;
 
-		case "openuserfolder":
+		case 'openuserfolder':
 			return openFolder(request.folderFile, request.meta);
 
-		case "showdownload":
+		case 'showdownload':
 			return browser.downloads.show(request.id);
 
-		case "updatestate":
+		case 'updatestate':
 			return updateState(request.ui, request.component, request.value);
 
-		case "removeuser":
+		case 'removeuser':
 			return removeUser(request.site, request.user);
 
-		case "removesubmission":
+		case 'removesubmission':
 			return removeSubmission(request.site, request.sid);
 	}
 }
@@ -148,10 +148,10 @@ async function updateSavedInfo(site, user, sid){
 		sitesavedinfo[user] = [...new Set(saved)].sort((a, b) => b - a);
 
 		await browser.storage.local.set(Object.fromEntries([[key, sitesavedinfo]]));
-		message = {response: "Success", list: sitesavedinfo};
+		message = {response: 'Success', list: sitesavedinfo};
 	}
 	catch (error){
-		message = {response: "Failure", error};
+		message = {response: 'Failure', error};
 	}
 
 	updating = false;
@@ -216,19 +216,19 @@ function isUpdating(){
 // filename creation
 //---------------------------------------------------------------------------------------------------------------------
 
-//remove illegal filename characters
+//replace illegal filename characters
 function sanitize(text){
 	return `${text}`
-		.replace(/\\/g, "＼")	//\uff3c
-		.replace(/\//g, "／")	//\uff0f
-		.replace(/:/g, "：")	//\uff1a
-		.replace(/\*/g, "＊") //\uff0a
-		.replace(/\?/g, "？") //\uff1f
-		.replace(/\"/g, "″")	//\u2033
-		.replace(/</g, "＜")	//\uff1c
-		.replace(/>/g, "＞")	//\uff1e
-		.replace(/\|/g, "｜") //\uff5c
-		.replace(/[\u200e\u200f\u202a-\u202e]/g, ""); //remove bidirectional formatting characters.
+		.replace(/\\/g, '＼')	//\uff3c
+		.replace(/\//g, '／')	//\uff0f
+		.replace(/:/g, '：')	//\uff1a
+		.replace(/\*/g, '＊') //\uff0a
+		.replace(/\?/g, '？') //\uff1f
+		.replace(/\"/g, '″')	//\u2033
+		.replace(/</g, '＜')	//\uff1c
+		.replace(/>/g, '＞')	//\uff1e
+		.replace(/\|/g, '｜') //\uff5c
+		.replace(/[\u200e\u200f\u202a-\u202e]/g, ''); //remove bidirectional formatting characters.
 		//Not illegal in windows but firefox errors when trying to download a filename with them.
 }
 
@@ -237,12 +237,14 @@ function createFilename(meta, path, replace){
 	for (let key in meta){
 		let metavalue = sanitize(meta[key]); //make sure it is a filesafe string
 		if (replace){
-			metavalue = metavalue.replace(/\s/g, "_");
+			metavalue = metavalue.replace(/\s/g, '_');
 		}
-		path = path.replace(RegExp(`{${key}}`, "g"), metavalue);
+		path = path.replace(RegExp(`{${key}}`, 'g'), metavalue);
 	}
-	//Make sure no folders end with "."
-	path = path.replace(/\.\//g, "．/"); //\uff0e
+	//remove trailing whitespace
+	path = path.split('/').map(p => p.trim()).join('/');
+	//make sure no folders end with '.'
+	path = path.replace(/\.\//g, '．/'); //\uff0e
 
 	return path;
 }
@@ -254,23 +256,23 @@ function createFilename(meta, path, replace){
 var currentdownloads = new Map();
 
 async function startDownload(url, filename, meta){
-	let key = optionsKey("global");
+	let key = optionsKey('global');
 	let res = await browser.storage.local.get(key);
 	filename = createFilename(meta, filename, res[key].replace);
 	try {
 		let dlid = await browser.downloads.download({url, filename, conflictAction: res[key].conflict, saveAs: res[key].saveAs});
 		currentdownloads.set(dlid, url);
-		return {response: "Success", url, filename, id: dlid};
+		return {response: 'Success', url, filename, id: dlid};
 	}
 	catch (err){
-		return {response: "Failure", url, filename};
+		return {response: 'Failure', url, filename};
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function handleChanged(delta){
-	if (!delta.state || delta.state.current !== "complete"){
+	if (!delta.state || delta.state.current !== 'complete'){
 		return;
 	}
 
@@ -296,8 +298,8 @@ browser.downloads.onChanged.addListener(handleChanged);
 var folderfiles = new Map();
 
 async function openFolder(filename, meta){
-	let url = URL.createObjectURL(new Blob([""]));
-	let res = await browser.storage.local.get(optionsKey("global"));
+	let url = URL.createObjectURL(new Blob(['']));
+	let res = await browser.storage.local.get(optionsKey('global'));
 	filename = createFilename(meta, filename, res.replace);
 	let dlid = await browser.downloads.download({url, filename, saveAs: false});
 	folderfiles.set(dlid, url);
