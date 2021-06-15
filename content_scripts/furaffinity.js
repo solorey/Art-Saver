@@ -265,7 +265,7 @@ as.furaffinity.download.getMeta = function(r, url, progress){
 	meta.site = 'furaffinity';
 	meta.userName = /([^ ]+)(?: -- )/.exec($(r, 'title').textContent)[1];
 
-	info.downloadurl = decodeURI($(r, 'a[href*="facdn.net/art/"], a[href*="d.furaffinity.net/art/"]').href);
+	info.downloadurl = decodeURI($(r, 'a[href*="/art/"]').href);
 
 	//example download urls
 	//https://d.furaffinity.net/art/username/0123456789/0123456789.username_filename.ext
