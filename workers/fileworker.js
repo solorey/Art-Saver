@@ -33,7 +33,7 @@ create.gif = async function(data){
 }
 
 create.apng = async function(data){
-	importScripts('/lib/pako_deflate.js', '/lib/UPNG.js');
+	importScripts('/lib/pako_deflate.min.js', '/lib/UPNG.js');
 
 	let imgdata = data.frames.map(f => f.data);
 
@@ -42,7 +42,7 @@ create.apng = async function(data){
 }
 
 create.zip = async function(data){
-	importScripts('/lib/jszip.js');
+	importScripts('/lib/jszip.min.js');
 
 	var zip = new JSZip();
 
