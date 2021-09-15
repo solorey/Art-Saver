@@ -242,7 +242,7 @@ function createSelectOption(optionid, values, savedvalue){
 	labelelem.setAttribute('for', optionid);
 
 	let selectelem = $(option, 'select');
-	for (opt of values.options){
+	for (let opt of values.options){
 		$insert(selectelem, 'option', {value: opt.value, text: opt.label});
 	}
 	selectelem.id = optionid;
@@ -664,7 +664,7 @@ async function savedInfoDetails(){
 function getSavedInfoTableState(){
 	let savedtable = $('#info-table');
 	let tablestate = {};
-	for (site of SITES){
+	for (let site of SITES){
 		let statrow = $(savedtable, `tr[data-site=${site}]`);
 		if (!statrow){
 			continue;
@@ -838,7 +838,7 @@ async function setUndoButton(){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-for (ub of $$('.close-button')){
+for (let ub of $$('.close-button')){
 	ub.onclick = function(){
 		this.parentElement.classList.add('hide');
 	}

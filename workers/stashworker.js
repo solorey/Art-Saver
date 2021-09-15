@@ -52,7 +52,7 @@ function findStashUrlsInStack(sr){
 	}
 
 	let surls = [];
-	for (thumb of stashthumbs){
+	for (let thumb of stashthumbs){
 		let hrefreg = /<a.+?href="(.+?)"/.exec(thumb);
 		if (hrefreg){
 			surls.push(hrefreg[1]);

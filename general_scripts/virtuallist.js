@@ -69,7 +69,7 @@ function createVirtualList(listbox, listvalues, createRow){
 	listbox.style.height = `${defaultheight}px`;
 
 	let resize = new ResizeObserver(entries => {
-		virtuallist.viewportheight = [...entries].pop().borderBoxSize.blockSize;
+		virtuallist.viewportheight = entries.pop().borderBoxSize[0].blockSize;
 		virtuallist.renderRows();
 	});
 	globalrunningobservers.push(resize);
