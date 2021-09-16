@@ -244,8 +244,9 @@ function userStats(request, siteoptions){
 	$('#profile-cover').style.width = 'auto';
 
 	let pic = $('#profile-pic');
-	//make sure user icon for image src is a url
-	pic.src = (/^(?:https?|blob:moz-extension):\/\//.test(user.icon)) ? user.icon : '';
+	//make sure user icon url provided by the site is safe to display in the popup
+	//using DOMPurify as recommended by Mozilla
+	pic.src = DOMPurify.sanitize(user.icon);
 	pic.classList.remove('loading-icon');
 
 	$('#user-name').textContent = user.name;

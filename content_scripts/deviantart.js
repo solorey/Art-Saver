@@ -748,22 +748,16 @@ async function getImageIcon(submissionId){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function cleanContent(element){
-	$$(element, 'script, style').forEach(s => $remove(s));
 	//simplify thumbnail journal links
 	$$(element, 'a.lit').forEach(l => l.textContent = l.href);
+	
+	element = DOMPurify.sanitize(element, {
+		IN_PLACE: true,
+		FORBID_TAGS: ['style'],
+		FORBID_ATTR: ['id', 'class', 'style', 'srcset'],
+		ALLOW_DATA_ATTR: false
+	});
 
-	//clean attributes
-	//remove if matches
-	let list1 = ['id', 'class', 'style', 'srcset'];
-	//remove if starts with
-	let list2 = ['on', 'data'];
-	for (let elem of $$(element, '*')){
-		for (let attr of [...elem.attributes].map(a => a.name)){
-			if (list1.includes(attr) || list2.some(a => attr.startsWith(a))){
-				elem.removeAttribute(attr);
-			}
-		}
-	}
 	//remove unecessary div and span elements
 	for (let elem of $$(element, 'div, span')){
 		if (elem.attributes.length <= 0){
@@ -777,7 +771,7 @@ function cleanContent(element){
 	//combine paragraphs
 	if (element.matches('.da-editor-journal div') && element.firstChild){
 		let child = element.firstChild;
-		while(child.nextSibling){
+		while (child.nextSibling){
 			let next = child.nextSibling;
 			if (child.nodeName === 'P' && next.nodeName === 'P'){
 				child.append($create('br'), ...next.childNodes);

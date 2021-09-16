@@ -68,7 +68,10 @@
 		},
 		{
 			"matches": ["*://*.deviantart.com/*"],
-			"js": ["content_scripts/deviantart.js"]
+			"js": [
+				"content_scripts/deviantart.js",
+				"lib/purify.min.js"
+			]
 		},
 		{
 			"matches": ["*://*.pixiv.net/*"],
