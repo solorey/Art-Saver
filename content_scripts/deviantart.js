@@ -12,9 +12,17 @@ function pageInfo(){
 
 	let path = new URL(page.url).pathname;
 
-	let reg = /^\/[^\/]+(?:\/([^\/]+))?/.exec(path);
+	let reg = /^\/([^\/]+)(?:\/([^\/]+))?/.exec(path);
 	if (reg){
-		page.page = (!reg[1] && $('title').textContent.endsWith(' | DeviantArt'))? 'user' : reg[1];
+		if (['daily-deviations', 'watch'].includes(reg[1])){
+			page.page = reg[1];
+		}
+		else if (!reg[2] && $('title').textContent.endsWith(' | DeviantArt')){
+			page.page = 'user';
+		}
+		else if (reg[2]){
+			page.page = reg[2];
+		}
 	}
 	//group pages that still have the old site layout
 	let group = $('#group');
@@ -109,11 +117,6 @@ as.deviantart.check.checkPage = function(page){
 	//old thumbnails still show in art groups
 	this.checkOldThumbnails(this.getOldThumbnails());
 
-	let popup = $('[id^=popper] > *');
-	if (popup){
-		this.checkPopup(popup);
-	}
-
 	this.checkThumbnails(this.getThumbnails());
 
 	if (page.page === 'art'){
@@ -206,6 +209,10 @@ as.deviantart.check.getThumbnails = function(){
 		if (!$(thumb, 'img') && $(thumb, 'section')){
 			thumb.style.position = 'relative';
 		}
+		//popup thumbnails
+		if (thumb.matches('[id^=popper] a')){
+			thumb.style.position = 'relative';
+		}
 
 		thumbnails.push(thumb);
 	}
@@ -219,23 +226,37 @@ as.deviantart.check.checkThumbnails = function(thumbnails){
 		try {
 			let url = thumb.getAttribute('href') || $(thumb, 'a').href;
 			let subid = parseInt(url.split('-').pop(), 10);
-			let user = ($(thumb, '.user-link') || thumb).getAttribute('title').split(' ').pop();
-
-			addButton('deviantart', user, subid, thumb);
-		}
-		catch (err){}
-	}
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-as.deviantart.check.checkPopup = function(popup){
-	let user = $(popup, '[data-hook=user_link]').title;
-	for (let thumb of $$(popup, '[data-hook=deviation_link]')){
-		try {
-			thumb.style.position = 'relative';
-			let url = thumb.href;
-			let subid = parseInt(url.split('-').pop(), 10);
+			let user = '';
+			let userlink = $(thumb, '.user-link');
+			if (userlink){
+				user = userlink.getAttribute('title');
+			}
+			if (!user){
+				//thumbs in the sidebar of a submission page
+				let thumbtitle = thumb.getAttribute('title');
+				if (thumbtitle){
+					titlereg = /\ by\ (\w+)$/.exec(thumbtitle);
+					if (titlereg){
+						user = titlereg[1];
+					}
+				}
+			}
+			if (!user){
+				//if no user element is found the thumbail may be part of a group
+				//continue navigating up the element tree to try to find a user
+				let element = thumb.parentElement;
+				for (let i = 0; i < 5; i += 1){
+					userlink = $(element, '.user-link');
+					if (userlink){
+						user = userlink.getAttribute('title');
+						break;
+					}
+					else if (element.nodeName === 'SECTION'){
+						break;
+					}
+					element = element.parentElement;
+				}
+			}
 
 			addButton('deviantart', user, subid, thumb);
 		}
@@ -274,10 +295,10 @@ as.deviantart.check.checkSubmission = function(user, url){
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
-//submission	- https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch?deviationid=<sumbissionId>&type=art&include_session=false
-//user				- https://www.deviantart.com/_napi/da-user-profile/api/init/gallery?username=<userName>
-//gallery			- https://www.deviantart.com/_napi/da-user-profile/api/gallery/contents?username=<userName>&offset=0&limit=24&all_folder=true&mode=newest //24 is max
-//rss					- https://backend.deviantart.com/rss.xml?q=+sort:time+by:<userName>+-in:journals&type=deviation
+//submission - https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch?deviationid=<sumbissionId>&type=art&include_session=false
+//user       - https://www.deviantart.com/_napi/da-user-profile/api/init/gallery?username=<userName>
+//gallery    - https://www.deviantart.com/_napi/da-user-profile/api/gallery/contents?username=<userName>&offset=0&limit=24&all_folder=true&mode=newest //24 is max
+//rss        - https://backend.deviantart.com/rss.xml?q=+sort:time+by:<userName>+-in:journals&type=deviation
 
 as.deviantart.download.startDownloading = async function(subid, progress){
 	progress.say('Getting submission');
@@ -322,6 +343,9 @@ as.deviantart.download.startDownloading = async function(subid, progress){
 				let stashresponse = parser.parseFromString(stashstring, 'text/html');
 
 				let {stashinfo, stashmeta} = await this.getStashMeta(stashresponse, {url: info.url, ...meta}, options, progress);
+				if (Object.entries(stashmeta).length === 0){
+					continue;
+				}
 
 				let stashdownload = {
 					url: stashinfo.downloadurl,
@@ -470,7 +494,11 @@ as.deviantart.download.getMeta = async function(r, options, progress){
 as.deviantart.download.getStashMeta = async function(sr, meta, options, progress){
 	let stashinfo = {}, stashmeta = {};
 	let url = $(sr, 'link[rel=canonical]').href;
-	stashmeta.stashSubmissionId = $(sr, 'div.dev-page-view').getAttribute('gmi-deviationid');
+	let pageview = $(sr, 'div.dev-page-view');
+	if (!pageview){
+		return {stashinfo, stashmeta}
+	}
+	stashmeta.stashSubmissionId = pageview.getAttribute('gmi-deviationid');
 	stashmeta.stashTitle = $(sr, '.dev-title-container .title').textContent;
 	stashmeta.stashUserName = $(sr, '.dev-title-container .username:not(.group)').textContent;
 	stashmeta.stashUrlId = url.split('/0').pop();
@@ -490,7 +518,7 @@ as.deviantart.download.getStashMeta = async function(sr, meta, options, progress
 	stashmeta.stashss = pad(time.getSeconds());
 
 	//literature
-	if ($(sr, '.journal-wrapper font')){
+	if ($(sr, '.journal-wrapper font, .journal-wrapper .text')){
 		if (options.literature === 'html'){
 			progress.say('Creating html');
 			stashmeta.stashExt = 'html';
@@ -704,7 +732,7 @@ async function literatureToHtml(r, meta, options){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function stashLiteratureToHtml(sr, meta, options){
-	let storyelem = $(sr, '.journal-wrapper font') || $create('div');
+	let storyelem = $(sr, '.journal-wrapper font, .journal-wrapper .text') || $create('div');
 	let story = cleanContent(storyelem);
 	story.firstElementChild.id = 'content';
 
@@ -849,13 +877,13 @@ async function literatureToText(r, meta, options){
 		text = text.replace(RegExp(`{${key}}`, 'g'), `${value}`);
 	}
 
-	return new Blob([text], {type : 'text/txt'});
+	return new Blob([text], {type: 'text/txt'});
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function stashLiteratureToText(sr, meta, options){
-	let storyelem = $(sr, '.journal-wrapper font') || $create('div');
+	let storyelem = $(sr, '.journal-wrapper font, .journal-wrapper .text') || $create('div');
 	let story = getElementText(storyelem);
 
 	let words = story.replace(/[^\w\s]+/g, '').match(/\w+/g).length;
@@ -876,7 +904,7 @@ async function stashLiteratureToText(sr, meta, options){
 		text = text.replace(RegExp(`{${key}}`, 'g'), `${value}`);
 	}
 
-	return new Blob([text], {type : 'text/txt'});
+	return new Blob([text], {type: 'text/txt'});
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
