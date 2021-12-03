@@ -43,6 +43,7 @@ Code used:
 - [UPNG.js][upng] : for APNG encoding
 - [gif.js][gif] : for GIF encoding
 - [JSZip][zip] : for ZIP encoding
+- [DOMPurify][dompurify]
 
 Other:
 - [icomoon][iconfont] : for icon font creation
@@ -63,5 +64,6 @@ Other:
 [upng]: https://github.com/photopea/UPNG.js/
 [gif]: https://jnordberg.github.io/gif.js/
 [zip]: https://stuk.github.io/jszip/
+[dompurify]: https://github.com/cure53/DOMPurify
 
 [iconfont]: https://icomoon.io/
