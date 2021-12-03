@@ -90,7 +90,12 @@ as.furaffinity.check.startChecking = function(){
 		//remove art saver buttons
 		changed.flatMap(c => $$(c, '.artsaver-check, .artsaver-download, .artsaver-screen')).forEach(e => $remove(e));
 		//remove attribute indicating the submission has already been checked
-		changed.forEach(e => e.removeAttribute('data-checkstatus'));
+		for (let c of changed){
+			c.removeAttribute('data-checkstatus');
+			$$(c, '[data-checkstatus]').forEach(e => {
+				e.removeAttribute('data-checkstatus');
+			});
+		}
 
 		changed = changed.map(c => (c.matches('.preview_img a') ? c.parentElement.parentElement : c));
 		this.checkThumbnails(changed, page.userLower);
@@ -163,7 +168,7 @@ as.furaffinity.check.checkThumbnails = function(thumbnails, user){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 as.furaffinity.check.checkUserFavorites = function(){
-	let favdata = JSON.parse(/submission_data\ =\ (.+);/.exec($('#pageid-userpage > div > script, #site-content > script').textContent)[1]);
+	let favdata = JSON.parse(/submission_data\ =\ (.+);/.exec($('#pageid-userpage > div > script, #page-userpage + script').textContent)[1]);
 
 	for (let fav of $$('#gallery-latest-favorites > [id^="sid"]')){
 		try {
