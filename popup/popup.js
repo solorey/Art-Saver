@@ -6,9 +6,12 @@ var globalpopupstate;
 // state functions
 //---------------------------------------------------------------------------------------------------------------------
 
+browser.storage.local.get(optionsKey('global')).then(g => {
+	document.body.className = `artsaver-theme-${g[optionsKey('global')].theme}`;
+});
 browser.storage.local.get('popup_state').then(s => globalpopupstate = s.popup_state);
 
-function updateState(component, value){
+function updateState(component, value) {
 	globalpopupstate[component] = value;
 	browser.runtime.sendMessage({
 		function: 'updatestate',
@@ -22,7 +25,7 @@ function updateState(component, value){
 // page information
 //---------------------------------------------------------------------------------------------------------------------
 
-async function getPageInfo(){
+async function getPageInfo() {
 	let tabs = await browser.tabs.query({
 		active: true,
 		currentWindow: true
@@ -41,7 +44,7 @@ getPageInfo();
 // message send/listen functions
 //---------------------------------------------------------------------------------------------------------------------
 
-function send(id, message){
+function send(id, message) {
 	browser.tabs.sendMessage(id, {
 		command: message,
 	}).catch(() => {
@@ -53,8 +56,8 @@ browser.runtime.onMessage.addListener(request => {
 	messageActions(request);
 });
 
-async function messageActions(request){
-	if (request.function === 'pageerror'){
+async function messageActions(request) {
+	if (request.function === 'pageerror') {
 		openTab('unsupported-page');
 		return;
 	}
@@ -63,13 +66,13 @@ async function messageActions(request){
 
 	let res = await browser.storage.local.get([savedkey, sitekey]);
 
-	switch(request.function){
+	switch (request.function) {
 		case 'sitestats':
 			siteStats(request, res[savedkey] || {});
 			break;
 
 		case 'userstats':
-			userStats(request, res[sitekey]);
+			userStats(request.user, res[sitekey]);
 	}
 }
 
@@ -77,12 +80,12 @@ async function messageActions(request){
 // tabs
 //---------------------------------------------------------------------------------------------------------------------
 
-function openTab(tab){
+function openTab(tab) {
 	$$('.tabs > button').forEach(t => t.classList.remove('active'));
 	$$('.tab-content').forEach(t => t.classList.add('hide'));
 
 	let tabbutton = $(`.tabs > button[data-tab="${tab}"]`);
-	if (tabbutton){
+	if (tabbutton) {
 		tabbutton.classList.add('active');
 	}
 	$(`#${tab}`).classList.remove('hide')
@@ -90,13 +93,13 @@ function openTab(tab){
 
 openTab('getting-page');
 
-for (let t of $$('.tabs > button[data-tab]')){
-	t.onclick = function(){
+for (let t of $$('.tabs > button[data-tab]')) {
+	t.onclick = function () {
 		let tab = this.getAttribute('data-tab');
 
 		openTab(tab);
 
-		switch (tab){
+		switch (tab) {
 			case 'user-page':
 				updateState('tab', 'user');
 				break;
@@ -114,12 +117,12 @@ $('#settings-tab').onclick = () => browser.runtime.openOptionsPage();
 // download all button
 //---------------------------------------------------------------------------------------------------------------------
 
-function toggleDownload(){
+function toggleDownload() {
 	let lock = $('#download-lock');
 	let bolt = $('#download-bolt');
 	let dlall = $('#download-all');
 
-	if (lock.getAttribute('data-toggle') === 'closed'){
+	if (lock.getAttribute('data-toggle') === 'closed') {
 		lock.setAttribute('data-toggle', 'open');
 		bolt.className = 'icon-lock-open';
 		dlall.removeAttribute('disabled');
@@ -141,7 +144,7 @@ $('#download-lock').onclick = () => {
 // stats
 //---------------------------------------------------------------------------------------------------------------------
 
-function siteStats(request, sitelist){
+function siteStats(request, sitelist) {
 	globalrunningobservers.forEach(ob => ob.disconnect());
 	globalrunningobservers = [];
 
@@ -149,7 +152,7 @@ function siteStats(request, sitelist){
 	$('#stats-site').textContent = SITEINFO[request.site].label;
 
 	$('#downloads-stat').textContent = request.total.downloads;
-	if (!globalpopupstate.downloadLock){
+	if (!globalpopupstate.downloadLock) {
 		$('#download-lock').setAttribute('data-toggle', 'open');
 		$('#download-bolt').className = 'icon-lock-open';
 		$('#download-all').removeAttribute('disabled');
@@ -157,7 +160,7 @@ function siteStats(request, sitelist){
 	$('#saved-stat').textContent = request.total.saved;
 
 	let savedstats = {
-		user: [...new Set(Object.keys(sitelist))].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base', numeric: true})),
+		user: [...new Set(Object.keys(sitelist))].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })),
 		submission: [...new Set(Object.values(sitelist).flat())].sort((a, b) => b - a)
 	};
 
@@ -166,19 +169,19 @@ function siteStats(request, sitelist){
 		submission: (s) => createSubmissionRow(request.site, s)
 	};
 
-	for (let [stat, list] of Object.entries(savedstats)){
+	for (let [stat, list] of Object.entries(savedstats)) {
 		let rowelem = $(`#total-${stat}s`);
 		let listelem = $(`#${stat}-list`);
 
 		$(rowelem, '.badge').textContent = list.length;
 
 		classToggle(list.length > 0, rowelem, 'stat-button')
-		if (list.length > 0){
+		if (list.length > 0) {
 			let searchbox = $(listelem, '.search-box');
-			let list = createVirtualList($(listelem, '.list-box'), searchResult(searchbox, savedstats[stat]), createrows[stat]);
+			let list = new VirtualList($(listelem, '.list-box'), searchResult(searchbox, savedstats[stat]), createrows[stat]);
 			setupSearch(list, searchbox, savedstats[stat]);
 
-			rowelem.onclick = function(){
+			rowelem.onclick = function () {
 				classToggle(!listelem.classList.toggle('hide'), this, 'active');
 			};
 		}
@@ -198,16 +201,16 @@ function siteStats(request, sitelist){
 	resize.observe(sl);
 
 	openTab('stats-page');
-	if (request.user && !globalopened){
+	if (request.user && !globalopened) {
 		$('#user-tab').classList.remove('hide');
-		if (globalpopupstate['tab'] === 'user'){
+		if (globalpopupstate['tab'] === 'user') {
 			openTab('user-page');
 		}
 		globalopened = true;
 	}
 }
 
-function createUserRow(site, reguser){
+function createUserRow(site, reguser) {
 	let links = SITEINFO[site].links;
 
 	let row = $('#user-row-template').content.cloneNode(true);
@@ -223,7 +226,7 @@ function createUserRow(site, reguser){
 	return row.firstElementChild;
 }
 
-function createSubmissionRow(site, regsubmission){
+function createSubmissionRow(site, regsubmission) {
 	let links = SITEINFO[site].links;
 
 	let row = $('#submission-row-template').content.cloneNode(true);
@@ -238,9 +241,7 @@ function createSubmissionRow(site, regsubmission){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function userStats(request, siteoptions){
-	let user = request.user;
-
+function userStats(user, siteoptions) {
 	$('#profile-cover').style.width = 'auto';
 
 	let pic = $('#profile-pic');
@@ -263,20 +264,20 @@ function userStats(request, siteoptions){
 	let userprofile = $('#user-profile');
 
 	classToggle(user.stats.size <= 0, userprofile, 'no-stats');
-	if (user.stats.size > 0){
+	if (user.stats.size > 0) {
 		$(userstats, '.header').classList.remove('hide');
 
-		for (let [stat, value] of user.stats.entries()){
-			let row = $insert(userstats, 'div', {class: 'stat-row'});
-			$insert(row, 'div', {text: stat});
-			$insert($insert(row, 'div'), 'span', {class: 'badge', text: value});
+		for (let [stat, value] of user.stats.entries()) {
+			let row = $insert(userstats, 'div', { class: 'stat-row' });
+			$insert(row, 'span', { class: 'stat-text', text: stat });
+			$insert(row, 'span', { class: 'badge', text: value });
 		}
 	}
 
 	userstats.classList.remove('hide');
 
-	if (user.saved.length <= 0){
-		if (user.stats.size <= 0){
+	if (user.saved.length <= 0) {
+		if (user.stats.size <= 0) {
 			userstats.classList.add('hide');
 		}
 		return;
@@ -291,10 +292,10 @@ function userStats(request, siteoptions){
 
 	listbox.style.maxHeight = `${600 - (userprofile.offsetTop + userprofile.offsetHeight + 29)}px`;
 
-	let list = createVirtualList(listbox, searchResult(searchbox, user.saved), (s) => createSubmissionRow(user.site, s));
+	let list = new VirtualList(listbox, searchResult(searchbox, user.saved), (s) => createSubmissionRow(user.site, s));
 	setupSearch(list, searchbox, user.saved);
 
-	savedelem.onclick = function(){
+	savedelem.onclick = function () {
 		classToggle(!$('#saved-list').classList.toggle('hide'), this, 'active');
 	};
 
