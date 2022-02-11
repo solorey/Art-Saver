@@ -19,7 +19,7 @@ Check the [Wiki][wiki] for additional information.
 View the [Supported Sites][sites].
 
 ### Hotkeys
-- **D**: Download submission that is currently being hovered over.
+- <kbd>D</kbd>: Download submission that is currently being hovered over.
 
 ## Features
 - Custom filenames
