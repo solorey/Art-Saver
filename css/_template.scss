@@ -1,8 +1,10 @@
+@use "sass:math";
+
 $base: 16px;
 $size-font: 12px;
 
-@function u($size){
-	@return (1em / 12) * $size;
+@function u($size) {
+	@return math.div(1em, 12) * $size;
 }
 
 $size-icon: var(--as-icon-size);
@@ -24,14 +26,78 @@ $radius: u(3);
 
 $shadow: 0px 2px 5px#0000000e;
 
-$color-0: white;
-$color-1: #f0f0f0;
-$color-2: #e0e0e0;
-$color-text: black;
+$color-0: "color-0";
+$color-1: "color-1";
+$color-2: "color-2";
+$color-3: "color-3";
+$text: "text";
+$border: "border";
+
+$themes: (
+	light: (
+		color-0: #ffffff,
+		color-1: #ebebf0,
+		color-2: #dadae3,
+		color-3: #c2c3cf,
+		text: #000000,
+		border: u(1) solid #cdceda,
+	),
+	dark: (
+		color-0: #1c1b22,
+		color-1: #282731,
+		color-2: #373642,
+		color-3: #413f50,
+		text: #ffffff,
+		border: u(1) solid #373642,
+	),
+);
+
+$theme-map: null;
+
+@mixin base-themed() {
+	@each $theme, $map in $themes {
+		&.artsaver-theme-#{$theme} {
+			$theme-map: () !global;
+			@each $key, $submap in $map {
+				$value: map-get(map-get($themes, $theme), "#{$key}");
+				$theme-map: map-merge(
+					$theme-map,
+					(
+						$key: $value,
+					)
+				) !global;
+			}
+			@content;
+			$theme-map: null !global;
+		}
+	}
+}
+
+@mixin themed() {
+	@each $theme, $map in $themes {
+		.artsaver-theme-#{$theme} & {
+			$theme-map: () !global;
+			@each $key, $submap in $map {
+				$value: map-get(map-get($themes, $theme), "#{$key}");
+				$theme-map: map-merge(
+					$theme-map,
+					(
+						$key: $value,
+					)
+				) !global;
+			}
+			@content;
+			$theme-map: null !global;
+		}
+	}
+}
+
+@function t($key) {
+	@return map-get($theme-map, $key);
+}
 
 $color-screen: gray;
 
-//old blue #0786cf
 $blue: #0a84ff;
 $blue-light-1: #249cffff;
 $blue-light-2: scale-color($blue-light-1, $lightness: 5%);
@@ -46,11 +112,6 @@ $color-progress-text: white;
 $color-error-text: #721c24;
 $color-error-1: #f8d7da;
 $color-error-2: #f5c6cb;
-
-//$color-download-1: #0a84ff;
-//$color-download-2: #006efe;
-
-$style-border: u(1) solid $color-2;
 
 $icon-check-green: url("/icons/check_green.svg");
 $icon-check-yellow: url("/icons/check_yellow.svg");
@@ -69,7 +130,8 @@ $icon-selection: url("/icons/selection.svg");
 
 %font {
 	font: {
-		family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+		family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+			"Helvetica Neue", sans-serif;
 		style: normal;
 		weight: normal;
 	}
@@ -81,26 +143,30 @@ $icon-selection: url("/icons/selection.svg");
 	$height: u(18);
 	$diameter: u(12);
 
-	$space: ($height - $diameter) / 2;
+	$space: math.div(($height - $diameter), 2);
 
 	position: relative;
 	width: $width;
 	height: $height;
-	border-radius: $height / 2;
-	background-color: $color-1;
-	margin-right: u(6);
-	transition: background-color .2s;
+	border-radius: math.div($height, 2);
+	transition: background-color 0.2s;
 	flex-shrink: 0;
 
-	label:hover &{
-		background-color: $color-2;
+	@include themed() {
+		background-color: t($color-1);
 	}
 
-	input:checked + &{
+	&:hover {
+		@include themed() {
+			background-color: t($color-2);
+		}
+	}
+
+	input:checked + & {
 		background-color: $blue;
 	}
 
-	label:hover input:checked + &{
+	label:hover input:checked + & {
 		background-color: $blue-light-1;
 	}
 
@@ -111,31 +177,45 @@ $icon-selection: url("/icons/selection.svg");
 		height: $diameter;
 		left: $space;
 		bottom: $space;
-		border-radius: $diameter / 2;
+		border-radius: math.div($diameter, 2);
 		background-color: #fff;
-		transition: left .2s;
+		transition: left 0.2s;
+
+		@include themed() {
+			background-color: t($color-0);
+		}
 	}
 
 	input:checked + &::after {
+		background-color: white;
 		left: $width - ($diameter + $space);
 	}
 }
 
 %icon-button {
-	background-color: $color-0;
 	cursor: pointer;
-	color: $color-text;
 	font-size: 1rem;
 	text-align: center;
 	text-decoration: none;
 	display: flex;
+	justify-content: center;
+	align-items: center;
 
-	> i {
-		margin: auto;
+	@include themed() {
+		color: t($text);
+		background-color: t($color-0);
 	}
 
 	&:hover {
-		background-color: $color-1;
+		@include themed() {
+			background-color: t($color-1);
+		}
+	}
+
+	&:active {
+		@include themed() {
+			background-color: t($color-2);
+		}
 	}
 }
 
@@ -144,8 +224,11 @@ $icon-selection: url("/icons/selection.svg");
 
 	.search-box {
 		padding: u(2) $horz-pad;
-		background-color: $color-1;
 		display: flex;
+
+		@include themed() {
+			background-color: t($color-1);
+		}
 
 		button {
 			padding: u(6);
@@ -155,48 +238,56 @@ $icon-selection: url("/icons/selection.svg");
 	}
 
 	.search-clear {
-		border: $style-border;
-		border-left: none;
 		border-radius: 0;
+
+		@include themed() {
+			border: t($border);
+			border-left: none;
+		}
 	}
 
 	.search-sort {
-		border: $style-border;
-		border-left: none;
 		border-radius: 0 $radius $radius 0;
+
+		@include themed() {
+			border: t($border);
+			border-left: none;
+		}
 	}
 
-	.input-holder {
+	input {
+		color: inherit;
+		border-radius: $radius 0 0 $radius;
+		padding: $base-button-padding;
+		outline: none;
+		font: {
+			size: inherit;
+			family: inherit;
+		}
 		flex: 1;
-		display: flex;
 
-		input {
-			background-color: $color-0;
-			border: $style-border;
-			border-radius: $radius 0 0 $radius;
-			padding: $base-button-padding;
-			width: 100%;
-			outline: none;
-			font: {
-				size: inherit;
-				family: inherit;
-			}
+		@include themed() {
+			border: t($border);
+			background-color: t($color-0);
+		}
 
-			&:focus {
-				border-right: {
-					style: solid;
-					width: u(1);
-				}
-				border-color: $blue;
+		&:focus {
+			border-right: {
+				style: solid;
+				width: u(1);
 			}
+			border-color: $blue;
 		}
 	}
 
 	.list-box {
-		border-top: $style-border;
 		position: relative;
 		overflow: auto;
 		resize: vertical;
+
+		@include themed() {
+			border-top: t($border);
+		}
 	}
 
 	.list {
@@ -214,8 +305,11 @@ $icon-selection: url("/icons/selection.svg");
 
 			&:hover {
 				.row-label {
-					background-color: $color-1;
 					padding-left: $horz-pad + u(6);
+
+					@include themed() {
+						background-color: t($color-1);
+					}
 				}
 			}
 		}
@@ -241,10 +335,16 @@ $icon-selection: url("/icons/selection.svg");
 		border-right: {
 			width: u(1);
 			style: solid;
-			color: $color-0;
 		}
 		padding-left: $horz-pad;
 		transition: padding-left 0.2s;
+		min-width: 0;
+		text-overflow: ellipsis;
+		overflow: hidden;
+
+		@include themed() {
+			border-right-color: t($color-0);
+		}
 	}
 
 	a {
@@ -254,5 +354,34 @@ $icon-selection: url("/icons/selection.svg");
 			left: u(4);
 			right: u(4);
 		}
+	}
+}
+
+%mask-base {
+	position: relative;
+
+	&::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		pointer-events: none;
+		mask: {
+			repeat: no-repeat;
+		}
+
+		@include themed() {
+			background-color: t($text);
+		}
+	}
+}
+
+@mixin mask-svg() {
+	@extend %mask-base;
+
+	&::after {
+		@content;
 	}
 }

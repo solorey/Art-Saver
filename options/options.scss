@@ -1,3 +1,4 @@
+@use "sass:math";
 @use "../css/template" as *;
 
 html {
@@ -8,6 +9,11 @@ body {
 	margin: 0;
 	height: 100vh;
 	overflow: hidden;
+
+	@include base-themed() {
+		color: t($text);
+		background-color: t($color-0);
+	}
 }
 
 #tabs {
@@ -15,23 +21,28 @@ body {
 	flex-wrap: wrap;
 	justify-content: center;
 	border-bottom: {
-		color: $color-2;
 		style: solid;
 		width: u(2);
+	}
+
+	@include themed() {
+		border-color: t($color-2);
 	}
 }
 
 .tab-button {
-	color: $color-text;
+	color: inherit;
 	background-color: inherit;
 	border: none;
 	border-radius: 0;
 	outline: none;
-	padding: $vert-pad $horz-pad*2;
+	padding: $vert-pad $horz-pad * 2;
 	font-size: u(16);
 
 	&:hover {
-		background-color: $color-1;
+		@include themed() {
+			background-color: t($color-1);
+		}
 	}
 
 	&.active {
@@ -122,13 +133,18 @@ th {
 		size: u(15);
 		weight: 600;
 	}
-	background-color: $color-1;
 	padding: u(6) u(18);
+
+	@include themed() {
+		background-color: t($color-1);
+	}
 }
 
 .help-table {
 	tr {
-		border-bottom: $style-border;
+		@include themed() {
+			border-bottom: t($border);
+		}
 	}
 
 	td {
@@ -136,20 +152,31 @@ th {
 	}
 }
 
+#saved-table-caption {
+	grid-column: 2;
+	grid-row: 2;
+	text-align: center;
+}
+
 #saved-table {
 	margin: 0 auto;
-	flex: 1;
 	height: min-content;
+	width: 100%;
+
+	grid-column: 2;
+	grid-row: 3;
 
 	tr {
-		border-bottom: $style-border;
-
 		> :first-child {
 			text-align: left;
 		}
 
-		> :not(:first-child){
+		> :not(:first-child) {
 			text-align: right;
+		}
+
+		@include themed() {
+			border-bottom: t($border);
 		}
 	}
 }
@@ -158,11 +185,45 @@ th {
 	cursor: pointer;
 	white-space: nowrap;
 
-	&:hover, &.active {
-		background-color: $color-1;
+	&:hover {
+		@include themed() {
+			background-color: t($color-1);
+		}
 
 		.badge {
-			background-color: $color-0;
+			@include themed() {
+				background-color: t($color-0);
+			}
+		}
+	}
+
+	&:active {
+		@include themed() {
+			background-color: t($color-2);
+		}
+	}
+
+	&.active {
+		@include themed() {
+			background-color: t($color-1);
+		}
+
+		.badge {
+			@include themed() {
+				background-color: t($color-0);
+			}
+		}
+
+		&:hover {
+			@include themed() {
+				background-color: t($color-2);
+			}
+		}
+
+		&:active {
+			@include themed() {
+				background-color: t($color-3);
+			}
 		}
 	}
 
@@ -183,16 +244,15 @@ th {
 	}
 }
 
-i[class^=icon] {
-	margin-right: u(6);
-}
-
 .badge {
-	background-color: $color-1;
 	border-radius: $radius;
 	padding: u(3) u(6);
-	color: $color-text;
 	font-weight: 600;
+	color: inherit;
+
+	@include themed() {
+		background-color: t($color-1);
+	}
 }
 
 button {
@@ -204,7 +264,12 @@ button {
 	border: 0;
 	border-radius: $radius;
 	cursor: pointer;
-	text-align: center;
+	display: flex;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	gap: u(6);
+	color: inherit;
 }
 
 h3.site-header {
@@ -219,7 +284,10 @@ h3.site-header {
 		left: 0;
 		right: 0;
 	}
-	background-color: $color-1;
+
+	@include themed() {
+		background-color: t($color-1);
+	}
 }
 
 @keyframes animate-stripes {
@@ -234,46 +302,42 @@ h3.site-header {
 .row-delete {
 	display: none;
 	background-color: $color-error-1;
-
-	&.deleting {
-		animation: animate-stripes 1s linear infinite;
-		background: {
-			color: $color-error-1;
-			image:
-				linear-gradient(
-					135deg,
-					$color-error-2 25%,
-					transparent 25%,
-					transparent 50%,
-					$color-error-2 50%,
-					$color-error-2 75%,
-					transparent 75%,
-					transparent
-				);
-			size: u(16) u(16);
-		}
-	}
-
 	cursor: pointer;
 	color: $color-error-text;
 	font-size: 1rem;
-	text-align: center;
-	text-decoration: none;
+	text: {
+		align: center;
+		decoration: none;
+	}
 	padding: {
 		left: u(4);
 		right: u(4);
 	}
 	border-radius: 0;
 
-	> i {
-		margin: auto;
+	&.deleting {
+		animation: animate-stripes 1s linear infinite;
+		background: {
+			color: $color-error-1;
+			image: linear-gradient(
+				135deg,
+				$color-error-2 25%,
+				transparent 25%,
+				transparent 50%,
+				$color-error-2 50%,
+				$color-error-2 75%,
+				transparent 75%,
+				transparent
+			);
+			size: u(16) u(16);
+		}
 	}
 
 	&:hover:not(.deleting) {
 		background-color: $color-error-2;
 	}
 
-	#saved-table.editable &{
+	#saved-table.editable & {
 		display: flex;
 	}
 }
@@ -284,37 +348,37 @@ h3.site-header {
 
 .question {
 	$diameter: u(15);
+
 	text: {
 		decoration: none;
 		align: center;
 	}
 	margin-left: u(6);
 	display: inline-flex;
+	justify-content: center;
+	align-items: center;
 	width: $diameter;
 	height: $diameter;
 	line-height: $diameter;
-	border-radius: $diameter / 2;
-	color: $color-text;
-	background-color: $color-2;
-	cursor: help;
-
-
+	border-radius: math.div($diameter, 2);
 	visibility: hidden;
 	opacity: 0;
-	transition: .3s;
+	transition: 0.3s;
+	color: inherit;
+	cursor: help;
+
+	@include themed() {
+		background-color: t($color-2);
+	}
 
 	:hover > & {
 		visibility: visible;
 		opacity: 1;
 	}
-
-	> div {
-		margin: auto;
-	}
 }
 
-[class^=option-]{
-	margin: u(9) 0;
+[class^="option-"] {
+	margin: u(9);
 }
 
 .blue-button {
@@ -331,20 +395,32 @@ h3.site-header {
 }
 
 .default-button {
-	background-color: $color-1;
+	@include themed() {
+		background-color: t($color-1);
+	}
 
 	&:hover {
-		background-color: $color-2;
+		@include themed() {
+			background-color: t($color-2);
+		}
+	}
+
+	&:active {
+		@include themed() {
+			background-color: t($color-3);
+		}
 	}
 }
 
 %optionlabel {
 	display: block;
 	margin-bottom: u(3);
+	width: min-content;
+	white-space: nowrap;
 }
 
 #saved-info-input {
-	margin: u(6) 0;
+	grid-column: 1 / 3;
 
 	> label {
 		@extend %optionlabel;
@@ -366,13 +442,19 @@ h3.site-header {
 		display: flex;
 		overflow: hidden;
 		cursor: pointer;
-		border: $style-border;
 		border-radius: $radius;
 
-		.before {
-			background-color: $color-1;
-			padding: u(5) u(12);
-			border-right: $style-border;
+		@include themed() {
+			border: t($border);
+		}
+	}
+
+	.before {
+		padding: u(5) u(12);
+
+		@include themed() {
+			border-right: t($border);
+			background-color: t($color-1);
 		}
 	}
 }
@@ -380,6 +462,9 @@ h3.site-header {
 #filename {
 	flex: 1;
 	padding: u(5) u(12);
+	display: flex;
+	align-items: center;
+	gap: u(6);
 }
 
 .option-textarea {
@@ -391,16 +476,28 @@ h3.site-header {
 		font-size: inherit;
 		width: 100%;
 		padding: u(6);
-		border: $style-border;
-		border-radius: $radius;
+		border: {
+			top: {
+				left-radius: $radius;
+				right-radius: $radius;
+			}
+			bottom: {
+				left-radius: 0;
+				right-radius: $radius;
+			}
+		}
 		box-sizing: border-box;
 		margin-bottom: 0;
 		resize: vertical;
 		overflow-x: hidden;
 		outline: none;
+		color: inherit;
+		background-color: inherit;
+		tab-size: 4;
 
-		-moz-tab-size: 2;
-		tab-size: 2;
+		@include themed() {
+			border: t($border);
+		}
 
 		&:focus {
 			border-color: $blue;
@@ -410,10 +507,21 @@ h3.site-header {
 
 .help-button {
 	width: u(78);
+	padding: {
+		top: u(3);
+		bottom: u(3);
+	}
+	border: {
+		top: {
+			left-radius: 0;
+			right-radius: 0;
+		}
+	}
 }
 
-.option-checkbox, .single-switch {
-	display: table;
+.option-checkbox,
+.single-switch {
+	display: flex;
 
 	input {
 		display: none;
@@ -421,6 +529,8 @@ h3.site-header {
 
 	label {
 		display: flex;
+		align-items: center;
+		gap: u(6);
 		cursor: pointer;
 	}
 
@@ -432,165 +542,227 @@ h3.site-header {
 .option-select {
 	display: flex;
 	align-items: center;
+	gap: u(6);
 
 	select {
-		margin-left: u(6);
 		font: {
 			family: inherit;
 			size: inherit;
 		}
 		padding: u(3) u(18) u(3) u(3);
-		border: $style-border;
 		border-radius: $radius;
-		
+		color: inherit;
 		-moz-appearance: none;
 		appearance: none;
-
-		background: {
-			image: $icon-selection;
-			repeat: no-repeat;
-			position: {
-				x: right u(6);
-				y: center;
-			}
-			size: u(8) u(12);
-		}
 		cursor: pointer;
+
+		@include themed() {
+			border: t($border);
+			background-color: t($color-0);
+		}
+
+		&:focus {
+			border-color: $blue;
+		}
+	}
+
+	.select-holder {
+		@include mask-svg() {
+			mask: {
+				image: $icon-selection;
+				position: {
+					x: right u(6);
+					y: center;
+				}
+				size: u(8) u(12);
+			}
+		}
 	}
 }
 
-.option-number {
+.option-number,
+.option-slider {
+	white-space: nowrap;
 	display: flex;
 	align-items: center;
-	margin: u(3) 0;
-	white-space: nowrap;
+	gap: u(6);
 
-	.custom-number {
-		display: inline-flex;
+	label {
+		display: flex;
+		align-items: center;
+		gap: u(6);
+	}
+}
 
-		input {
-			width: u(36);
-			font: {
-				family: inherit;
-				size: inherit;
-			}
-			border: $style-border;
-			border-radius: $radius 0 0 $radius;
-			text-align: right;
-			padding: u(3) u(6) u(3) u(3);
-			box-sizing: border-box;
-			outline: none;
+.custom-number {
+	display: inline-grid;
+	grid-template-columns: u(36) u(15);
 
-			-moz-appearance: textfield;
-			appearance: textfield;
+	input {
+		grid: {
+			column: 1;
+			row: 1/3;
+		}
+		font: {
+			family: inherit;
+			size: inherit;
+		}
+		border-radius: $radius 0 0 $radius;
+		text-align: right;
+		padding: u(3) u(6) u(3) u(3);
+		box-sizing: border-box;
+		outline: none;
+		color: inherit;
+		background-color: inherit;
 
-			&:focus {
-				border-color: $blue;
-			}
+		-moz-appearance: textfield;
+		appearance: textfield;
+
+		@include themed() {
+			border: t($border);
+		}
+
+		&:focus {
+			border-color: $blue;
 		}
 	}
 
-	.number-buttons {
-		display: flex;
-		flex-direction: column;
+	button {
+		padding: 0;
 
-		button {
-			height: 50%;
-			width: u(15);
-			padding: 0;
-			background: {
-				color: $color-1;
-				image: url("/icons/selection.svg");
-				repeat: no-repeat;
+		@include themed() {
+			background-color: t($color-1);
+		}
+
+		@include mask-svg() {
+			mask: {
+				image: $icon-selection;
 				position-x: center;
 				size: u(8) u(12);
 			}
+		}
 
-			&:hover {
-				background-color: $color-2;
+		&:hover {
+			@include themed() {
+				background-color: t($color-2);
 			}
+		}
 
-			&.increase {
-				border-radius: 0 $radius 0 0;
-				background-position-y: .45rem;
+		&:active {
+			@include themed() {
+				background-color: t($color-3);
 			}
+		}
 
-			&.decrease {
-				border-radius: 0 0 $radius 0;
-				background-position-y: -.45rem;
+		&.increase {
+			grid: {
+				column: 2;
+				row: 1;
+			}
+			border-radius: 0 $radius 0 0;
+
+			&::after {
+				mask: {
+					position-y: 0.45rem;
+				}
+			}
+		}
+
+		&.decrease {
+			grid: {
+				column: 2;
+				row: 2;
+			}
+			border-radius: 0 0 $radius 0;
+
+			&::after {
+				mask: {
+					position-y: -0.45rem;
+				}
 			}
 		}
 	}
 }
 
-.option-slider {
-	display: flex;
+input.slider {
+	$bar-height: u(3);
+	-webkit-appearance: none;
+	height: $bar-height;
+	border-radius: $bar-height;
 
-	.option-number {
-		margin: 0;
+	@include themed() {
+		background-color: t($color-2);
 	}
-}
-.option-range {
-	margin: auto u(3);
 
-	input {
-		$bar-height: u(3);
-		-webkit-appearance: none;
-		background: $color-2;
-		height: $bar-height;
-		border-radius: $bar-height / 2;
+	&::-moz-range-thumb {
+		cursor: pointer;
+		height: u(12);
+		width: u(12);
+		border-radius: u(12);
+		background-color: $blue;
+		border: none;
 
-		&::-moz-range-thumb {
-			cursor: pointer;
-			height: u(12);
-			width: u(12);
-			border-radius: $radius * 2;
-			background-color: $blue;
-			border: none;
+		&:hover {
+			background-color: $blue-light-1;
+		}
 
-			&:hover {
-				background-color: $blue-light-1;
-			}
+		&:active {
+			background-color: $blue-light-2;
 		}
 	}
 }
 
-#info-table {
-	display: flex;
+#saved-info-content {
+	margin-top: u(6);
+	display: grid;
+	grid-template-columns: u(124) 1fr;
+	gap: u(6);
 }
 
 #table-side {
 	display: flex;
 	flex-direction: column;
-	margin-right: u(6);
-	padding-top: u(25);
-	width: u(124);
-
-	> * {
-		margin: u(3) 0;
+	gap: u(6);
+	grid: {
+		column: 1;
+		row: 3;
 	}
+	height: min-content;
+	position: sticky;
+	top: u(6);
+}
+
+#global-options-content {
+	display: grid;
+	grid-template-columns: u(124) 1fr;
+	gap: u(6);
+}
+
+#global-options {
+	grid-column: 2;
 }
 
 #settings-buttons {
-	text-align: center;
-	margin: u(6) 0;
 	display: flex;
-	justify-content: center;
+	flex-direction: column;
+	gap: u(6);
+	position: sticky;
+	height: min-content;
+	top: 0;
 
-	> button {
-		margin: 0 u(2);
-		width: u(144);
-	}
+	grid-column: 1;
 }
 
 #import-options {
-	width: 0;
+	height: 0;
 	overflow: hidden;
 }
 
 .undo-bar {
 	display: flex;
-	width: max-content;
+	justify-content: center;
+	align-items: center;
+	gap: u(24);
 	background-color: #fff3cd;
 	color: #856404;
 	padding: {
@@ -599,95 +771,138 @@ h3.site-header {
 		left: u(24);
 		right: u(12);
 	}
-	margin: u(6) auto;
 	position: fixed;
-	bottom: 9px;
-	left: 9px;
+	bottom: u(15);
+	left: u(9);
 }
 
 .undo-button {
 	width: u(30);
-	margin-left: u(24);
 	text: {
 		decoration: underline;
 		align: center;
 	}
 	cursor: pointer;
 
-	&:hover, &:active {
+	&:hover,
+	&:active {
 		font-weight: bold;
 		color: #856404;
 	}
 }
 
 .close-button {
-	margin-left: u(24);
 	display: flex;
+	justify-content: center;
+	align-items: center;
 	cursor: pointer;
-
-	> i {
-		margin: auto;
-	}
 }
 
-#sites-options {
-	display: flex;
+#site-options-content {
+	display: grid;
+	grid-template-columns: u(124) 1fr;
+	gap: u(6);
 }
 
 #sites-side {
 	display: flex;
 	flex-direction: column;
-	margin-right: u(6);
-	width: u(124);
+	gap: u(6);
+	position: sticky;
+	height: min-content;
+	top: u(6);
 
-	> * {
+	grid-column: 1;
+
+	&:first-child {
 		margin-top: u(6);
 	}
 }
 
 #sites-list {
 	flex: 1;
+
+	grid-column: 2;
 }
 
 #sites-toggles {
 	display: flex;
 	flex-direction: column;
+	gap: u(1);
+	padding: {
+		top: u(1);
+		bottom: u(1);
+	}
+
+	@include themed() {
+		background-color: t($color-2);
+	}
 }
 
 .site-toggle {
 	display: flex;
-	border-top: $style-border;
 
-	&:hover, &.active {
-		background-color: $color-1;
+	@include themed() {
+		background-color: t($color-0);
 	}
 
-	&:last-of-type {
-		border-bottom: $style-border;
+	&:hover {
+		@include themed() {
+			background-color: t($color-1);
+		}
+	}
+	&:active {
+		@include themed() {
+			background-color: t($color-2);
+		}
+	}
+
+	&.active {
+		@include themed() {
+			background-color: t($color-1);
+		}
+		&:hover {
+			@include themed() {
+				background-color: t($color-2);
+			}
+		}
+		&:active {
+			@include themed() {
+				background-color: t($color-3);
+			}
+		}
 	}
 }
 
 .site-radio {
-	background-color: #0000;
-	> div {
-		background-color: $color-0;
+	background-color: inherit;
+
+	&::after {
+		content: "";
 		width: u(16);
 		height: u(16);
 		border-radius: u(16);
-		border: $style-border;
+
+		@include themed() {
+			border: t($border);
+			background-color: t($color-0);
+		}
 	}
 
-	&:hover, &.active {
-		> div {
-			background-color: $color-2;
+	&:hover,
+	&.active {
+		&::after {
+			@include themed() {
+				background-color: t($color-2);
+			}
 		}
 	}
 }
 
 .site-button {
-	background-color: #0000;
 	border-radius: 0;
 	flex: 1;
+	background-color: inherit;
 }
 
 #about-info {

@@ -1,7 +1,7 @@
 @use "sass:selector";
 @use "template" as *;
 
-%checktop{
+%checktop {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -22,68 +22,73 @@
 	width: $size-icon;
 }
 
-.artsaver-check{
+.artsaver-check {
 	@extend %checkicon;
 
-	&[data-color=green]{
+	&[data-color="green"] {
 		background-image: $icon-check-green;
 	}
 
-	&[data-color=yellow]{
+	&[data-color="yellow"] {
 		background-image: $icon-check-yellow;
 	}
 
-	&:hover, &:active{
+	&:hover,
+	&:active {
 		background-image: $icon-remove;
 	}
 }
 
-.artsaver-download{
+.artsaver-download {
 	@extend %checkicon;
 	background-image: $icon-download;
 	display: none;
 
-	:hover > &{
+	:hover > & {
 		display: block;
 	}
 
-	&:hover, &:active{
+	&:hover,
+	&:active {
 		background-image: $icon-download-hover;
 	}
 }
 
-@keyframes rotation{
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
+@keyframes rotation {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
 
-.artsaver-loading{
+.artsaver-loading {
 	@extend %checkicon;
 	animation: rotation 0.5s steps(12, end) infinite;
 	background-image: $icon-loading;
 
-	.artsaver-progress + &{
+	.artsaver-progress + & {
 		background-size: $size-bar $size-bar;
 		height: $size-bar;
 		width: $size-bar;
 	}
 }
 
-.artsaver-error{
+.artsaver-error {
 	@extend %checkicon;
 	background-image: $icon-error;
 
-	&:hover, &:active{
+	&:hover,
+	&:active {
 		background-image: $icon-error;
 	}
 }
 
-.artsaver-tip {
+#artsaver-tip {
 	@extend %font;
 	top: 0;
-	background-color: $color-0;
 	border-radius: $radius;
-	color: $color-text;
 	position: absolute;
 	text-align: center;
 	width: auto;
@@ -94,31 +99,42 @@
 	visibility: hidden;
 	opacity: 0;
 
-	&:hover, &:active, &[data-display=show] {
+	@include themed() {
+		color: t($text);
+		background-color: t($color-0);
+	}
+
+	&:hover,
+	&:active,
+	&[data-display="show"] {
 		transition: none;
 		visibility: visible;
 		opacity: 1;
 	}
 
-	table{
+	table {
 		border-collapse: collapse;
 		border-spacing: 0;
 
-		td{
+		td {
 			padding: $pad ($pad * 2);
 
-			&:first-child{
-				background-color: $color-1;
+			&:first-child {
+				@include themed() {
+					background-color: t($color-1);
+				}
 			}
 		}
 
-		tr:last-child{
-			border-top: $style-border;
+		tr:last-child {
+			@include themed() {
+				border-top: t($border);
+			}
 		}
 	}
 }
 
-.artsaver-holder{
+.artsaver-holder {
 	position: relative;
 	display: table;
 	margin: auto;
@@ -152,17 +168,16 @@
 	animation: animate-stripes 1s linear infinite;
 	background: {
 		color: $blue;
-		image:
-			linear-gradient(
-				135deg,
-				$blue-light-1 25%,
-				transparent 25%,
-				transparent 50%,
-				$blue-light-1 50%,
-				$blue-light-1 75%,
-				transparent 75%,
-				transparent
-			);
+		image: linear-gradient(
+			135deg,
+			$blue-light-1 25%,
+			transparent 25%,
+			transparent 50%,
+			$blue-light-1 50%,
+			$blue-light-1 75%,
+			transparent 75%,
+			transparent
+		);
 		size: ($size-bar * 2) ($size-bar * 2);
 	}
 	border-radius: $radius;
@@ -170,7 +185,7 @@
 	color: $color-progress-text;
 }
 
-.artsaver-bar-text{
+.artsaver-bar-text {
 	padding: {
 		left: calc(#{$size-bar} + #{$pad});
 		right: $pad;
@@ -186,15 +201,17 @@
 	right: 0;
 	bottom: 0;
 	left: 0;
+	z-index: 9;
 	pointer-events: none;
 
 	background-color: $color-screen;
 	display: flex;
 
-	> div {
+	&::after {
 		$maxsize: 200px;
 		$scale: 80%;
 
+		content: "";
 		margin: auto;
 		max: {
 			width: $maxsize;
@@ -227,16 +244,19 @@
 	overflow: hidden;
 	resize: horizontal;
 	z-index: 1001;
-	background-color: $color-0;
-	color: $color-text;
 	visibility: visible;
 	opacity: 1;
 
 	transition: {
-		property: visibility,opacity,bottom;
-		duration: .2s;
+		property: visibility, opacity, bottom;
+		duration: 0.2s;
 		timing-function: ease-out;
-	};
+	}
+
+	@include themed() {
+		color: t($text);
+		background-color: t($color-0);
+	}
 
 	&.collapsed {
 		visibility: hidden;
@@ -247,99 +267,116 @@
 	#info-bar {
 		display: flex;
 	}
-	
+
 	#collapse {
 		padding: $base-padding;
 		width: u(16);
 		flex-shrink: 0;
-	
-		background: {
-			position: center;
-			size: u(16) u(16);
-			repeat: no-repeat;
-			image: $icon-collapse;
-		}
 		cursor: pointer;
-	
+
+		@include mask-svg() {
+			mask: {
+				position: center;
+				size: u(16) u(16);
+				image: $icon-collapse;
+			}
+		}
+
 		&:hover {
-			background-color: $color-1;
+			@include themed() {
+				background-color: t($color-1);
+			}
+		}
+
+		&:active {
+			@include themed() {
+				background-color: t($color-2);
+			}
 		}
 	}
-	
+
 	#queue {
 		padding: $pad ($pad * 2);
-		background-color: $color-1;
-		border-top: $style-border;
+
+		@include themed() {
+			background-color: t($color-1);
+			border-top: t($border);
+		}
 	}
 
 	.queue-stat {
 		margin: 0 auto;
 		padding: 0 $pad;
 	}
-	
+
 	.list-box {
-		border-bottom: $style-border;
+		@include themed() {
+			border-bottom: t($border);
+		}
 	}
-	
+
 	.list {
 		max-height: 300px;
 		overflow-y: auto;
 	}
-	
+
 	.row {
 		display: flex;
-	
+
 		&:not(:last-child) {
-			border-bottom: $style-border;
+			@include themed() {
+				border-bottom: t($border);
+			}
 		}
 	}
-	
+
 	.row-text {
 		flex: 1;
-		display: flex;
 		padding: u(3) u(9);
 		white-space: nowrap;
 		overflow: hidden;
+		min-width: 0;
+		text-overflow: ellipsis;
 	}
 
 	#list-recent .row-text {
 		gap: u(3);
 	}
-	
-	.row-buttons {
-		line-height: 0;
-		display: flex;
-	}
 
 	.row-button {
-		display: inline-block;
-		border: none;
-		line-height: inherit;
-		color: $color-text !important;
-		box-sizing: border-box;
-		padding: 0;
-		width: u(24);
-		height: 100%;
 		font: {
 			size: inherit !important;
 			family: inherit;
 		}
-		background: {
-			color: $color-1;
-			position: center;
-			size: 1em 1em;
-			repeat: no-repeat;
+		border: none;
+		box-sizing: border-box;
+		padding: 0;
+		width: u(24);
+		cursor: pointer;
+
+		@include themed() {
+			color: t($text);
+			background-color: t($color-1);
 		}
 
-		&.link-icon {
-			background-image: $icon-ex-link;
+		@include mask-svg() {
+			mask: {
+				position: center;
+				size: u(12) u(12);
+			}
 		}
-		&.folder-icon {
-			background-image: $icon-folder;
+
+		&.link-icon::after {
+			mask-image: $icon-ex-link;
+		}
+		&.folder-icon::after {
+			mask-image: $icon-folder;
 		}
 
 		&:hover {
-			background-color: $color-2;
+			@include themed() {
+				background-color: t($color-2);
+			}
 		}
 	}
 
@@ -347,25 +384,28 @@
 		display: none;
 	}
 
-	#list-files.show-folders .file-folder{
-		display: block;
+	#list-files.show-folders .file-folder {
+		display: inline;
 	}
-	
+
 	.list-bar {
 		padding: u(3) u(9);
-		background-color: $color-1;
-		border-top: $style-border;
+
+		@include themed() {
+			background-color: t($color-1);
+			border-top: t($border);
+		}
 	}
-	
+
 	#list-errors .row {
 		color: $color-error-text;
 		background-color: $color-error-1;
-	
+
 		&:not(:last-child) {
 			border-bottom: u(1) solid $color-error-2;
 		}
 	}
-	
+
 	#history-stats {
 		flex: 1;
 	}
@@ -376,11 +416,47 @@
 		white-space: nowrap;
 		flex: 1;
 
-		&.stat-button:hover, &.stat-button.active {
-			background-color: $color-1;
+		&.stat-button {
+			&:hover {
+				@include themed() {
+					background-color: t($color-1);
+				}
 
-			.badge {
-				background-color: $color-0;
+				.badge {
+					@include themed() {
+						background-color: t($color-0);
+					}
+				}
+			}
+
+			&:active {
+				@include themed() {
+					background-color: t($color-2);
+				}
+			}
+
+			&.active {
+				@include themed() {
+					background-color: t($color-1);
+				}
+
+				.badge {
+					@include themed() {
+						background-color: t($color-0);
+					}
+				}
+
+				&:hover {
+					@include themed() {
+						background-color: t($color-2);
+					}
+				}
+
+				&:active {
+					@include themed() {
+						background-color: t($color-3);
+					}
+				}
 			}
 		}
 	}
@@ -404,12 +480,13 @@
 
 		color: $color-error-text;
 		background-color: $color-error-1;
-	
+
 		.badge {
 			background-color: $color-error-2;
 		}
 
-		&.stat-button:hover, &.stat-button.active {
+		&.stat-button:hover,
+		&.stat-button.active {
 			background-color: $color-error-2;
 
 			.badge {
@@ -418,12 +495,13 @@
 		}
 	}
 
-	#queue-stats, #history-stats {
+	#queue-stats,
+	#history-stats {
 		display: flex;
 		white-space: nowrap;
 	}
-	
-	#list-files .list-bar{
+
+	#list-files .list-bar {
 		display: flex;
 
 		input {
@@ -444,33 +522,39 @@
 			left: 0;
 			right: u(6);
 		}
-		background-color: $color-2;
+
+		@include themed() {
+			background-color: t($color-2);
+		}
 	}
-	
+
 	.hide {
 		display: none !important;
 	}
-	
+
 	.artsaver-progress {
 		margin-top: $pad;
 		position: relative;
 		height: u(16);
 	}
 
-	.artsaver-bar[style="width: 100%;"]{
+	.artsaver-bar[style="width: 100%;"] {
 		background: $blue;
 	}
 
 	.artsaver-bar-text {
 		padding-left: $pad;
 	}
-	
+
 	.badge {
 		display: inline;
-		background-color: $color-1;
 		border-radius: $radius;
 		padding: $base-button-padding;
 		font-weight: 600;
+
+		@include themed() {
+			background-color: t($color-1);
+		}
 	}
 }
 
@@ -500,33 +584,47 @@
 		padding: $base-padding;
 		width: u(16);
 		flex-shrink: 0;
-		background-color: white;
 		height: u(16);
 		bottom: u(-20);
 		position: relative;
 		margin: auto;
 		scale: -1;
 		border-radius: 0 0 u(3) u(3);
-		opacity: .5;
+		opacity: 0.5;
 		transition: {
 			property: opacity, bottom;
-			duration: .1s;
+			duration: 0.1s;
 			timing-function: ease-out;
-		};
+		}
 		box-shadow: $shadow;
-	
+		cursor: pointer;
+
 		&:hover {
 			opacity: 1;
 			bottom: u(-14);
+
+			@include themed() {
+				background-color: t($color-1);
+			}
 		}
-	
-		background: {
-			position: center;
-			size: u(16) u(16);
-			repeat: no-repeat;
-			image: $icon-collapse;
+
+		&:active {
+			@include themed() {
+				background-color: t($color-2);
+			}
 		}
-		cursor: pointer;
+
+		@include themed() {
+			background-color: t($color-0);
+		}
+
+		@include mask-svg() {
+			mask: {
+				position: center;
+				size: u(16) u(16);
+				image: $icon-collapse;
+			}
+		}
 	}
 }
 

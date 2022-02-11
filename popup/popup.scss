@@ -10,7 +10,11 @@ body {
 	padding: 0;
 	overflow: hidden;
 	margin: 0;
-	color: $color-text;
+
+	@include base-themed() {
+		color: t($text);
+		background-color: t($color-0);
+	}
 }
 
 * {
@@ -31,9 +35,12 @@ body {
 .tabs {
 	display: flex;
 	border-bottom: {
-		color: $color-2;
 		style: solid;
 		width: u(2);
+	}
+
+	@include themed() {
+		border-bottom-color: t($color-2);
 	}
 
 	> :last-child {
@@ -42,15 +49,21 @@ body {
 }
 
 .tab-button {
-	color: $color-text;
 	background-color: inherit;
 	border: none;
 	outline: none;
-	padding: $vert-pad $horz-pad*2;
+	padding: $vert-pad $horz-pad * 2;
 	font-size: u(16);
+	cursor: pointer;
+
+	@include themed() {
+		color: t($text);
+	}
 
 	&:hover {
-		background-color: $color-1;
+		@include themed() {
+			background-color: t($color-1);
+		}
 	}
 
 	&.active {
@@ -64,8 +77,11 @@ body {
 }
 
 .header {
-	background-color: $color-1;
 	padding: $base-padding;
+
+	@include themed() {
+		background-color: t($color-1);
+	}
 }
 
 #stats-site {
@@ -73,39 +89,43 @@ body {
 }
 
 .stat-row {
-	border-top: $style-border;
-	padding: $base-padding;
-
+	padding: {
+		top: u(3);
+		bottom: u(3);
+		left: u(9);
+		right: u(9);
+	}
 	display: flex;
+	align-items: center;
 	flex: 1;
 
-	> div {
-		white-space: nowrap;
+	@include themed() {
+		border-top: t($border);
 	}
+}
 
-	> :first-child {
-		margin: auto auto auto 0;
-	}
-
-	> :last-child {
-		margin: auto 0 auto $horz-pad;
-	}
+.stat-text {
+	white-space: nowrap;
+	flex: 1;
 }
 
 #user-profile {
 	display: flex;
 
-	> :nth-child(n+2) {
-		border-left: $style-border;
+	> :nth-child(n + 2) {
+		@include themed() {
+			border-left: t($border);
+		}
 	}
 
 	&.no-stats {
 		flex-direction: column;
 
-		> :nth-child(n+2) {
-			border: {
-				left: none;
-				top: $style-border;
+		> :nth-child(n + 2) {
+			border-left: none;
+
+			@include themed() {
+				border-top: t($border);
 			}
 		}
 
@@ -123,7 +143,6 @@ body {
 }
 
 #profile-cover {
-	background-color: $color-1;
 	padding: $vert-pad;
 	text-align: center;
 	width: 100%;
@@ -131,6 +150,10 @@ body {
 	flex-direction: column;
 	justify-content: center;
 	min-width: 110px;
+
+	@include themed() {
+		background-color: t($color-1);
+	}
 
 	> div {
 		margin: u(3) auto;
@@ -148,13 +171,16 @@ body {
 }
 
 .img-thumbnail {
-	background-color: $color-0;
-	border: $style-border;
 	border-radius: $radius;
 	line-height: 0;
 	display: table;
 	margin: auto;
 	padding: $vert-button-pad;
+
+	@include themed() {
+		background-color: t($color-0);
+		border: t($border);
+	}
 }
 
 @keyframes rotation {
@@ -183,9 +209,12 @@ body {
 	margin-top: $vert-button-pad;
 	display: flex;
 	justify-content: center;
-	border: $style-border;
 	border-radius: $radius;
 	overflow: hidden;
+
+	@include themed() {
+		border: t($border);
+	}
 
 	> * {
 		@extend %icon-button;
@@ -195,14 +224,19 @@ body {
 }
 
 .badge {
-	background-color: $color-1;
 	border-radius: $radius;
 	padding: $base-button-padding;
 	font-weight: 600;
+
+	@include themed() {
+		background-color: t($color-1);
+	}
 }
 
 .info-box {
-	border-top: $style-border;
+	@include themed() {
+		border-top: t($border);
+	}
 	@extend %info-box;
 }
 
@@ -210,9 +244,11 @@ body {
 	display: flex;
 	border: {
 		top: none;
-		bottom: $style-border;
 		left: none;
 		right: none;
+	}
+	@include themed() {
+		border-bottom: t($border);
 	}
 }
 
@@ -220,11 +256,45 @@ body {
 	cursor: pointer;
 	white-space: nowrap;
 
-	&:hover, &.active {
-		background-color: $color-1;
+	&:hover {
+		@include themed() {
+			background-color: t($color-1);
+		}
 
 		.badge {
-			background-color: $color-0;
+			@include themed() {
+				background-color: t($color-0);
+			}
+		}
+	}
+
+	&:active {
+		@include themed() {
+			background-color: t($color-2);
+		}
+	}
+
+	&.active {
+		@include themed() {
+			background-color: t($color-1);
+		}
+
+		.badge {
+			@include themed() {
+				background-color: t($color-0);
+			}
+		}
+
+		&:hover {
+			@include themed() {
+				background-color: t($color-2);
+			}
+		}
+
+		&:active {
+			@include themed() {
+				background-color: t($color-3);
+			}
 		}
 	}
 }
@@ -236,15 +306,18 @@ body {
 }
 
 .button-stat {
-	padding: $base-button-padding;;
+	padding: $base-button-padding;
 	border-radius: $radius;
-	background-color: $color-0;
+
+	@include themed() {
+		background-color: t($color-0);
+	}
 }
 
 #recheck {
 	background-color: $green;
-	color: $color-0;
 	border: 0;
+	color: white;
 
 	.button-stat {
 		color: $green;
@@ -259,10 +332,12 @@ body {
 	}
 }
 
-#download-all, #download-lock {
+#download-all,
+#download-lock {
 	background-color: $blue;
-	color: $color-0;
 	border: 0;
+	color: white;
+	cursor: pointer;
 
 	&:hover {
 		background-color: $blue-light-1;
@@ -279,12 +354,17 @@ body {
 	}
 
 	&[disabled] {
-		background-color: $color-1;
 		pointer-events: none;
-		color: scale-color($color-1, $lightness: -50%);
+
+		@include themed() {
+			color: t($color-3);
+			background-color: t($color-1);
+		}
 
 		.button-stat {
-			color: inherit;
+			@include themed() {
+				color: t($color-3);
+			}
 		}
 	}
 }
@@ -298,12 +378,15 @@ body {
 }
 
 #found-stats {
-	border: {
-		top: $style-border;
-		bottom: $style-border;
-	}
 	display: flex;
 	flex: 1;
+
+	@include themed() {
+		border: {
+			top: t($border);
+			bottom: t($border);
+		}
+	}
 }
 
 .flex-button {
@@ -314,19 +397,25 @@ body {
 		family: inherit;
 		weight: 600;
 	}
-	padding: $base-padding;
-
-	> :last-child {
-		margin: auto 0 auto $horz-pad;
+	padding: {
+		top: u(3);
+		bottom: u(3);
+		left: u(9);
+		right: u(9);
 	}
+	cursor: pointer;
 
 	.label-1 {
 		margin: auto;
 		display: block;
+		flex: 1;
+		justify-content: center;
 	}
 	.label-2 {
 		margin: auto;
 		display: none;
+		flex: 1;
+		justify-content: center;
 	}
 
 	&:hover {
@@ -349,7 +438,7 @@ body {
 	}
 }
 
-%information{
+%information {
 	width: u(250);
 	padding: u(9) u(15);
 	margin: auto;
@@ -374,7 +463,9 @@ body {
 }
 
 #getting-page {
-	background-color: $color-1;
+	@include themed() {
+		background-color: t($color-1);
+	}
 }
 
 #link-tester {
