@@ -1,23 +1,23 @@
-function $(arg1, arg2){
+function $(arg1, arg2) {
 	return arg2 ? arg1.querySelector(arg2) : document.querySelector(arg1);
 }
 
-function $$(arg1, arg2){
+function $$(arg1, arg2) {
 	let nodes = arg2 ? arg1.querySelectorAll(arg2) : document.querySelectorAll(arg1);
 	return [...nodes];
 }
 
-function $remove(element){
-	if (element){
+function $remove(element) {
+	if (element) {
 		element.parentElement.removeChild(element);
 	}
 }
 
-function $create(element){
+function $create(element) {
 	return document.createElement(element);
 }
 
-function $insert(elem1, elem2, attrs = {}){
+function $insert(elem1, elem2, attrs = {}) {
 	attrs = {
 		position: 'beforeend',
 		...attrs
@@ -26,9 +26,9 @@ function $insert(elem1, elem2, attrs = {}){
 	let newelem = $create(elem2);
 
 	for (let [attribute, value] of Object.entries(attrs)) {
-		switch (attribute){
+		switch (attribute) {
 			case 'position':
-				if (value === 'parent'){
+				if (value === 'parent') {
 					elem1.insertAdjacentElement('beforebegin', newelem);
 					newelem.insertAdjacentElement('beforeend', elem1);
 				}
@@ -53,8 +53,8 @@ function $insert(elem1, elem2, attrs = {}){
 	return newelem;
 }
 
-function classToggle(condition, element, classname){
-	if (condition){
+function classToggle(condition, element, classname) {
+	if (condition) {
 		element.classList.add(classname);
 	}
 	else {

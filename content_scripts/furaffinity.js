@@ -1,10 +1,10 @@
-var as = {furaffinity: {check: {}, download: {}}};
+var as = { furaffinity: { check: {}, download: {} } };
 
 //---------------------------------------------------------------------------------------------------------------------
 // page and user information
 //---------------------------------------------------------------------------------------------------------------------
 
-function pageInfo(){
+function pageInfo() {
 	let page = {
 		url: window.location.href,
 		site: 'furaffinity'
@@ -13,18 +13,14 @@ function pageInfo(){
 	page.page = split[3];
 	page.modern = $('#ddmenu') ? true : false;
 
-	if (['user', 'journals', 'journal', 'gallery', 'scraps', 'favorites', 'view', 'full', 'commissions'].includes(page.page)){
-		page.user = /([^ ]+)(?: -- Fur |'s)/.exec($('title').textContent)[1];
+	if (['user', 'journals', 'gallery', 'scraps', 'favorites', 'commissions'].includes(page.page)) {
+		page.user = split[4];
 	}
-
-	if (['user', 'journals', 'gallery', 'scraps', 'favorites', 'commissions'].includes(page.page)){
-		page.userLower = split[4];
+	else if (['view', 'full'].includes(page.page)) {
+		page.user = $('.classic-submission-title a, .submission-id-avatar a').href.split('/')[4];
 	}
-	else if (['view', 'full'].includes(page.page)){
-		page.userLower = $('.classic-submission-title a, .submission-id-avatar a').href.split('/')[4];
-	}
-	else if (page.page === 'journal'){
-		page.userLower = $('.maintable .avatar-box a, .user-nav .current').href.split('/')[4];
+	else if (page.page === 'journal') {
+		page.user = $('.maintable .avatar-box a, .user-nav .current').href.split('/')[4];
 	}
 
 	return page;
@@ -32,19 +28,24 @@ function pageInfo(){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.userInfo = async function(user, page, savedlist){
-	user.lower = page.userLower;
+as.furaffinity.userInfo = async function (user_id) {
+	let userpage = await fetcher(`https://www.furaffinity.net/user/${user_id}/`, 'document');
+	let modern = $(userpage, '#ddmenu');
+	let iconelement = $(userpage, modern ? 'img.user-nav-avatar' : 'img.avatar');
 
-	let userpage = await fetcher(`https://www.furaffinity.net/user/${user.lower}/`, 'document');
-	let iconelement = $(userpage, page.modern ? 'img.user-nav-avatar' : 'img.avatar');
+	let user = {
+		site: 'furaffinity',
+		id: user_id,
+	}
 
-	if (iconelement){
+	if (iconelement) {
 		user.icon = iconelement.src;
+		user.name = /([^ ]+)(?: -- Fur |'s)/.exec($(userpage, 'title').textContent)[1]
 
-		let stats = page.modern ? $(userpage, 'div[class^=userpage-section-] .cell') : $(userpage, '[title^="Once"]').parentElement;
+		let stats = modern ? $(userpage, 'div[class^=userpage-section-] .cell') : $(userpage, '[title^="Once"]').parentElement;
 		stats = stats.textContent.replace(/\D+/g, ' ').trim().split(' ');
 
-		if (page.modern){
+		if (modern) {
 			user.stats = new Map([
 				['Submissions', stats[1]],
 				['Favs', stats[2]],
@@ -60,6 +61,7 @@ as.furaffinity.userInfo = async function(user, page, savedlist){
 		}
 	}
 	else {
+		user.name = /"(.+?)"/.exec($(userpage, '.alt1, .redirect-message').textContent)[1]
 		user.stats = new Map([]);
 		user.icon = $('.submission-id-avatar img, .avatar img').src;
 	}
@@ -67,12 +69,9 @@ as.furaffinity.userInfo = async function(user, page, savedlist){
 	user.folderMeta = {
 		site: user.site,
 		userName: user.name,
-		userLower: user.lower
+		userLower: user.id
 	};
 
-	user.saved = (savedlist) ? savedlist[user.lower] || [] : [];
-
-	user.id = user.lower;
 	return user;
 }
 
@@ -80,7 +79,7 @@ as.furaffinity.userInfo = async function(user, page, savedlist){
 // main add checks and download buttons to image thumbnails
 //---------------------------------------------------------------------------------------------------------------------
 
-as.furaffinity.check.startChecking = function(){
+as.furaffinity.check.startChecking = function () {
 	asLog('Checking Furaffinity');
 	let page = pageInfo();
 	this.checkPage(page);
@@ -90,7 +89,7 @@ as.furaffinity.check.startChecking = function(){
 		//remove art saver buttons
 		changed.flatMap(c => $$(c, '.artsaver-check, .artsaver-download, .artsaver-screen')).forEach(e => $remove(e));
 		//remove attribute indicating the submission has already been checked
-		for (let c of changed){
+		for (let c of changed) {
 			c.removeAttribute('data-checkstatus');
 			$$(c, '[data-checkstatus]').forEach(e => {
 				e.removeAttribute('data-checkstatus');
@@ -98,12 +97,12 @@ as.furaffinity.check.startChecking = function(){
 		}
 
 		changed = changed.map(c => (c.matches('.preview_img a') ? c.parentElement.parentElement : c));
-		this.checkThumbnails(changed, page.userLower);
+		this.checkThumbnails(changed, page.user);
 	});
 
 	globalrunningobservers.push(observer);
 
-	if (page.page === 'user'){
+	if (page.page === 'user') {
 		//gallery highlight submissions on the user page
 		$$('[class*="userpage-first"] > b, .section-body > .preview_img > a').forEach(e => observer.observe(e, { attributes: true }));
 	}
@@ -111,36 +110,36 @@ as.furaffinity.check.startChecking = function(){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.check.checkPage = function(page){
-	this.checkThumbnails(this.getThumbnails(), page.userLower);
+as.furaffinity.check.checkPage = function (page) {
+	this.checkThumbnails(this.getThumbnails(), page.user);
 
-	if (['view', 'full'].includes(page.page)){
-		this.checkSubmission(page.userLower, page.url, page.modern);
+	if (['view', 'full'].includes(page.page)) {
+		this.checkSubmission(page.user, page.url, page.modern);
 	}
 
-	if (page.page === 'user'){
+	if (page.page === 'user') {
 		this.checkUserFavorites();
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.check.getThumbnails = function(){
-	$$('.preview-gallery-container').forEach(c => {c.style.position = 'relative'});
+as.furaffinity.check.getThumbnails = function () {
+	$$('.preview-gallery-container').forEach(c => { c.style.position = 'relative' });
 
 	let previews = [];
 
-	for (let pimg of $$('.section-body > .preview_img')){
+	for (let pimg of $$('.section-body > .preview_img')) {
 		pimg.firstElementChild.style.position = 'relative';
 		previews.push(pimg.parentElement);
 	}
 
 	let profile = $('.section-submission');
-	if (profile){
+	if (profile) {
 		previews.push(profile);
 
-		if (!$(profile, '.artsaver-holder')){
-			$insert($(profile, 'img'), 'div', {position: 'parent', class: 'artsaver-holder'});
+		if (!$(profile, '.artsaver-holder')) {
+			$insert($(profile, 'img'), 'div', { position: 'parent', class: 'artsaver-holder' });
 		}
 	}
 
@@ -149,8 +148,8 @@ as.furaffinity.check.getThumbnails = function(){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.check.checkThumbnails = function(thumbnails, user){
-	for (let figure of thumbnails){
+as.furaffinity.check.checkThumbnails = function (thumbnails, user) {
+	for (let figure of thumbnails) {
 		try {
 			let sub = $(figure, 'img');
 			let url = $(figure, 'a').href;
@@ -161,16 +160,16 @@ as.furaffinity.check.checkThumbnails = function(thumbnails, user){
 
 			addButton('furaffinity', subuser, subid, sub.parentElement);
 		}
-		catch (err){}
+		catch (err) { }
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.check.checkUserFavorites = function(){
+as.furaffinity.check.checkUserFavorites = function () {
 	let favdata = JSON.parse(/submission_data\ =\ (.+);/.exec($('#pageid-userpage > div > script, #page-userpage + script').textContent)[1]);
 
-	for (let fav of $$('#gallery-latest-favorites > [id^="sid"]')){
+	for (let fav of $$('#gallery-latest-favorites > [id^="sid"]')) {
 		try {
 			let sub = $(fav, 'img');
 			let subid = parseInt(/(\d+)/.exec(fav.id)[1], 10);
@@ -178,29 +177,29 @@ as.furaffinity.check.checkUserFavorites = function(){
 
 			addButton('furaffinity', user, subid, sub.parentElement);
 		}
-		catch (err){}
+		catch (err) { }
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.check.checkSubmission = function(user, url, modern){
+as.furaffinity.check.checkSubmission = function (user, url, modern) {
 	let submission = $('img#submissionImg');
-	if (!submission){
+	if (!submission) {
 		return;
 	}
-		//checkSubmission(submission.parentElement);
-	if (!submission.matches('.artsaver-holder *')){
-		let holder = $insert(submission, 'div', {position: 'parent', class: 'artsaver-holder'});
+	//checkSubmission(submission.parentElement);
+	if (!submission.matches('.artsaver-holder *')) {
+		let holder = $insert(submission, 'div', { position: 'parent', class: 'artsaver-holder' });
 
-		if (modern){
+		if (modern) {
 			holder.style.margin = '10px 0';
 			holder.style.display = 'inline-table';
 			submission.style.margin = '0';
 		}
 		else {
 			holder.style.maxWidth = '99%';
-			let flex = $insert(submission, 'div', {position: 'parent'});
+			let flex = $insert(submission, 'div', { position: 'parent' });
 			flex.style.display = 'flex';
 			submission.style.maxWidth = '100%';
 		}
@@ -211,14 +210,14 @@ as.furaffinity.check.checkSubmission = function(user, url, modern){
 
 		addButton('furaffinity', user, subid, submission.parentElement, false);
 	}
-	catch (err){}
+	catch (err) { }
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
 
-as.furaffinity.download.startDownloading = async function(subid, progress){
+as.furaffinity.download.startDownloading = async function (subid, progress) {
 	progress.say('Getting submission');
 	let options = await getOptions('furaffinity');
 	let pageurl = `https://www.furaffinity.net/view/${subid}`;
@@ -226,11 +225,11 @@ as.furaffinity.download.startDownloading = async function(subid, progress){
 	try {
 		let response = await fetcher(pageurl, 'document');
 
-		let {info, meta} = this.getMeta(response, pageurl, progress);
-		let downloads = [{url: info.downloadurl, meta, filename: options.file}];
+		let { info, meta } = this.getMeta(response, pageurl, progress);
+		let downloads = [{ url: info.downloadurl, meta, filename: options.file }];
 
 		let results = await this.handleDownloads(downloads, progress);
-		if (results.some(r => r.response === 'Success')){
+		if (results.some(r => r.response === 'Success')) {
 			progress.say('Updating');
 			await updateSavedInfo(info.savedSite, info.savedUser, info.savedId);
 		}
@@ -250,7 +249,7 @@ as.furaffinity.download.startDownloading = async function(subid, progress){
 			files: results
 		};
 	}
-	catch (err){
+	catch (err) {
 		asLog(err);
 		progress.error();
 
@@ -265,7 +264,7 @@ as.furaffinity.download.startDownloading = async function(subid, progress){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.download.getMeta = function(r, url, progress){
+as.furaffinity.download.getMeta = function (r, url, progress) {
 	let info = {}, meta = {};
 	meta.site = 'furaffinity';
 	meta.userName = /([^ ]+)(?: -- )/.exec($(r, 'title').textContent)[1];
@@ -288,16 +287,16 @@ as.furaffinity.download.getMeta = function(r, url, progress){
 	meta.submissionId = parseInt(url.split('/')[4], 10);
 	meta.title = $(r, 'div.classic-submission-title > h2, .submission-title p').textContent;
 
-	meta = {...meta, ...timeParse(parseInt(`${meta.fileId}000`, 10))};
+	meta = { ...meta, ...timeParse(parseInt(`${meta.fileId}000`, 10)) };
 
 	info.savedSite = meta.site;
 	info.savedUser = meta.userLower;
 	info.savedId = meta.submissionId;
-	return {info, meta}
+	return { info, meta }
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.download.handleDownloads = async function(downloads, progress){
+as.furaffinity.download.handleDownloads = async function (downloads, progress) {
 	return await handleAllDownloads(downloads, progress);
 }

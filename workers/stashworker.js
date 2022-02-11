@@ -1,37 +1,32 @@
 //var stashes;
 
-onmessage = async function(m){
-	try{
-		switch (m.data.function){
+onmessage = async function (m) {
+	try {
+		switch (m.data.function) {
 			case 'getstashurls':
 				let urls = await navigateStacks(m.data.data);
-				postMessage({message: 'result', result: urls});
+				postMessage({ message: 'result', result: urls });
 				break;
 
 			case 'fetchstash':
 				let stash = await fetcher(m.data.data, 'text');
-				postMessage({message: 'result', result: stash});
-				break;
-
-			case 'downloadstash':
-				let blob = await fetchBlob(m.data.data);
-				postMessage({message: 'result', result: blob});
+				postMessage({ message: 'result', result: stash });
 				break;
 		}
 	}
 	catch (err) {
-		postMessage({message: 'error', name: err.name, description: err.message});
+		postMessage({ message: 'error', name: err.name, description: err.message });
 	}
 }
 
-async function fetcher(url, type){
-	let response = await fetch(url, {credentials: 'include'});
+async function fetcher(url, type) {
+	let response = await fetch(url, { credentials: 'include' });
 
-	if (!response.ok && type !== 'response'){
+	if (!response.ok && type !== 'response') {
 		return response.status;
 	}
 
-	switch (type){
+	switch (type) {
 		case 'text':
 			return response.text();
 
@@ -43,18 +38,18 @@ async function fetcher(url, type){
 	}
 }
 
-function findStashUrlsInStack(sr){
+function findStashUrlsInStack(sr) {
 	let thumbreg = /gmi-stashid(?:.|\n)+?<\//g;
 	let result;
 	let stashthumbs = [];
-	while ((result = thumbreg.exec(sr)) !== null){
+	while ((result = thumbreg.exec(sr)) !== null) {
 		stashthumbs.push(result[0]);
 	}
 
 	let surls = [];
-	for (let thumb of stashthumbs){
+	for (let thumb of stashthumbs) {
 		let hrefreg = /<a.+?href="(.+?)"/.exec(thumb);
-		if (hrefreg){
+		if (hrefreg) {
 			surls.push(hrefreg[1]);
 		}
 		else {
@@ -63,17 +58,17 @@ function findStashUrlsInStack(sr){
 	}
 	//stacks are paginated per 120
 	let next = /class="next "><[^>]+?data-offset="(\d+)"/.exec(sr);
-	if (next){
+	if (next) {
 		url = /<link href="(.+?)" rel="canonical">/.exec(sr)[1];
 		surls.push(`${url}?offset=${next[1]}`);
 	}
 	return surls;
 }
 
-async function navigateStacks(urls){
+async function navigateStacks(urls) {
 	let urlslist = urls;
 	let stacks;
-	while ((stacks = urlslist.filter(u => /\/2/.test(u))).length > 0){
+	while ((stacks = urlslist.filter(u => /\/2/.test(u))).length > 0) {
 		let responses = await Promise.all(stacks.map(g => fetcher(g, 'text')));
 		let stackurls = responses.map(r => findStashUrlsInStack(r));
 
@@ -84,13 +79,13 @@ async function navigateStacks(urls){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function decodeStash(num){
+function decodeStash(num) {
 	num = parseInt(num, 10);
 
 	let link = '';
 	let chars = '0123456789abcdefghijklmnopqrstuvwxyz';
 	let base = chars.length;
-	while (num){
+	while (num) {
 		remainder = num % base;
 		quotient = Math.trunc(num / base);
 
@@ -99,35 +94,4 @@ function decodeStash(num){
 	}
 
 	return `https://sta.sh/2${link}`;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-async function fetchBlob(url){
-	let response = await fetcher(url);
-
-	if (!response.ok){
-		let err = new Error(url);
-		err.name = `Error ${response.status}`;
-		throw err;
-	}
-
-	let loaded = 0;
-	let total = parseInt(response.headers.get('Content-Length'), 10);
-
-	let reader = response.body.getReader();
-	let chunks = [];
-
-	while (true){
-		let {done, value} = await reader.read();
-		if (done){
-			break;
-		}
-		chunks.push(value);
-		loaded += value.length;
-
-		postMessage({message: 'progress', loaded, total});
-	}
-
-	return new Blob(chunks);
 }
