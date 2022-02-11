@@ -2,11 +2,9 @@
 	<template id="recent-row-template">
 		<div class="row">
 			<div class="row-text">
-				<span></span><span></span><span class="hide"></span><span></span>
+				<span></span>
 			</div>
-			<div class="row-buttons">
-				<a class="row-button link-icon" target="_blank" rel="noopener noreferrer"></a>
-			</div>
+			<a class="row-button link-icon" target="_blank" rel="noopener noreferrer"></a>
 		</div>
 	</template>
 	<template id="file-row-template">
@@ -14,9 +12,7 @@
 			<div class="row-text">
 				<span class="file-folder"></span><span></span>
 			</div>
-			<div class="row-buttons">
-				<button class="row-button folder-icon"></button>
-			</div>
+			<button class="row-button folder-icon"></button>
 		</div>
 	</template>
 	<template id="error-row-template">
@@ -24,9 +20,7 @@
 			<div class="row-text">
 				<span></span>
 			</div>
-			<div class="row-buttons">
-				<a class="row-button link-icon" target="_blank" rel="noopener noreferrer"></a>
-			</div>
+			<a class="row-button link-icon" target="_blank" rel="noopener noreferrer"></a>
 		</div>
 		<div class="row">
 			<div class="row-text">
@@ -43,7 +37,7 @@
 		<div class="list-bar">
 			<div>Files</div>
 			<label>
-				<input type="checkbox">
+				<input id="folder-switch" type="checkbox">
 				<div class="switch"></div>
 				Show folders
 			</label>
@@ -89,8 +83,8 @@
 			</div>
 		</div>
 		<div class="artsaver-progress">
-			<div class="artsaver-bar">
-				<div class="artsaver-bar-text"></div>
+			<div id="progress-bar" class="artsaver-bar">
+				<div id="progress-bar-text" class="artsaver-bar-text"></div>
 			</div>
 		</div>
 	</div>
