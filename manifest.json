@@ -14,6 +14,7 @@
 	},
 	"background": {
 		"scripts": [
+			"background/storagekeys.js",
 			"background/settings.js",
 			"background/background.js"
 		]
@@ -55,6 +56,7 @@
 		"workers/fileworker.js",
 		"workers/stashworker.js",
 		"workers/downloadworker.js",
+		"content_ui/tooltip.html",
 		"content_ui/infobar.html"
 	],
 	"content_scripts": [
@@ -63,7 +65,7 @@
 				"*://*.furaffinity.net/*"
 			],
 			"js": [
-				"content_scripts/furaffinity.js"
+				"content_scripts/sites/furaffinity.js"
 			]
 		},
 		{
@@ -71,7 +73,7 @@
 				"*://*.deviantart.com/*"
 			],
 			"js": [
-				"content_scripts/deviantart.js",
+				"content_scripts/sites/deviantart.js",
 				"lib/purify.min.js"
 			]
 		},
@@ -80,7 +82,7 @@
 				"*://*.pixiv.net/*"
 			],
 			"js": [
-				"content_scripts/pixiv.js"
+				"content_scripts/sites/pixiv.js"
 			]
 		},
 		{
@@ -88,7 +90,7 @@
 				"*://*.inkbunny.net/*"
 			],
 			"js": [
-				"content_scripts/inkbunny.js"
+				"content_scripts/sites/inkbunny.js"
 			]
 		},
 		{
@@ -96,7 +98,7 @@
 				"*://*.twitter.com/*"
 			],
 			"js": [
-				"content_scripts/twitter.js"
+				"content_scripts/sites/twitter.js"
 			]
 		},
 		{
@@ -108,7 +110,9 @@
 				"*://*.twitter.com/*"
 			],
 			"js": [
+				"background/storagekeys.js",
 				"general_scripts/selectors.js",
+				"content_scripts/classes.js",
 				"content_scripts/main.js"
 			],
 			"css": [
