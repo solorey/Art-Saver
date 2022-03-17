@@ -7,18 +7,20 @@ html {
 }
 
 body {
+	@include themes;
 	padding: 0;
 	overflow: hidden;
 	margin: 0;
-
-	@include base-themed() {
-		color: t($text);
-		background-color: t($color-0);
-	}
+	color: var(--text);
+	background-color: var(--color-0);
 }
 
-* {
-	box-sizing: border-box;
+// * {
+// 	box-sizing: border-box;
+// }
+
+:focus-visible {
+	outline: none;
 }
 
 .hide {
@@ -36,11 +38,8 @@ body {
 	display: flex;
 	border-bottom: {
 		style: solid;
-		width: u(2);
-	}
-
-	@include themed() {
-		border-bottom-color: t($color-2);
+		width: 2px;
+		color: var(--color-2);
 	}
 
 	> :last-child {
@@ -52,70 +51,52 @@ body {
 	background-color: inherit;
 	border: none;
 	outline: none;
-	padding: $vert-pad $horz-pad * 2;
-	font-size: u(16);
+	padding: ur(6) ur(18);
+	font-size: ur(16);
 	cursor: pointer;
-
-	@include themed() {
-		color: t($text);
-	}
+	color: var(--text);
 
 	&:hover {
-		@include themed() {
-			background-color: t($color-1);
+		background-color: var(--color-1);
+		border-bottom: {
+			color: var(--color-3);
+			style: solid;
+			width: 2px;
 		}
 	}
 
 	&.active {
-		color: $blue;
+		color: $blue-0;
 		border-bottom: {
-			color: $blue;
+			color: $blue-0;
 			style: solid;
-			width: u(2);
+			width: 2px;
 		}
 	}
 }
 
-.header {
-	padding: $base-padding;
+.content-loading {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: ur(12);
+	padding: ur(6);
+}
 
-	@include themed() {
-		background-color: t($color-1);
-	}
+.header {
+	padding: ur(6) ur(9);
+	background-color: var(--color-1);
 }
 
 #stats-site {
 	text-transform: capitalize;
 }
 
-.stat-row {
-	padding: {
-		top: u(3);
-		bottom: u(3);
-		left: u(9);
-		right: u(9);
-	}
-	display: flex;
-	align-items: center;
-	flex: 1;
-
-	@include themed() {
-		border-top: t($border);
-	}
-}
-
-.stat-text {
-	white-space: nowrap;
-	flex: 1;
-}
-
-#user-profile {
+#user-info {
 	display: flex;
 
 	> :nth-child(n + 2) {
-		@include themed() {
-			border-left: t($border);
-		}
+		border-left: $border;
 	}
 
 	&.no-stats {
@@ -123,10 +104,7 @@ body {
 
 		> :nth-child(n + 2) {
 			border-left: none;
-
-			@include themed() {
-				border-top: t($border);
-			}
+			border-top: $border;
 		}
 
 		#total-saved {
@@ -143,44 +121,62 @@ body {
 }
 
 #profile-cover {
-	padding: $vert-pad;
+	padding: ur(6);
 	text-align: center;
 	width: 100%;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	min-width: 110px;
-
-	@include themed() {
-		background-color: t($color-1);
-	}
-
-	> div {
-		margin: u(3) auto;
-	}
+	align-items: center;
+	gap: ur(3);
+	min-width: 90px;
+	background-color: var(--color-1);
 }
 
 #profile-pic {
-	width: u(50);
-	height: u(50);
-
+	display: block;
+	width: ur(50);
+	height: ur(50);
 	object: {
 		fit: cover;
 		position: top center;
 	}
+	padding: ur(3);
+	background-color: var(--color-0);
+	border: $border;
+	border-radius: $radius;
 }
 
-.img-thumbnail {
-	border-radius: $radius;
-	line-height: 0;
-	display: table;
-	margin: auto;
-	padding: $vert-button-pad;
+// .img-thumbnail {
+// 	border-radius: $radius;
+// 	line-height: 0;
+// 	display: table;
+// 	margin: auto;
+// 	padding: ur(3);
+// 	background-color: var(--color-0);
+// 	border: $border;
+// }
 
-	@include themed() {
-		background-color: t($color-0);
-		border: t($border);
+#user-name {
+	font: {
+		weight: 600;
+		size: ur(16);
 	}
+	white-space: nowrap;
+}
+
+#user-buttons {
+	display: flex;
+	justify-content: center;
+	width: min-content;
+	border-radius: $radius;
+	overflow: hidden;
+	border: $border;
+}
+
+.user-button {
+	@extend %icon-button;
+	padding: ur(3) ur(5);
 }
 
 @keyframes rotation {
@@ -197,180 +193,107 @@ body {
 	animation-iteration-count: infinite;
 }
 
-#user-name {
-	font: {
-		weight: 600;
-		size: u(16);
-	}
-	white-space: nowrap;
-}
-
-#user-buttons {
-	margin-top: $vert-button-pad;
-	display: flex;
-	justify-content: center;
+%badge {
 	border-radius: $radius;
-	overflow: hidden;
-
-	@include themed() {
-		border: t($border);
-	}
-
-	> * {
-		@extend %icon-button;
-
-		padding: u(3) u(5);
-	}
+	padding: ur(3) ur(6);
+	font-weight: 600;
 }
 
 .badge {
-	border-radius: $radius;
-	padding: $base-button-padding;
-	font-weight: 600;
-
-	@include themed() {
-		background-color: t($color-1);
-	}
+	@extend %badge;
+	background-color: var(--color-1);
 }
 
+@include info-search-list;
+
 .info-box {
-	@include themed() {
-		border-top: t($border);
-	}
-	@extend %info-box;
+	border-top: $border;
 }
 
 #total-saved {
 	display: flex;
-	border: {
-		top: none;
-		left: none;
-		right: none;
+	border-top: none;
+	border-bottom: $border;
+}
+
+%stat {
+	padding: {
+		top: ur(3);
+		bottom: ur(3);
+		left: ur(9);
+		right: ur(9);
 	}
-	@include themed() {
-		border-bottom: t($border);
-	}
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	white-space: nowrap;
+	border-top: $border;
+}
+
+.stat-row {
+	@extend %stat;
 }
 
 .stat-button {
+	@extend %stat;
+	@include hover(0, true, true);
 	cursor: pointer;
-	white-space: nowrap;
-
-	&:hover {
-		@include themed() {
-			background-color: t($color-1);
-		}
-
-		.badge {
-			@include themed() {
-				background-color: t($color-0);
-			}
-		}
-	}
-
-	&:active {
-		@include themed() {
-			background-color: t($color-2);
-		}
-	}
-
-	&.active {
-		@include themed() {
-			background-color: t($color-1);
-		}
-
-		.badge {
-			@include themed() {
-				background-color: t($color-0);
-			}
-		}
-
-		&:hover {
-			@include themed() {
-				background-color: t($color-2);
-			}
-		}
-
-		&:active {
-			@include themed() {
-				background-color: t($color-3);
-			}
-		}
-	}
 }
 
-.search-holder {
-	height: 0;
-	overflow: hidden;
-	transition: height 0.5s;
+.green-badge {
+	@extend %badge;
+	background-color: var(--color-0);
+	color: $green-0;
 }
 
-.button-stat {
-	padding: $base-button-padding;
-	border-radius: $radius;
-
-	@include themed() {
-		background-color: t($color-0);
-	}
+.blue-badge {
+	@extend %badge;
+	background-color: var(--color-0);
+	color: $blue-0;
 }
 
 #recheck {
-	background-color: $green;
-	border: 0;
+	background-color: $green-0;
+	border: none;
 	color: white;
 
-	.button-stat {
-		color: $green;
-	}
-
 	&:hover {
-		background-color: $green-light-1;
+		background-color: $green-1;
 	}
 
 	&:active {
-		background-color: $green-light-2;
+		background-color: $green-2;
 	}
 }
 
 #download-all,
 #download-lock {
-	background-color: $blue;
-	border: 0;
+	background-color: $blue-0;
+	border: none;
 	color: white;
 	cursor: pointer;
 
 	&:hover {
-		background-color: $blue-light-1;
+		background-color: $blue-1;
 	}
 
 	&:active {
-		background-color: $blue-light-2;
+		background-color: $blue-2;
 	}
 }
 
-#download-all {
-	.button-stat {
-		color: $blue;
-	}
+#download-all[disabled] {
+	pointer-events: none;
+	color: var(--color-3);
+	background-color: var(--color-1);
 
-	&[disabled] {
-		pointer-events: none;
-
-		@include themed() {
-			color: t($color-3);
-			background-color: t($color-1);
-		}
-
-		.button-stat {
-			@include themed() {
-				color: t($color-3);
-			}
-		}
+	.blue-badge {
+		color: var(--color-3);
 	}
 }
 
 #download-lock {
-	padding: 0 $horz-button-pad;
+	padding: 0 ur(6);
 
 	i {
 		font-size: 1rem;
@@ -380,16 +303,13 @@ body {
 #found-stats {
 	display: flex;
 	flex: 1;
-
-	@include themed() {
-		border: {
-			top: t($border);
-			bottom: t($border);
-		}
+	border: {
+		top: $border;
+		bottom: $border;
 	}
 }
 
-.flex-button {
+.action-button {
 	display: flex;
 	flex: 1;
 	font: {
@@ -398,10 +318,10 @@ body {
 		weight: 600;
 	}
 	padding: {
-		top: u(3);
-		bottom: u(3);
-		left: u(9);
-		right: u(9);
+		top: ur(3);
+		bottom: ur(3);
+		left: ur(9);
+		right: ur(9);
 	}
 	cursor: pointer;
 
@@ -428,50 +348,29 @@ body {
 	}
 }
 
-#unsupported-page {
-	background-color: #fff3cd;
-	color: #856404;
-
-	.linebreak {
-		border-top: u(1) solid #856404;
-		margin: u(6) 0;
-	}
-}
-
-%information {
-	width: u(250);
-	padding: u(9) u(15);
-	margin: auto;
-}
-
-#unsupported-info {
-	@extend %information;
-}
-
-#getting-info {
-	@extend %information;
+.content-error {
 	display: flex;
-
-	.loading-icon {
-		width: u(16);
-		height: u(16);
-	}
-
-	> div {
-		margin: auto;
-	}
+	box-sizing: border-box;
+	flex-direction: column;
+	gap: ur(6);
+	padding: ur(6) ur(24);
+	background-color: var(--warning-0);
+	color: var(--warning-text);
+	width: ur(250);
 }
 
-#getting-page {
-	@include themed() {
-		background-color: t($color-1);
-	}
+.linebreak {
+	border-top: 1px solid var(--warning-text);
+}
+
+#user-error-link {
+	color: var(--warning-text);
 }
 
 #link-tester {
 	padding: {
-		left: $horz-pad + u(6);
-		right: $horz-pad;
+		left: ur(15);
+		right: ur(9);
 	}
 	position: absolute;
 	top: 0;

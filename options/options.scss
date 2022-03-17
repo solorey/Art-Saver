@@ -6,14 +6,21 @@ html {
 }
 
 body {
-	margin: 0;
+	@include themes;
 	height: 100vh;
+	background-color: var(--color-0);
+	color: var(--text);
+	margin: 0;
 	overflow: hidden;
+}
 
-	@include base-themed() {
-		color: t($text);
-		background-color: t($color-0);
-	}
+:focus-visible {
+	position: relative;
+	z-index: 1;
+}
+
+.hide {
+	display: none !important;
 }
 
 #tabs {
@@ -21,134 +28,134 @@ body {
 	flex-wrap: wrap;
 	justify-content: center;
 	border-bottom: {
+		width: 2px;
+		color: var(--color-2);
 		style: solid;
-		width: u(2);
-	}
-
-	@include themed() {
-		border-color: t($color-2);
 	}
 }
 
 .tab-button {
-	color: inherit;
 	background-color: inherit;
 	border: none;
 	border-radius: 0;
+	color: inherit;
+	font: {
+		family: inherit;
+		size: ur(16);
+	}
 	outline: none;
-	padding: $vert-pad $horz-pad * 2;
-	font-size: u(16);
+	padding: ur(6) ur(18);
 
 	&:hover {
-		@include themed() {
-			background-color: t($color-1);
+		background-color: var(--color-1);
+		border-bottom: {
+			width: ur(2);
+			color: var(--color-3);
+			style: solid;
 		}
 	}
 
 	&.active {
-		color: $blue;
+		color: $blue-0;
 		border-bottom: {
-			color: $blue;
+			width: ur(2);
+			color: $blue-0;
 			style: solid;
-			width: u(2);
 		}
 	}
 }
 
 #extension-icon {
-	display: flex;
-
-	> img {
-		width: u(32);
-		height: u(32);
-		margin: {
-			top: auto;
-			bottom: auto;
-			right: u(6);
-			left: u(6);
-		}
+	display: block;
+	width: ur(32);
+	height: ur(32);
+	margin: {
+		top: auto;
+		bottom: auto;
+		left: ur(6);
+		right: ur(6);
 	}
 }
 
 #main-container {
-	margin: 0 auto;
+	display: flex;
 	width: 100%;
 	height: 100%;
-	display: flex;
 	flex-direction: column;
+	margin: 0 auto;
 }
 
 #options-container {
 	display: flex;
-	justify-content: center;
 	flex: 1;
+	justify-content: center;
 	overflow: {
-		y: scroll;
 		x: hidden;
+		y: scroll;
 	}
 	padding: {
-		left: u(6);
-		right: u(6);
+		left: ur(6);
+		right: ur(6);
 	}
 }
 
 #options {
-	max-width: 75rem;
 	width: 100%;
+	max-width: 75rem;
 }
 
-table {
-	border: {
-		collapse: collapse;
-		spacing: 0;
-	}
-}
-
-caption {
-	text-align: center;
-	padding: u(6) 0;
-}
-
-.info-row {
-	td {
-		padding: 0;
-	}
-}
-
-.info-boxes {
+%button {
 	display: flex;
-
-	> div {
-		&:first-of-type {
-			flex-basis: 60%;
-		}
-		&:last-of-type {
-			flex-basis: 40%;
-		}
+	align-items: center;
+	border: 0;
+	border-radius: $radius;
+	color: inherit;
+	cursor: pointer;
+	flex-wrap: nowrap;
+	gap: ur(6);
+	justify-content: center;
+	padding: ur(6);
+	font: {
+		family: inherit;
+		size: inherit;
 	}
 }
 
-th {
+.site-header {
+	background-color: var(--color-1);
+	padding: ur(12) ur(18);
 	font: {
-		size: u(15);
+		size: ur(15);
 		weight: 600;
 	}
-	padding: u(6) u(18);
-
-	@include themed() {
-		background-color: t($color-1);
-	}
+	margin: 0;
 }
 
-.help-table {
-	tr {
-		@include themed() {
-			border-bottom: t($border);
-		}
+.question {
+	$diameter: ur(15);
+	display: inline-flex;
+	width: $diameter;
+	height: $diameter;
+	align-items: center;
+	background-color: var(--color-2);
+	border-radius: math.div($diameter, 2);
+	color: inherit;
+	cursor: help;
+	justify-content: center;
+	line-height: $diameter;
+	margin-left: ur(6);
+	opacity: 0;
+	transition: 0.3s;
+	visibility: hidden;
+
+	text: {
+		align: center;
+		decoration: none;
 	}
 
-	td {
-		padding: u(3) u(18);
+	:hover > & {
+		opacity: 1;
+		visibility: visible;
 	}
 }
 
@@ -159,14 +166,26 @@ th {
 }
 
 #saved-table {
-	margin: 0 auto;
-	height: min-content;
+	border-collapse: collapse;
 	width: 100%;
+	height: min-content;
 
 	grid-column: 2;
 	grid-row: 3;
+	margin: 0 auto;
+
+	th {
+		background-color: var(--color-1);
+		padding: ur(6) ur(18);
+		font: {
+			size: ur(15);
+			weight: 600;
+		}
+	}
 
 	tr {
+		border-bottom: $border;
+
 		> :first-child {
 			text-align: left;
 		}
@@ -174,120 +193,45 @@ th {
 		> :not(:first-child) {
 			text-align: right;
 		}
-
-		@include themed() {
-			border-bottom: t($border);
-		}
 	}
 }
 
 .stat-row {
+	@include hover(0, true, true);
 	cursor: pointer;
 	white-space: nowrap;
 
-	&:hover {
-		@include themed() {
-			background-color: t($color-1);
-		}
-
-		.badge {
-			@include themed() {
-				background-color: t($color-0);
-			}
-		}
-	}
-
-	&:active {
-		@include themed() {
-			background-color: t($color-2);
-		}
-	}
-
-	&.active {
-		@include themed() {
-			background-color: t($color-1);
-		}
-
-		.badge {
-			@include themed() {
-				background-color: t($color-0);
-			}
-		}
-
-		&:hover {
-			@include themed() {
-				background-color: t($color-2);
-			}
-		}
-
-		&:active {
-			@include themed() {
-				background-color: t($color-3);
-			}
-		}
-	}
-
 	td {
-		padding: u(9) u(18);
-	}
-}
-
-.info-box {
-	@extend %info-box;
-	display: initial;
-	.input-holder {
-		flex: 1;
-	}
-
-	.icon-button {
-		@extend %icon-button;
+		padding: ur(9) ur(18);
 	}
 }
 
 .badge {
+	background-color: var(--color-1);
 	border-radius: $radius;
-	padding: u(3) u(6);
+	color: inherit;
 	font-weight: 600;
-	color: inherit;
+	padding: ur(3) ur(6);
+}
 
-	@include themed() {
-		background-color: t($color-1);
+.info-row {
+	td {
+		padding: 0;
 	}
 }
 
-button {
-	font: {
-		family: inherit;
-		size: inherit;
-	}
-	padding: u(6);
-	border: 0;
-	border-radius: $radius;
-	cursor: pointer;
+.info-boxes {
 	display: flex;
-	flex-wrap: nowrap;
-	justify-content: center;
-	align-items: center;
-	gap: u(6);
-	color: inherit;
 }
 
-h3.site-header {
-	font: {
-		size: u(15);
-		weight: 600;
-	}
-	padding: u(12);
-	margin: {
-		top: 0;
-		bottom: u(6);
-		left: 0;
-		right: 0;
-	}
+@include info-search-list;
 
-	@include themed() {
-		background-color: t($color-1);
-	}
+.info-box:first-of-type {
+	flex-basis: 60%;
+}
+
+.info-box:last-of-type {
+	flex-basis: 40%;
 }
 
 @keyframes animate-stripes {
@@ -295,46 +239,51 @@ h3.site-header {
 		background-position: 0 0;
 	}
 	100% {
-		background-position: (u(16) * -2) 0;
+		background-position: (ur(16) * -2) 0;
 	}
 }
 
 .row-delete {
 	display: none;
-	background-color: $color-error-1;
+	background-color: var(--error-0);
+	border: none;
+	border-radius: 0;
+	color: var(--error-text);
 	cursor: pointer;
-	color: $color-error-text;
 	font-size: 1rem;
 	text: {
 		align: center;
 		decoration: none;
 	}
 	padding: {
-		left: u(4);
-		right: u(4);
+		top: ur(1);
+		bottom: ur(1);
+		left: ur(3);
+		right: ur(3);
 	}
-	border-radius: 0;
+	justify-content: center;
+	align-items: center;
 
 	&.deleting {
 		animation: animate-stripes 1s linear infinite;
 		background: {
-			color: $color-error-1;
+			color: var(--error-0);
 			image: linear-gradient(
 				135deg,
-				$color-error-2 25%,
+				var(--error-1) 25%,
 				transparent 25%,
 				transparent 50%,
-				$color-error-2 50%,
-				$color-error-2 75%,
+				var(--error-1) 50%,
+				var(--error-1) 75%,
 				transparent 75%,
 				transparent
 			);
-			size: u(16) u(16);
+			size: ur(16) ur(16);
 		}
 	}
 
 	&:hover:not(.deleting) {
-		background-color: $color-error-2;
+		background-color: var(--error-1);
 	}
 
 	#saved-table.editable & {
@@ -342,174 +291,99 @@ h3.site-header {
 	}
 }
 
-.hide {
-	display: none !important;
-}
-
-.question {
-	$diameter: u(15);
-
-	text: {
-		decoration: none;
-		align: center;
-	}
-	margin-left: u(6);
-	display: inline-flex;
-	justify-content: center;
-	align-items: center;
-	width: $diameter;
-	height: $diameter;
-	line-height: $diameter;
-	border-radius: math.div($diameter, 2);
-	visibility: hidden;
-	opacity: 0;
-	transition: 0.3s;
-	color: inherit;
-	cursor: help;
-
-	@include themed() {
-		background-color: t($color-2);
-	}
-
-	:hover > & {
-		visibility: visible;
-		opacity: 1;
-	}
-}
-
-[class^="option-"] {
-	margin: u(9);
+.site-options {
+	margin-bottom: ur(36);
 }
 
 .blue-button {
-	color: #fff;
-	background-color: $blue;
+	@extend %button;
+	background-color: $blue-0;
+	color: white;
 
 	&:hover {
-		background-color: $blue-light-1;
+		background-color: $blue-1;
 	}
 
 	&:active {
-		background-color: $blue-light-2;
+		background-color: $blue-2;
 	}
 }
 
-.default-button {
-	@include themed() {
-		background-color: t($color-1);
-	}
-
-	&:hover {
-		@include themed() {
-			background-color: t($color-2);
-		}
-	}
-
-	&:active {
-		@include themed() {
-			background-color: t($color-3);
-		}
-	}
+.button {
+	@extend %button;
+	@include hover(1);
 }
 
-%optionlabel {
-	display: block;
-	margin-bottom: u(3);
+#info-file-buttons {
+	grid-column: 1/3;
+	display: flex;
+	gap: ur(6);
+}
+
+%option-layout {
+	margin: ur(9) ur(18);
+	display: flex;
+}
+
+%option-label {
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	gap: ur(6);
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// option textarea
+//---------------------------------------------------------------------------------------------------------------------
+
+.option-textarea {
+	@extend %option-layout;
+	flex-direction: column;
+}
+
+.textarea-label {
+	margin-bottom: ur(3);
 	width: min-content;
 	white-space: nowrap;
 }
 
-#saved-info-input {
-	grid-column: 1 / 3;
-
-	> label {
-		@extend %optionlabel;
-	}
-}
-
-.custom-input {
-	position: relative;
-	overflow: hidden;
-
-	input {
-		width: 0;
-		height: 0;
-		opacity: 0;
-		position: absolute;
-	}
-
-	label {
-		display: flex;
-		overflow: hidden;
-		cursor: pointer;
-		border-radius: $radius;
-
-		@include themed() {
-			border: t($border);
+.textarea-input {
+	width: 100%;
+	background-color: inherit;
+	border: $border;
+	box-sizing: border-box;
+	color: inherit;
+	display: block;
+	font-size: inherit;
+	margin: 0;
+	outline: none;
+	overflow-x: hidden;
+	padding: ur(6);
+	resize: vertical;
+	tab-size: 4;
+	border: {
+		top: {
+			left-radius: $radius;
+			right-radius: $radius;
+		}
+		bottom: {
+			left-radius: 0;
+			right-radius: $radius;
 		}
 	}
 
-	.before {
-		padding: u(5) u(12);
-
-		@include themed() {
-			border-right: t($border);
-			background-color: t($color-1);
-		}
-	}
-}
-
-#filename {
-	flex: 1;
-	padding: u(5) u(12);
-	display: flex;
-	align-items: center;
-	gap: u(6);
-}
-
-.option-textarea {
-	label {
-		@extend %optionlabel;
-	}
-
-	textarea {
-		font-size: inherit;
-		width: 100%;
-		padding: u(6);
-		border: {
-			top: {
-				left-radius: $radius;
-				right-radius: $radius;
-			}
-			bottom: {
-				left-radius: 0;
-				right-radius: $radius;
-			}
-		}
-		box-sizing: border-box;
-		margin-bottom: 0;
-		resize: vertical;
-		overflow-x: hidden;
-		outline: none;
-		color: inherit;
-		background-color: inherit;
-		tab-size: 4;
-
-		@include themed() {
-			border: t($border);
-		}
-
-		&:focus {
-			border-color: $blue;
-		}
+	&:focus {
+		border-color: $blue-0;
 	}
 }
 
 .help-button {
-	width: u(78);
+	@extend %button;
+	@include hover(1);
+	width: ur(78);
 	padding: {
-		top: u(3);
-		bottom: u(3);
+		top: ur(3);
+		bottom: ur(3);
 	}
 	border: {
 		top: {
@@ -519,223 +393,271 @@ h3.site-header {
 	}
 }
 
-.option-checkbox,
-.single-switch {
-	display: flex;
+.help-table {
+	border-collapse: collapse;
 
-	input {
-		display: none;
+	tr {
+		border-bottom: $border;
 	}
 
-	label {
-		display: flex;
-		align-items: center;
-		gap: u(6);
-		cursor: pointer;
-	}
-
-	.switch {
-		@extend %switch;
+	td {
+		padding: ur(3) ur(18);
 	}
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+// option checkbox
+//---------------------------------------------------------------------------------------------------------------------
+
+.option-checkbox {
+	@extend %option-layout;
+}
+
+.checkbox-label {
+	@extend %option-label;
+}
+
+.checkbox-input {
+	display: none;
+}
+
+.switch {
+	@extend %switch;
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// option select
+//---------------------------------------------------------------------------------------------------------------------
+
 .option-select {
-	display: flex;
-	align-items: center;
-	gap: u(6);
+	@extend %option-layout;
+}
 
-	select {
-		font: {
-			family: inherit;
-			size: inherit;
-		}
-		padding: u(3) u(18) u(3) u(3);
-		border-radius: $radius;
-		color: inherit;
-		-moz-appearance: none;
-		appearance: none;
-		cursor: pointer;
+.select-label {
+	@extend %option-label;
+}
 
-		@include themed() {
-			border: t($border);
-			background-color: t($color-0);
-		}
-
-		&:focus {
-			border-color: $blue;
-		}
-	}
-
-	.select-holder {
-		@include mask-svg() {
-			mask: {
-				image: $icon-selection;
-				position: {
-					x: right u(6);
-					y: center;
-				}
-				size: u(8) u(12);
+.select-holder {
+	@include mask-svg() {
+		mask: {
+			image: $icon-selection;
+			size: ur(8) ur(12);
+			position: {
+				x: right ur(6);
+				y: center;
 			}
 		}
 	}
 }
 
-.option-number,
-.option-slider {
-	white-space: nowrap;
-	display: flex;
-	align-items: center;
-	gap: u(6);
-
-	label {
-		display: flex;
-		align-items: center;
-		gap: u(6);
+.select-input {
+	-moz-appearance: none;
+	appearance: none;
+	background-color: var(--color-0);
+	border: $border;
+	border-radius: $radius;
+	color: inherit;
+	cursor: pointer;
+	padding: ur(3) ur(18) ur(3) ur(3);
+	font: {
+		family: inherit;
+		size: inherit;
 	}
+
+	&:focus {
+		border-color: $blue-0;
+	}
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// option slider
+//---------------------------------------------------------------------------------------------------------------------
+
+.option-slider {
+	@extend %option-layout;
+	align-items: center;
+	gap: ur(6);
+}
+
+.slider-label {
+	@extend %option-label;
+}
+
+.slider-input {
+	$bar-height: ur(3);
+	height: $bar-height;
+	-webkit-appearance: none;
+	background-color: var(--color-2);
+	border-radius: $bar-height;
+
+	&::-moz-range-thumb {
+		width: ur(12);
+		height: ur(12);
+		background-color: $blue-0;
+		border: none;
+		border-radius: ur(12);
+		cursor: pointer;
+
+		&:hover {
+			background-color: $blue-1;
+		}
+
+		&:active {
+			background-color: $blue-2;
+		}
+	}
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// option number
+//---------------------------------------------------------------------------------------------------------------------
+
+.option-number {
+	@extend %option-layout;
 }
 
 .custom-number {
 	display: inline-grid;
-	grid-template-columns: u(36) u(15);
+	grid-template-columns: ur(36) ur(15);
+}
 
-	input {
-		grid: {
-			column: 1;
-			row: 1/3;
-		}
-		font: {
-			family: inherit;
-			size: inherit;
-		}
-		border-radius: $radius 0 0 $radius;
-		text-align: right;
-		padding: u(3) u(6) u(3) u(3);
-		box-sizing: border-box;
-		outline: none;
-		color: inherit;
-		background-color: inherit;
-
-		-moz-appearance: textfield;
-		appearance: textfield;
-
-		@include themed() {
-			border: t($border);
-		}
-
-		&:focus {
-			border-color: $blue;
-		}
+.number-input {
+	-moz-appearance: textfield;
+	appearance: textfield;
+	background-color: inherit;
+	border: $border;
+	border-radius: $radius 0 0 $radius;
+	box-sizing: border-box;
+	color: inherit;
+	outline: none;
+	padding: ur(3) ur(6) ur(3) ur(3);
+	text-align: right;
+	grid: {
+		column: 1;
+		row: 1/3;
+	}
+	font: {
+		family: inherit;
+		size: inherit;
 	}
 
-	button {
-		padding: 0;
+	&:focus {
+		border-color: $blue-0;
+	}
+}
 
-		@include themed() {
-			background-color: t($color-1);
+%stepper {
+	@include mask-svg() {
+		mask: {
+			image: $icon-selection;
+			position-x: center;
+			size: ur(8) ur(12);
 		}
+	}
+	@extend %button;
+	@include hover(1);
+	padding: 0;
+}
 
-		@include mask-svg() {
-			mask: {
-				image: $icon-selection;
-				position-x: center;
-				size: u(8) u(12);
-			}
-		}
+.step-increase {
+	@extend %stepper;
+	border-radius: 0 $radius 0 0;
+	grid: {
+		column: 2;
+		row: 1;
+	}
 
-		&:hover {
-			@include themed() {
-				background-color: t($color-2);
-			}
-		}
-
-		&:active {
-			@include themed() {
-				background-color: t($color-3);
-			}
-		}
-
-		&.increase {
-			grid: {
-				column: 2;
-				row: 1;
-			}
-			border-radius: 0 $radius 0 0;
-
-			&::after {
-				mask: {
-					position-y: 0.45rem;
-				}
-			}
-		}
-
-		&.decrease {
-			grid: {
-				column: 2;
-				row: 2;
-			}
-			border-radius: 0 0 $radius 0;
-
-			&::after {
-				mask: {
-					position-y: -0.45rem;
-				}
-			}
+	&::after {
+		mask: {
+			position-y: 0.45rem;
 		}
 	}
 }
 
-input.slider {
-	$bar-height: u(3);
-	-webkit-appearance: none;
-	height: $bar-height;
-	border-radius: $bar-height;
-
-	@include themed() {
-		background-color: t($color-2);
+.step-decrease {
+	@extend %stepper;
+	border-radius: 0 0 $radius 0;
+	grid: {
+		column: 2;
+		row: 2;
 	}
 
-	&::-moz-range-thumb {
-		cursor: pointer;
-		height: u(12);
-		width: u(12);
-		border-radius: u(12);
-		background-color: $blue;
-		border: none;
-
-		&:hover {
-			background-color: $blue-light-1;
-		}
-
-		&:active {
-			background-color: $blue-light-2;
+	&::after {
+		mask: {
+			position-y: -0.45rem;
 		}
 	}
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// file selectors
+//---------------------------------------------------------------------------------------------------------------------
+
+.file-selector {
+	display: flex;
+	flex-direction: column;
+	gap: ur(3);
+	flex: 1;
+}
+
+.file-label {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	border: $border;
+	border-radius: $radius;
+	cursor: pointer;
+	overflow: hidden;
+
+	&:hover .file-before {
+		background-color: var(--color-2);
+	}
+	&:active .file-before {
+		background-color: var(--color-3);
+	}
+}
+
+.file-input {
+	position: absolute;
+	width: 0;
+	height: 0;
+	opacity: 0;
+}
+
+.file-before {
+	background-color: var(--color-1);
+	border-right: $border;
+	padding: ur(5) ur(12);
+}
+
+.file-name {
+	padding: ur(5) ur(12);
 }
 
 #saved-info-content {
-	margin-top: u(6);
 	display: grid;
-	grid-template-columns: u(124) 1fr;
-	gap: u(6);
+	gap: ur(6);
+	grid-template-columns: ur(124) 1fr;
+	margin-top: ur(6);
 }
 
 #table-side {
 	display: flex;
+	position: sticky;
+	top: ur(6);
+	height: min-content;
 	flex-direction: column;
-	gap: u(6);
+	gap: ur(6);
 	grid: {
 		column: 1;
 		row: 3;
 	}
-	height: min-content;
-	position: sticky;
-	top: u(6);
 }
 
 #global-options-content {
 	display: grid;
-	grid-template-columns: u(124) 1fr;
-	gap: u(6);
+	gap: ur(6);
+	grid-template-columns: ur(124) 1fr;
 }
 
 #global-options {
@@ -744,11 +666,11 @@ input.slider {
 
 #settings-buttons {
 	display: flex;
-	flex-direction: column;
-	gap: u(6);
 	position: sticky;
-	height: min-content;
 	top: 0;
+	height: min-content;
+	flex-direction: column;
+	gap: ur(6);
 
 	grid-column: 1;
 }
@@ -760,159 +682,121 @@ input.slider {
 
 .undo-bar {
 	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: u(24);
-	background-color: #fff3cd;
-	color: #856404;
-	padding: {
-		top: u(6);
-		bottom: u(6);
-		left: u(24);
-		right: u(12);
-	}
 	position: fixed;
-	bottom: u(15);
-	left: u(9);
+	bottom: ur(15);
+	left: ur(9);
+	align-items: center;
+	background-color: var(--warning-0);
+	color: var(--warning-text);
+	gap: ur(24);
+	justify-content: center;
+	padding: {
+		top: ur(6);
+		bottom: ur(6);
+		left: ur(24);
+		right: ur(12);
+	}
 }
 
 .undo-button {
-	width: u(30);
-	text: {
-		decoration: underline;
-		align: center;
-	}
+	width: ur(30);
 	cursor: pointer;
+	text: {
+		align: center;
+		decoration: underline;
+	}
 
 	&:hover,
 	&:active {
 		font-weight: bold;
-		color: #856404;
 	}
 }
 
 .close-button {
 	display: flex;
-	justify-content: center;
 	align-items: center;
 	cursor: pointer;
+	justify-content: center;
 }
 
 #site-options-content {
 	display: grid;
-	grid-template-columns: u(124) 1fr;
-	gap: u(6);
+	gap: ur(6);
+	grid-template-columns: ur(124) 1fr;
 }
 
 #sites-side {
 	display: flex;
-	flex-direction: column;
-	gap: u(6);
 	position: sticky;
+	top: ur(6);
 	height: min-content;
-	top: u(6);
+	flex-direction: column;
+	gap: ur(6);
 
 	grid-column: 1;
 
 	&:first-child {
-		margin-top: u(6);
+		margin-top: ur(6);
 	}
 }
 
 #sites-list {
 	flex: 1;
-
 	grid-column: 2;
 }
 
 #sites-toggles {
 	display: flex;
+	background-color: var(--color-2);
 	flex-direction: column;
-	gap: u(1);
+	gap: 1px;
 	padding: {
-		top: u(1);
-		bottom: u(1);
-	}
-
-	@include themed() {
-		background-color: t($color-2);
+		top: 1px;
+		bottom: 1px;
 	}
 }
 
 .site-toggle {
+	@include hover(0, true);
 	display: flex;
-
-	@include themed() {
-		background-color: t($color-0);
-	}
-
-	&:hover {
-		@include themed() {
-			background-color: t($color-1);
-		}
-	}
-	&:active {
-		@include themed() {
-			background-color: t($color-2);
-		}
-	}
-
-	&.active {
-		@include themed() {
-			background-color: t($color-1);
-		}
-		&:hover {
-			@include themed() {
-				background-color: t($color-2);
-			}
-		}
-		&:active {
-			@include themed() {
-				background-color: t($color-3);
-			}
-		}
-	}
 }
 
 .site-radio {
+	@extend %button;
 	background-color: inherit;
 
 	&::after {
+		width: ur(16);
+		height: ur(16);
+		background-color: var(--color-0);
+		border: 1px solid var(--color-3);
+		border-radius: ur(16);
 		content: "";
-		width: u(16);
-		height: u(16);
-		border-radius: u(16);
-
-		@include themed() {
-			border: t($border);
-			background-color: t($color-0);
-		}
 	}
 
 	&:hover,
 	&.active {
 		&::after {
-			@include themed() {
-				background-color: t($color-2);
-			}
+			background-color: var(--color-2);
 		}
 	}
 }
 
 .site-button {
+	@extend %button;
+	background-color: inherit;
 	border-radius: 0;
 	flex: 1;
-	background-color: inherit;
 }
 
 #about-info {
-	margin: auto;
 	width: min-content;
+	font-size: ur(15);
+	margin: auto;
 	white-space: nowrap;
-	font-size: u(15);
 }
 
 .about-link {
-	color: $blue;
+	color: $blue-0;
 	text-decoration: none;
 }

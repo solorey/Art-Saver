@@ -3,115 +3,83 @@
 $base: 16px;
 $size-font: 12px;
 
-@function u($size) {
+@function ue($size) {
 	@return math.div(1em, 12) * $size;
+}
+
+@function ur($size) {
+	@return math.div(1rem, 12) * $size;
 }
 
 $size-icon: var(--as-icon-size);
 $size-bar: $base;
 
-$pad: u(3);
-
-$vert-pad: u(6);
-$horz-pad: u(9);
-
-$base-padding: $vert-pad $horz-pad;
-
-$vert-button-pad: u(3);
-$horz-button-pad: u(6);
-
-$base-button-padding: $vert-button-pad $horz-button-pad;
-
-$radius: u(3);
+$radius: ur(3);
 
 $shadow: 0px 2px 5px#0000000e;
 
-$color-0: "color-0";
-$color-1: "color-1";
-$color-2: "color-2";
-$color-3: "color-3";
-$text: "text";
-$border: "border";
+@mixin theme-light {
+	--color-0: #ffffff;
+	--color-1: #e2e1e7;
+	--color-2: #d1d0da;
+	--color-3: #c4c3d0;
+	--text: black;
+	--error-0: #f8d7da;
+	--error-1: #f3bcc0;
+	--error-2: #eea0a6;
+	--error-3: #e9838c;
+	--error-text: #530909;
+	--warning-0: #f6d690;
+	--warning-text: #976700;
+}
 
-$themes: (
-	light: (
-		color-0: #ffffff,
-		color-1: #ebebf0,
-		color-2: #dadae3,
-		color-3: #c2c3cf,
-		text: #000000,
-		border: u(1) solid #cdceda,
-	),
-	dark: (
-		color-0: #1c1b22,
-		color-1: #282731,
-		color-2: #373642,
-		color-3: #413f50,
-		text: #ffffff,
-		border: u(1) solid #373642,
-	),
-);
+@mixin theme-dark {
+	--color-0: #1c1b22;
+	--color-1: #282731;
+	--color-2: #373642;
+	--color-3: #413f50;
+	--text: white;
+	--error-0: #530909;
+	--error-1: #6e0c0c;
+	--error-2: #890e0e;
+	--error-3: #a41111;
+	--error-text: #f8d7da;
+	--warning-0: #f6d690;
+	--warning-text: #976700;
+}
 
-$theme-map: null;
+@mixin themes {
+	&.artsaver-theme-light {
+		@include theme-light;
+	}
+	&.artsaver-theme-dark {
+		@include theme-dark;
+	}
+	&.artsaver-theme-auto {
+		@media (prefers-color-scheme: light) {
+			@include theme-light;
+		}
 
-@mixin base-themed() {
-	@each $theme, $map in $themes {
-		&.artsaver-theme-#{$theme} {
-			$theme-map: () !global;
-			@each $key, $submap in $map {
-				$value: map-get(map-get($themes, $theme), "#{$key}");
-				$theme-map: map-merge(
-					$theme-map,
-					(
-						$key: $value,
-					)
-				) !global;
-			}
-			@content;
-			$theme-map: null !global;
+		@media (prefers-color-scheme: dark) {
+			@include theme-dark;
 		}
 	}
 }
 
-@mixin themed() {
-	@each $theme, $map in $themes {
-		.artsaver-theme-#{$theme} & {
-			$theme-map: () !global;
-			@each $key, $submap in $map {
-				$value: map-get(map-get($themes, $theme), "#{$key}");
-				$theme-map: map-merge(
-					$theme-map,
-					(
-						$key: $value,
-					)
-				) !global;
-			}
-			@content;
-			$theme-map: null !global;
-		}
-	}
-}
-
-@function t($key) {
-	@return map-get($theme-map, $key);
-}
+$border: 1px solid var(--color-2);
 
 $color-screen: gray;
 
-$blue: #0a84ff;
-$blue-light-1: #249cffff;
-$blue-light-2: scale-color($blue-light-1, $lightness: 5%);
+$blue-0: #0a84ff;
+$blue-1: #2893ff;
+$blue-2: #44a2ff;
 
-$green: #07cc07;
-$green-light-1: scale-color($green, $lightness: 5%);
-$green-light-2: scale-color($green, $lightness: 10%);
+$green-0: #07cc07;
+$green-1: #08df08;
+$green-2: #09f309;
 
-$color-progress: #4d555c;
+$color-progress: #373642;
 $color-progress-text: white;
-
-$color-error-text: #721c24;
-$color-error-1: #f8d7da;
-$color-error-2: #f5c6cb;
 
 $icon-check-green: url("/icons/check_green.svg");
 $icon-check-yellow: url("/icons/check_yellow.svg");
@@ -125,8 +93,53 @@ $icon-check-flat: url("/icons/flat/check_flat.svg");
 $icon-ex-link: url("/icons/flat/link.svg");
 $icon-folder: url("/icons/flat/folder.svg");
 $icon-collapse: url("/icons/flat/collapse.svg");
+$icon-home: url("/icons/flat/home.svg");
+$icon-gallery: url("/icons/flat/gallery.svg");
 
 $icon-selection: url("/icons/selection.svg");
+
+@mixin hover($start: 0, $active: false, $badge: false, $color: "color") {
+	$c0: var(--#{$color}-#{math.clamp(0, $start, 3)});
+	$c1: var(--#{$color}-#{math.clamp(0, $start + 1, 3)});
+	$c2: var(--#{$color}-#{math.clamp(0, $start + 2, 3)});
+	$c3: var(--#{$color}-#{math.clamp(0, $start + 3, 3)});
+
+	background-color: $c0;
+
+	&:hover {
+		background-color: $c1;
+
+		@if $badge {
+			.badge {
+				background-color: $c0;
+			}
+		}
+	}
+
+	&:active {
+		background-color: $c2;
+	}
+
+	@if $active {
+		&.active {
+			background-color: $c1;
+
+			@if $badge {
+				.badge {
+					background-color: $c0;
+				}
+			}
+
+			&:hover {
+				background-color: $c2;
+			}
+
+			&:active {
+				background-color: $c3;
+			}
+		}
+	}
+}
 
 %font {
 	font: {
@@ -134,14 +147,14 @@ $icon-selection: url("/icons/selection.svg");
 			"Helvetica Neue", sans-serif;
 		style: normal;
 		weight: normal;
+		size: $size-font;
 	}
-	font-size: $size-font;
 }
 
 %switch {
-	$width: u(32);
-	$height: u(18);
-	$diameter: u(12);
+	$width: ue(32);
+	$height: ue(18);
+	$diameter: ue(12);
 
 	$space: math.div(($height - $diameter), 2);
 
@@ -151,23 +164,18 @@ $icon-selection: url("/icons/selection.svg");
 	border-radius: math.div($height, 2);
 	transition: background-color 0.2s;
 	flex-shrink: 0;
-
-	@include themed() {
-		background-color: t($color-1);
-	}
+	background-color: var(--color-1);
 
 	&:hover {
-		@include themed() {
-			background-color: t($color-2);
-		}
+		background-color: var(--color-2);
 	}
 
 	input:checked + & {
-		background-color: $blue;
+		background-color: $blue-0;
 	}
 
 	label:hover input:checked + & {
-		background-color: $blue-light-1;
+		background-color: $blue-1;
 	}
 
 	&::after {
@@ -178,12 +186,8 @@ $icon-selection: url("/icons/selection.svg");
 		left: $space;
 		bottom: $space;
 		border-radius: math.div($diameter, 2);
-		background-color: #fff;
+		background-color: var(--color-0);
 		transition: left 0.2s;
-
-		@include themed() {
-			background-color: t($color-0);
-		}
 	}
 
 	input:checked + &::after {
@@ -193,90 +197,65 @@ $icon-selection: url("/icons/selection.svg");
 }
 
 %icon-button {
+	@include hover(0);
 	cursor: pointer;
 	font-size: 1rem;
-	text-align: center;
-	text-decoration: none;
+	text: {
+		align: center;
+		decoration: none;
+	}
 	display: flex;
 	justify-content: center;
 	align-items: center;
-
-	@include themed() {
-		color: t($text);
-		background-color: t($color-0);
-	}
-
-	&:hover {
-		@include themed() {
-			background-color: t($color-1);
-		}
-	}
-
-	&:active {
-		@include themed() {
-			background-color: t($color-2);
-		}
-	}
+	color: var(--text);
 }
 
-%info-box {
-	width: 100%;
+@mixin info-search-list {
+	.info-box {
+		width: 100%;
+	}
 
 	.search-box {
-		padding: u(2) $horz-pad;
+		padding: ur(2) ue(9);
 		display: flex;
-
-		@include themed() {
-			background-color: t($color-1);
-		}
-
-		button {
-			padding: u(6);
-
-			@extend %icon-button;
-		}
+		background-color: var(--color-1);
 	}
 
 	.search-clear {
+		@extend %icon-button;
+		padding: ur(6);
+		border: $border;
+		border-left: none;
 		border-radius: 0;
-
-		@include themed() {
-			border: t($border);
-			border-left: none;
-		}
 	}
 
 	.search-sort {
+		@extend %icon-button;
+		padding: ur(6);
+		border: $border;
+		border-left: none;
 		border-radius: 0 $radius $radius 0;
-
-		@include themed() {
-			border: t($border);
-			border-left: none;
-		}
 	}
 
-	input {
+	.search-input {
 		color: inherit;
+		border: $border;
 		border-radius: $radius 0 0 $radius;
-		padding: $base-button-padding;
+		padding: ue(3) ue(6);
 		outline: none;
 		font: {
 			size: inherit;
 			family: inherit;
 		}
 		flex: 1;
-
-		@include themed() {
-			border: t($border);
-			background-color: t($color-0);
-		}
+		background-color: var(--color-0);
 
 		&:focus {
 			border-right: {
 				style: solid;
-				width: u(1);
+				width: 1px;
 			}
-			border-color: $blue;
+			border-color: $blue-0;
 		}
 	}
 
@@ -284,35 +263,13 @@ $icon-selection: url("/icons/selection.svg");
 		position: relative;
 		overflow: auto;
 		resize: vertical;
-
-		@include themed() {
-			border-top: t($border);
-		}
+		border-top: $border;
 	}
 
 	.list {
 		position: absolute;
 		top: 0;
 		width: 100%;
-
-		> * {
-			position: absolute;
-			white-space: nowrap;
-			overflow: hidden;
-
-			width: 100%;
-			box-sizing: border-box;
-
-			&:hover {
-				.row-label {
-					padding-left: $horz-pad + u(6);
-
-					@include themed() {
-						background-color: t($color-1);
-					}
-				}
-			}
-		}
 	}
 
 	.link-search {
@@ -321,38 +278,43 @@ $icon-selection: url("/icons/selection.svg");
 
 	.list-row {
 		display: flex;
+		position: absolute;
+		white-space: nowrap;
+		overflow: hidden;
 
-		> * {
-			padding: {
-				top: u(1);
-				bottom: u(1);
-			}
-		}
+		width: 100%;
+		box-sizing: border-box;
 	}
 
 	.row-label {
 		flex: 1;
 		border-right: {
-			width: u(1);
+			width: 1px;
 			style: solid;
 		}
-		padding-left: $horz-pad;
+		padding: {
+			top: ue(1);
+			bottom: ue(1);
+			left: ue(9);
+		}
 		transition: padding-left 0.2s;
 		min-width: 0;
 		text-overflow: ellipsis;
 		overflow: hidden;
+		border-right-color: var(--color-0);
 
-		@include themed() {
-			border-right-color: t($color-0);
+		.list-row:hover & {
+			padding-left: ue(15);
+			background-color: var(--color-1);
 		}
 	}
 
-	a {
+	.row-link {
 		@extend %icon-button;
 
 		padding: {
-			left: u(4);
-			right: u(4);
+			left: ur(4);
+			right: ur(4);
 		}
 	}
 }
@@ -363,18 +325,13 @@ $icon-selection: url("/icons/selection.svg");
 	&::after {
 		content: "";
 		position: absolute;
-		top: 0;
-		bottom: 0;
-		left: 0;
-		right: 0;
+		inset: 0;
 		pointer-events: none;
+		z-index: 1;
 		mask: {
 			repeat: no-repeat;
 		}
-
-		@include themed() {
-			background-color: t($text);
-		}
+		background-color: var(--text);
 	}
 }
 
