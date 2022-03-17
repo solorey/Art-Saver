@@ -79,13 +79,20 @@ class VirtualList {
 //assumes list is already in descending order
 function searchResult(sbox, list) {
 	let input = $(sbox, 'input').value;
+	let regex = RegExp(`^(.*?)(${input})(.*?)$`, 'gi');
 
 	let results = [];
-	for (let l of list) {
-		let result = RegExp(`^(.*?)(${input})(.*?)$`, 'gi').exec(l);
-		if (result) {
-			results.push(result);
+	if (input) {
+		for (let l of list) {
+			let result = regex.exec(l);
+			if (result) {
+				result[0] = l;
+				results.push(result);
+			}
 		}
+	}
+	else {
+		results = list.map(l => [l, `${l}`, '', '']);
 	}
 
 	if ($(sbox, '.search-sort').getAttribute('data-sort') === 'ascend') {
