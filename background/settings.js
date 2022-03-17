@@ -1,4 +1,9 @@
 //Make sure to reload extension
+
+//---------------------------------------------------------------------------------------------------------------------
+// ui states
+//---------------------------------------------------------------------------------------------------------------------
+
 const popup_state = {
 	tab: 'user',
 	downloadLock: true
@@ -18,17 +23,20 @@ const UISTATES = {
 	settings: settings_state
 };
 
-const stateKey = (s) => `${s}_state`;
+//---------------------------------------------------------------------------------------------------------------------
+// global options
+//---------------------------------------------------------------------------------------------------------------------
 
 const GLOBALOPTIONS = {
 	theme: {
 		type: 'select',
 		label: 'Theme',
 		options: [
+			{ value: 'auto', label: 'Auto' },
 			{ value: 'light', label: 'Light' },
 			{ value: 'dark', label: 'Dark' }
 		],
-		default: 'light'
+		default: 'auto'
 	},
 	conflict: {
 		type: 'select',
@@ -97,6 +105,24 @@ const GLOBALOPTIONS = {
 	}
 };
 
+//---------------------------------------------------------------------------------------------------------------------
+// deviantart
+//---------------------------------------------------------------------------------------------------------------------
+
+const deviantart_info = {
+	site: 'deviantart',
+	label: 'DeviantArt',
+	helplink: 'https://github.com/solorey/Art-Saver/wiki/DeviantArt',
+	links: {
+		main: 'https://www.deviantart.com',
+		user: (userName) => `https://www.deviantart.com/${userName}`,
+		gallery: (userName) => `https://www.deviantart.com/${userName}/gallery/all`,
+		favorites: (userName) => `https://www.deviantart.com/${userName}/favourites/all`,
+		submission: (submissionId) => `https://www.deviantart.com/deviation/${submissionId}`
+	},
+	idType: 'integer'
+};
+
 const deviantart_options = {
 	userFolder: {
 		type: 'textarea',
@@ -139,70 +165,14 @@ const deviantart_options = {
 	literatureHTML: {
 		type: 'textarea',
 		label: 'Literature HTML template',
-		default: `<!DOCTYPE html>
-<html>
-
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<style type="text/css">
-		img {
-			max-width: 100%;
-			max-height: 100vh;
-		}
-
-		#content,
-		#description {
-			text-align: justify;
-			overflow: hidden;
-		}
-
-		#image {
-			text-align: center;
-		}
-	</style>
-</head>
-
-<body>
-	<h1>{title}</h1>
-	<h3>by <a href="https://www.deviantart.com/{userName}">{userName}</a></h3>
-	<dl>
-		<dt>Words:</dt>
-		<dd>{wordCount}</dd>
-		<dt>Published:</dt>
-		<dd>{YYYY}-{MM}-{DD} {hh}:{mm}:{ss}</dd>
-		<dt>Source:</dt>
-		<dd><a href="{url}">{url}</a></dd>
-	</dl>
-	<hr>
-	{story}
-	<br />
-	<hr />
-	<br />
-	{description}
-</body>
-
-</html>`,
+		default: "<!DOCTYPE html>\n<html>\n\n<head>\n\t<meta charset=\"utf-8\" />\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\t<style type=\"text/css\">\n\t\timg {\n\t\t\tmax-width: 100%;\n\t\t\tmax-height: 100vh;\n\t\t}\n\n\t\t#content,\n\t\t#description {\n\t\t\ttext-align: justify;\n\t\t\toverflow: hidden;\n\t\t}\n\n\t\t#image {\n\t\t\ttext-align: center;\n\t\t}\n\t</style>\n</head>\n\n<body>\n\t<h1>{title}</h1>\n\t<h3>by <a href=\"https://www.deviantart.com/{userName}\">{userName}</a></h3>\n\t<dl>\n\t\t<dt>Words:</dt>\n\t\t<dd>{wordCount}</dd>\n\t\t<dt>Published:</dt>\n\t\t<dd>{YYYY}-{MM}-{DD} {hh}:{mm}:{ss}</dd>\n\t\t<dt>Source:</dt>\n\t\t<dd><a href=\"{url}\">{url}</a></dd>\n\t</dl>\n\t<hr>\n\t{story}\n\t<br />\n\t<hr />\n\t<br />\n\t{description}\n</body>\n\n</html>",
 		metas: ['site', 'userName', 'title', 'submissionId', 'submissionId36', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss', 'url', 'story', 'wordCount', 'description'],
 		related: [{ option: 'literature', value: 'html' }]
 	},
 	literatureText: {
 		type: 'textarea',
 		label: 'Literature text template',
-		default: `{title}
-by {userName}
-
-Words:     {wordCount}
-Published: {YYYY}-{MM}-{DD} {hh}:{mm}:{ss}
-Source:    {url}
-
---------------------------------------------------------------------------------
-
-{story}
-
---------------------------------------------------------------------------------
-
-{description}`,
+		default: "{title}\nby {userName}\n\nWords:     {wordCount}\nPublished: {YYYY}-{MM}-{DD} {hh}:{mm}:{ss}\nSource:    {url}\n\n--------------------------------------------------------------------------------\n\n{story}\n\n--------------------------------------------------------------------------------\n\n{description}",
 		metas: ['site', 'userName', 'title', 'submissionId', 'submissionId36', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss', 'url', 'story', 'wordCount', 'description'],
 		related: [{ option: 'literature', value: 'txt' }]
 	},
@@ -227,52 +197,7 @@ Source:    {url}
 	stashLiteratureHTML: {
 		type: 'textarea',
 		label: 'Stash literature HTML template',
-		default: `<!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style type="text/css">
-        img {
-            max-width: 100%;
-            max-height: 100vh;
-        }
-
-        #content,
-        #description {
-            text-align: justify;
-            overflow: hidden;
-        }
-
-        #image {
-            text-align: center;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>{stashTitle}</h1>
-    <h3>by <a href="https://www.deviantart.com/{stashUserName}">{stashUserName}</a></h3>
-    <dl>
-        <dt>Words:</dt>
-        <dd>{wordCount}</dd>
-        <dt>Published:</dt>
-        <dd>{stashYYYY}-{stashMM}-{stashDD} {stashhh}:{stashmm}:{stashss}</dd>
-        <dt>Source:</dt>
-        <dd><a href="{stashUrl}">{stashUrl}</a></dd>
-        <dt>From:</dt>
-        <dd><a href="{url}">{url}</a></dd>
-    </dl>
-    <hr>
-    {story}
-    <br />
-    <hr />
-    <br />
-    {stashDescription}
-</body>
-
-</html>`,
+		default: "<!DOCTYPE html>\n<html>\n\n<head>\n\t<meta charset=\"utf-8\" />\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\t<style type=\"text/css\">\n\t\timg {\n\t\t\tmax-width: 100%;\n\t\t\tmax-height: 100vh;\n\t\t}\n\n\t\t#content,\n\t\t#description {\n\t\t\ttext-align: justify;\n\t\t\toverflow: hidden;\n\t\t}\n\n\t\t#image {\n\t\t\ttext-align: center;\n\t\t}\n\t</style>\n</head>\n\n<body>\n\t<h1>{stashTitle}</h1>\n\t<h3>by <a href=\"https://www.deviantart.com/{stashUserName}\">{stashUserName}</a></h3>\n\t<dl>\n\t\t<dt>Words:</dt>\n\t\t<dd>{wordCount}</dd>\n\t\t<dt>Published:</dt>\n\t\t<dd>{stashYYYY}-{stashMM}-{stashDD} {stashhh}:{stashmm}:{stashss}</dd>\n\t\t<dt>Source:</dt>\n\t\t<dd><a href=\"{stashUrl}\">{stashUrl}</a></dd>\n\t\t<dt>From:</dt>\n\t\t<dd><a href=\"{url}\">{url}</a></dd>\n\t</dl>\n\t<hr>\n\t{story}\n\t<br />\n\t<hr />\n\t<br />\n\t{stashDescription}\n</body>\n\n</html>",
 		metas: ['site', 'userName', 'title', 'submissionId', 'submissionId36', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss', 'stashUrlId', 'stashUserName', 'stashTitle', 'stashSubmissionId', 'stashFileName', 'stashExt', 'stashYYYY', 'stashMM', 'stashDD', 'stashhh', 'stashmm', 'stashss', 'url', 'stashUrl', 'story', 'wordCount', 'stashDescription'],
 		related: [
 			{ option: 'stash', value: true },
@@ -282,21 +207,7 @@ Source:    {url}
 	stashLiteratureText: {
 		type: 'textarea',
 		label: 'Stash literature text template',
-		default: `{stashTitle}
-by {stashUserName}
-
-Words:     {wordCount}
-Published: {stashYYYY}-{stashMM}-{stashDD} {stashhh}:{stashmm}:{stashss}
-Source:    {stashUrl}
-From:      {url}
-
---------------------------------------------------------------------------------
-
-{story}
-
---------------------------------------------------------------------------------
-
-{stashDescription}`,
+		default: "{stashTitle}\nby {stashUserName}\n\nWords:     {wordCount}\nPublished: {stashYYYY}-{stashMM}-{stashDD} {stashhh}:{stashmm}:{stashss}\nSource:    {stashUrl}\nFrom:      {url}\n\n--------------------------------------------------------------------------------\n\n{story}\n\n--------------------------------------------------------------------------------\n\n{stashDescription}",
 		metas: ['site', 'userName', 'title', 'submissionId', 'submissionId36', 'fileName', 'ext', 'YYYY', 'MM', 'DD', 'hh', 'mm', 'ss', 'stashUrlId', 'stashUserName', 'stashTitle', 'stashSubmissionId', 'stashFileName', 'stashExt', 'stashYYYY', 'stashMM', 'stashDD', 'stashhh', 'stashmm', 'stashss', 'url', 'stashUrl', 'story', 'wordCount', 'stashDescription'],
 		related: [
 			{ option: 'stash', value: true },
@@ -305,17 +216,22 @@ From:      {url}
 	}
 };
 
-const deviantart_info = {
-	label: 'DeviantArt',
-	helplink: 'https://github.com/solorey/Art-Saver/wiki/DeviantArt',
+//---------------------------------------------------------------------------------------------------------------------
+// twitter
+//---------------------------------------------------------------------------------------------------------------------
+
+const twitter_info = {
+	site: 'twitter',
+	label: 'Twitter',
+	helplink: 'https://github.com/solorey/Art-Saver/wiki/Twitter',
 	links: {
-		main: 'https://www.deviantart.com',
-		user: (userName) => `https://www.deviantart.com/${userName}`,
-		gallery: (userName) => `https://www.deviantart.com/${userName}/gallery/all`,
-		favorites: (userName) => `https://www.deviantart.com/${userName}/favourites/all`,
-		submission: (submissionId) => `https://www.deviantart.com/deviation/${submissionId}`
+		main: 'https://twitter.com',
+		user: (userId) => `https://twitter.com/${userId}`,
+		gallery: (userId) => `https://twitter.com/${userId}/media`,
+		favorites: (userId) => `https://twitter.com/${userId}/likes`,
+		submission: (submissionId) => `https://twitter.com/i/web/status/${submissionId}`
 	},
-	idType: 'integer'
+	idType: 'bigint'
 };
 
 const twitter_options = {
@@ -339,17 +255,22 @@ const twitter_options = {
 	}
 };
 
-const twitter_info = {
-	label: 'Twitter',
-	helplink: 'https://github.com/solorey/Art-Saver/wiki/Twitter',
+//---------------------------------------------------------------------------------------------------------------------
+// pixiv
+//---------------------------------------------------------------------------------------------------------------------
+
+const pixiv_info = {
+	site: 'pixiv',
+	label: 'Pixiv',
+	helplink: 'https://github.com/solorey/Art-Saver/wiki/Pixiv',
 	links: {
-		main: 'https://twitter.com',
-		user: (userId) => `https://twitter.com/${userId}`,
-		gallery: (userId) => `https://twitter.com/${userId}/media`,
-		favorites: (userId) => `https://twitter.com/${userId}/likes`,
-		submission: (submissionId) => `https://twitter.com/i/web/status/${submissionId}`
+		main: 'https://www.pixiv.net',
+		user: (userId) => `https://www.pixiv.net/users/${userId}`,
+		gallery: (userId) => `https://www.pixiv.net/users/${userId}/artworks`,
+		favorites: (userId) => `https://www.pixiv.net/users/${userId}/bookmarks/artworks`,
+		submission: (submissionId) => `https://www.pixiv.net/artworks/${submissionId}`
 	},
-	idType: 'bigint'
+	idType: 'integer'
 };
 
 const pixiv_options = {
@@ -385,17 +306,21 @@ const pixiv_options = {
 	}
 };
 
-const pixiv_info = {
-	label: 'Pixiv',
-	helplink: 'https://github.com/solorey/Art-Saver/wiki/Pixiv',
+//---------------------------------------------------------------------------------------------------------------------
+// furaffinity
+//---------------------------------------------------------------------------------------------------------------------
+
+const furaffinity_info = {
+	site: 'furaffinity',
+	label: 'Fur Affinity',
+	helplink: 'https://github.com/solorey/Art-Saver/wiki/Fur-Affinity',
 	links: {
-		main: 'https://www.pixiv.net',
-		user: (userId) => `https://www.pixiv.net/users/${userId}/artworks`,
-		gallery: (userId) => `https://www.pixiv.net/users/${userId}/artworks`,
-		favorites: (userId) => `https://www.pixiv.net/users/${userId}/bookmarks/artworks`,
-		submission: (submissionId) => `https://www.pixiv.net/artworks/${submissionId}`
-	},
-	idType: 'integer'
+		main: 'https://www.furaffinity.net/',
+		user: (userLower) => `https://www.furaffinity.net/user/${userLower}`,
+		gallery: (userLower) => `https://www.furaffinity.net/gallery/${userLower}`,
+		favorites: (userLower) => `https://www.furaffinity.net/favorites/${userLower}`,
+		submission: (submissionId) => `https://www.furaffinity.net/view/${submissionId}`
+	}
 };
 
 const furaffinity_options = {
@@ -413,16 +338,22 @@ const furaffinity_options = {
 	}
 };
 
-const furaffinity_info = {
-	label: 'Fur Affinity',
-	helplink: 'https://github.com/solorey/Art-Saver/wiki/Fur-Affinity',
+//---------------------------------------------------------------------------------------------------------------------
+// inkbunny
+//---------------------------------------------------------------------------------------------------------------------
+
+const inkbunny_info = {
+	site: 'inkbunny',
+	label: 'Inkbunny',
+	helplink: 'https://github.com/solorey/Art-Saver/wiki/Inkbunny',
 	links: {
-		main: 'https://www.furaffinity.net/',
-		user: (userLower) => `https://www.furaffinity.net/user/${userLower}`,
-		gallery: (userLower) => `https://www.furaffinity.net/gallery/${userLower}`,
-		favorites: (userLower) => `https://www.furaffinity.net/favorites/${userLower}`,
-		submission: (submissionId) => `https://www.furaffinity.net/view/${submissionId}`
-	}
+		main: 'https://inkbunny.net',
+		user: (userName) => `https://inkbunny.net/${userName}`,
+		gallery: (userName) => `https://inkbunny.net/gallery/${userName}`,
+		favorites: (userName) => `https://inkbunny.net/submissionsviewall.php?mode=search&favsby=${userName}`,
+		submission: (submissionId) => `https://inkbunny.net/s/${submissionId}`
+	},
+	idType: 'integer'
 };
 
 const inkbunny_options = {
@@ -446,18 +377,9 @@ const inkbunny_options = {
 	}
 };
 
-const inkbunny_info = {
-	label: 'Inkbunny',
-	helplink: 'https://github.com/solorey/Art-Saver/wiki/Inkbunny',
-	links: {
-		main: 'https://inkbunny.net',
-		user: (userName) => `https://inkbunny.net/${userName}`,
-		gallery: (userName) => `https://inkbunny.net/gallery/${userName}`,
-		favorites: (userName) => `https://inkbunny.net/submissionsviewall.php?mode=search&favsby=${userName}`,
-		submission: (submissionId) => `https://inkbunny.net/s/${submissionId}`
-	},
-	idType: 'integer'
-};
+//---------------------------------------------------------------------------------------------------------------------
+// settings constants
+//---------------------------------------------------------------------------------------------------------------------
 
 const SITEOPTIONS = {
 	deviantart: deviantart_options,
@@ -474,9 +396,6 @@ const SITEINFO = {
 	furaffinity: furaffinity_info,
 	inkbunny: inkbunny_info
 };
-
-const optionsKey = (s) => `${s}_options`;
-const savedKey = (s) => `${s}_saved`;
 
 const SITES = [...Object.keys(SITEINFO)];
 const SITESSAVEDKEYS = SITES.map(savedKey);
