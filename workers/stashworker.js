@@ -53,7 +53,8 @@ function findStashUrlsInStack(sr) {
 			surls.push(hrefreg[1]);
 		}
 		else {
-			surls.push(decodeStash(/gmi-stashid="(.+?)"/.exec(thumb)[1]));
+			let stashid = parseInt(/gmi-stashid="(.+?)"/.exec(thumb)[1], 10);
+			surls.push(`https://sta.sh/2${stashid.toString(36)}`);
 		}
 	}
 	//stacks are paginated per 120
@@ -75,23 +76,4 @@ async function navigateStacks(urls) {
 		urlslist = [urlslist.filter(u => !/\/2/.test(u)), stackurls].flat(Infinity).filter(s => s);
 	}
 	return [...new Set(urlslist)];
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-function decodeStash(num) {
-	num = parseInt(num, 10);
-
-	let link = '';
-	let chars = '0123456789abcdefghijklmnopqrstuvwxyz';
-	let base = chars.length;
-	while (num) {
-		remainder = num % base;
-		quotient = Math.trunc(num / base);
-
-		num = quotient;
-		link = `${chars[remainder]}${link}`;
-	}
-
-	return `https://sta.sh/2${link}`;
 }
