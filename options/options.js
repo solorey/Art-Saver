@@ -1,4 +1,5 @@
 var globalrunningobservers = [];
+var globaldeletequeue = new Set();
 
 const METAS = {
 	site:              "The name of the website. 'pixiv', 'deviantart', etc.",
@@ -38,8 +39,6 @@ const METAS = {
 	stashDescription:  'Description from the stash page.'
 };
 
-initalSetup();
-
 async function initalSetup() {
 	let statekey = stateKey('settings');
 	let settingsstate = await browser.storage.local.get(statekey);
@@ -48,6 +47,8 @@ async function initalSetup() {
 	await savedInfoDetails();
 	classToggle($('#saved-info-edit-switch input').checked, $('#saved-table'), 'editable');
 }
+
+initalSetup();
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -117,9 +118,13 @@ async function setupOptions() {
 	let globalinfo = {
 		label: 'Global',
 		helplink: 'https://github.com/solorey/Art-Saver/wiki/Options'
-	}
+	};
 
-	createOptions($('#global-options'), 'global', globalinfo, GLOBALOPTIONS, alloptions.global_options)
+	createOptions($('#global-options'), 'global', globalinfo, GLOBALOPTIONS, alloptions.global_options);
+	$('#global-theme').oninput = () => {
+		setTheme();
+	};
+	setTheme();
 	for (let site of SITES) {
 		createOptions($('#sites-list'), site, SITEINFO[site], SITEOPTIONS[site], alloptions[optionsKey(site)] || {});
 		createSiteToggle($('#sites-toggles'), site, SITEINFO[site], $('#sites-list'));
@@ -191,10 +196,6 @@ function createOptions(parent, site, info, options, savedoptions) {
 
 		section.appendChild(newoption);
 	}
-	$('#global-theme').oninput = () => {
-		setTheme();
-	};
-	setTheme();
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -242,7 +243,7 @@ function createSelectOption(optionid, values, savedvalue) {
 	let option = $('#select-template').content.cloneNode(true);
 
 	let labelelem = $(option, 'label');
-	labelelem.textContent = values.label;
+	labelelem.insertAdjacentText('afterbegin', values.label);
 	labelelem.setAttribute('for', optionid);
 
 	let selectelem = $(option, 'select');
@@ -272,8 +273,8 @@ function createNumberOption(optionid, values, savedvalue) {
 	inputelem.setAttribute('min', values.min);
 	inputelem.value = (typeof savedvalue !== 'undefined') ? savedvalue : values.default;
 
-	$(option, '.increase').onmousedown = function () { numberChange(inputelem, this, 1) };
-	$(option, '.decrease').onmousedown = function () { numberChange(inputelem, this, -1) };
+	$(option, '.step-increase').onmousedown = function () { numberChange(inputelem, this, 1) };
+	$(option, '.step-decrease').onmousedown = function () { numberChange(inputelem, this, -1) };
 
 	return option;
 }
@@ -298,8 +299,8 @@ function createSliderOption(optionid, values, savedvalue) {
 		inputelem.value = (typeof savedvalue !== 'undefined') ? savedvalue : values.default;
 	}
 
-	$(option, '.increase').onmousedown = function () { numberChange(number, this, 1, range) };
-	$(option, '.decrease').onmousedown = function () { numberChange(number, this, -1, range) };
+	$(option, '.step-increase').onmousedown = function () { numberChange(number, this, 1, range) };
+	$(option, '.step-decrease').onmousedown = function () { numberChange(number, this, -1, range) };
 
 	number.oninput = function () {
 		range.value = this.value;
@@ -619,12 +620,12 @@ async function savedInfoDetails() {
 			all_submissions = all_submissions.map(s => BigInt(s));
 		}
 		all_submissions = [...new Set(all_submissions)];
-		
+
 		switch (id_type) {
 			case 'integer':
 				all_submissions.sort((a, b) => b - a);
 				break;
-			
+
 			case 'bigint':
 				all_submissions.sort((a, b) => {
 					if (a > b) {
@@ -636,7 +637,7 @@ async function savedInfoDetails() {
 					}
 				});
 				break;
-			
+
 			default:
 				all_submissions.sort();
 		}
@@ -730,15 +731,25 @@ function createUserRow(site, reguser) {
 	alinks[1].href = links.gallery(reguser[0]);
 	alinks[2].href = links.favorites(reguser[0]);
 
-	$(row, '.row-delete').addEventListener('click', async function () {
-		this.classList.add('deleting');
-		await browser.runtime.sendMessage({
-			function: 'removeuser',
-			site: site,
-			user: reguser[0]
-		});
-		savedInfoDetails();
-	}, { once: true });
+	let row_id = `${site}u${reguser[0]}`;
+
+	let delete_button = $(row, '.row-delete');
+	if (globaldeletequeue.has(row_id)) {
+		delete_button.classList.add('deleting');
+	}
+	else {
+		delete_button.addEventListener('click', async function () {
+			globaldeletequeue.add(row_id);
+			this.classList.add('deleting');
+			await browser.runtime.sendMessage({
+				function: 'removeuser',
+				site: site,
+				user: reguser[0]
+			});
+			globaldeletequeue.delete(row_id);
+			savedInfoDetails();
+		}, { once: true });
+	}
 	return row.firstElementChild;
 }
 
@@ -755,18 +766,27 @@ function createSubmissionRow(site, regsubmission) {
 
 	$(row, 'a').href = links.submission(regsubmission[0]);
 
-	let submission_id = (SITEINFO[site].idType === 'integer') ? parseInt(regsubmission[0], 10) : regsubmission[0];
+	let submission_id = (SITEINFO[site].idType === 'bigint') ? `${regsubmission[0]}` : regsubmission[0];
 
-	$(row, '.row-delete').addEventListener('click', async function () {
-		this.classList.add('deleting');
-		await browser.runtime.sendMessage({
-			function: 'removesubmission',
-			site: site,
-			sid: submission_id
-		});
-		savedInfoDetails();
-	}, { once: true });
+	let row_id = `${site}s${regsubmission[0]}`;
 
+	let delete_button = $(row, '.row-delete');
+	if (globaldeletequeue.has(row_id)) {
+		delete_button.classList.add('deleting');
+	}
+	else {
+		delete_button.addEventListener('click', async function () {
+			globaldeletequeue.add(row_id);
+			this.classList.add('deleting');
+			await browser.runtime.sendMessage({
+				function: 'removesubmission',
+				site: site,
+				sid: submission_id
+			});
+			globaldeletequeue.delete(row_id);
+			savedInfoDetails();
+		}, { once: true });
+	}
 	return row.firstElementChild;
 }
 
@@ -790,15 +810,22 @@ $('#table-close-all').onclick = () => {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$('#export-list').onclick = async () => {
-	let savedinfo = await browser.storage.local.get(SITESSAVEDKEYS);
-	let informationtosave = {};
+async function jsonInfo() {
+	let saved_info = await browser.storage.local.get(SITESSAVEDKEYS);
+	let json_info = {};
 	for (let site of SITES) {
-		if (savedinfo[savedKey(site)]) {
-			informationtosave[site] = savedinfo[savedKey(site)];
+		if (saved_info[savedKey(site)]) {
+			json_info[site] = saved_info[savedKey(site)];
 		}
 	}
-	let blob = new Blob([JSON.stringify(informationtosave, null, '\u0009')], { type: 'application/json' });
+	return json_info;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$('#export-list').onclick = async () => {
+	let json_info = await jsonInfo();
+	let blob = new Blob([JSON.stringify(json_info, null, '\u0009')], { type: 'application/json' });
 
 	browser.downloads.download({
 		url: URL.createObjectURL(blob),
@@ -823,7 +850,7 @@ $('#reset-list').onclick = async () => {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $('#saved-info').oninput = async function () {
-	$('#filename').textContent = this.files[0].name;
+	$('#saved-filename').textContent = this.files[0].name;
 
 	let undo = $('#saved-info-undo');
 	$(undo, 'span').textContent = 'overwritten';
@@ -831,6 +858,7 @@ $('#saved-info').oninput = async function () {
 
 	try {
 		let jsonfile = await getJSON(this.files[0]);
+		await browser.storage.local.remove(SITESSAVEDKEYS);
 		await browser.storage.local.set(cleanSavedInfo(jsonfile));
 		await savedInfoDetails();
 	}
@@ -841,24 +869,97 @@ $('#saved-info').oninput = async function () {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function cleanSavedInfo(savefile) {
-	let informationtosave = {};
+function union(setA, setB) {
+	let un = new Set(setA);
+	for (let elem of setB) {
+		un.add(elem);
+	}
+	return un;
+}
 
-	for (let site of SITES) {
-		if (![...Object.keys(savefile)].includes(site) || Object.keys(savefile[site]).length <= 0) {
-			continue;
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function intersection(setA, setB) {
+	let inter = new Set();
+	for (let elem of setB) {
+		if (setA.has(elem)) {
+			inter.add(elem);
 		}
-		informationtosave[savedKey(site)] = {};
+	}
+	return inter;
+}
 
-		for (let [user, savedsubmissions] of Object.entries(savefile[site])) {
-			if (savedsubmissions.length > 0) {
-				let submissions_list = (SITEINFO[site].idType === 'integer') ? savedsubmissions.map(n => parseInt(n, 10)) : savedsubmissions;
-				informationtosave[savedKey(site)][user] = [...new Set(submissions_list)].sort((a, b) => b - a);
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function keysSet(obj) {
+	return new Set(Object.keys(obj ?? {}));
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function cleanSavedInfo(savefile) {
+	let new_info = {};
+
+	let saved_sites = intersection(new Set(SITES), keysSet(savefile));
+	for (let site of saved_sites) {
+		let users = {};
+		for (let [user, submissions] of Object.entries(savefile[site])) {
+			if (submissions.length <= 0) {
+				continue;
 			}
+			if (SITEINFO[site].idType === 'integer') {
+				submissions = submissions.map(n => parseInt(n, 10));
+			}
+			users[user] = [...new Set(submissions)].sort((a, b) => b - a);
+		}
+		if (Object.keys(users).length > 0) {
+			new_info[savedKey(site)] = users;
 		}
 	}
 
-	return informationtosave;
+	return new_info;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+$('#add-info').oninput = async function () {
+	$('#add-filename').textContent = this.files[0].name;
+
+	let undo = $('#saved-info-undo');
+	$(undo, 'span').textContent = 'appended';
+	await setUndoButton();
+
+	try {
+		let jsonfile = await getJSON(this.files[0]);
+		let currentinfo = await jsonInfo();
+		await browser.storage.local.set(combineInfo(currentinfo, jsonfile));
+		await savedInfoDetails();
+	}
+	catch (err) { }
+
+	undo.classList.remove('hide');
+};
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function combineInfo(info1, info2) {
+	let combined_info = {};
+
+	let saved_sites = intersection(new Set(SITES), union(keysSet(info1), keysSet(info2)));
+	for (let site of saved_sites) {
+		let users = {};
+		let site_users = union(keysSet(info1?.[site]), keysSet(info2?.[site]));
+		for (let user of site_users) {
+			let submissions = union(new Set(info1?.[site]?.[user] ?? []), new Set(info2?.[site]?.[user] ?? []));
+			if (submissions.size > 0) {
+				users[user] = [...submissions].sort((a, b) => b - a);
+			}
+		}
+		if (Object.keys(users).length > 0) {
+			combined_info[savedKey(site)] = users;
+		}
+	}
+	return combined_info;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
