@@ -9,7 +9,7 @@ var globalpopupstate;
 browser.storage.local.get(optionsKey('global')).then(g => {
 	document.body.className = `artsaver-theme-${g[optionsKey('global')].theme}`;
 });
-browser.storage.local.get('popup_state').then(s => globalpopupstate = s.popup_state);
+browser.storage.local.get(stateKey('popup')).then(s => globalpopupstate = s[stateKey('popup')]);
 
 function updateState(component, value) {
 	globalpopupstate[component] = value;
@@ -48,7 +48,7 @@ function send(id, message) {
 	browser.tabs.sendMessage(id, {
 		command: message,
 	}).catch(() => {
-		openTab('unsupported-page');
+		openTab('unsupported-content');
 	});
 }
 
@@ -57,22 +57,28 @@ browser.runtime.onMessage.addListener(request => {
 });
 
 async function messageActions(request) {
-	if (request.function === 'pageerror') {
-		openTab('unsupported-page');
-		return;
-	}
-	let savedkey = `${request.site}_saved`;
-	let sitekey = `${request.site}_options`;
+	let savedkey = savedKey(request.site);
+	let sitekey = optionsKey(request.site);
 
 	let res = await browser.storage.local.get([savedkey, sitekey]);
 
 	switch (request.function) {
 		case 'sitestats':
-			siteStats(request, res[savedkey] || {});
+			siteStats(request, res[savedkey] ?? {});
+			break;
+
+		case 'siteerror':
+			setSiteError();
 			break;
 
 		case 'userstats':
+			request.user.saved = res[savedkey]?.[request.user.id] ?? [];
 			userStats(request.user, res[sitekey]);
+			break;
+
+		case 'usererror':
+			setUserError();
+			break;
 	}
 }
 
@@ -91,7 +97,7 @@ function openTab(tab) {
 	$(`#${tab}`).classList.remove('hide')
 }
 
-openTab('getting-page');
+openTab('site-content');
 
 for (let t of $$('.tabs > button[data-tab]')) {
 	t.onclick = function () {
@@ -100,12 +106,12 @@ for (let t of $$('.tabs > button[data-tab]')) {
 		openTab(tab);
 
 		switch (tab) {
-			case 'user-page':
+			case 'user-content':
 				updateState('tab', 'user');
 				break;
 
-			case 'stats-page':
-				updateState('tab', 'stats');
+			case 'site-content':
+				updateState('tab', 'site');
 				break;
 		}
 	};
@@ -141,14 +147,15 @@ $('#download-lock').onclick = () => {
 };
 
 //---------------------------------------------------------------------------------------------------------------------
-// stats
+// site
 //---------------------------------------------------------------------------------------------------------------------
 
 function siteStats(request, sitelist) {
 	globalrunningobservers.forEach(ob => ob.disconnect());
 	globalrunningobservers = [];
+	openTab('site-content');
 
-	$('#stats-tab').classList.remove('hide');
+	$('#site-tab').classList.remove('hide');
 	$('#stats-site').textContent = SITEINFO[request.site].label;
 
 	$('#downloads-stat').textContent = request.total.downloads;
@@ -200,14 +207,26 @@ function siteStats(request, sitelist) {
 	resize.observe(ul);
 	resize.observe(sl);
 
-	openTab('stats-page');
-	if (request.user && !globalopened) {
+	$('#site-loading').classList.add('hide');
+	$('#site-info').classList.remove('hide');
+
+	if (request.hasuser && !globalopened) {
 		$('#user-tab').classList.remove('hide');
+		let link = $('#user-error-link')
+		link.textContent = request.user.id;
+		link.href = request.user.link;
 		if (globalpopupstate['tab'] === 'user') {
-			openTab('user-page');
+			openTab('user-content');
 		}
 		globalopened = true;
 	}
+}
+
+function setSiteError() {
+	$('#site-tab').classList.remove('hide');
+	$('#site-loading').classList.add('hide');
+	$('#site-info').classList.add('hide');
+	$('#site-error').classList.remove('hide');
 }
 
 function createUserRow(site, reguser) {
@@ -242,17 +261,18 @@ function createSubmissionRow(site, regsubmission) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function userStats(user, siteoptions) {
+	$('#user-loading').classList.add('hide');
+
 	$('#profile-cover').style.width = 'auto';
 
 	let pic = $('#profile-pic');
 	//make sure user icon url provided by the site is safe to display in the popup
 	//using DOMPurify as recommended by Mozilla
 	pic.src = DOMPurify.sanitize(user.icon);
-	pic.classList.remove('loading-icon');
 
-	$('#user-name').textContent = user.name;
+	let username = $('#user-name');
+	username.textContent = user.name;
 
-	$('#user-buttons').classList.remove('hide');
 	let links = SITEINFO[user.site].links
 	$('#user-home').href = links.user(user.id);
 	$('#user-gallery').href = links.gallery(user.id);
@@ -261,7 +281,7 @@ function userStats(user, siteoptions) {
 	let userstats = $('#user-stats');
 	$$(userstats, '.header ~ .stat-row').forEach(row => $remove(row));
 
-	let userprofile = $('#user-profile');
+	let userprofile = $('#user-info');
 
 	classToggle(user.stats.size <= 0, userprofile, 'no-stats');
 	if (user.stats.size > 0) {
@@ -269,12 +289,15 @@ function userStats(user, siteoptions) {
 
 		for (let [stat, value] of user.stats.entries()) {
 			let row = $insert(userstats, 'div', { class: 'stat-row' });
-			$insert(row, 'span', { class: 'stat-text', text: stat });
+			row.insertAdjacentText('afterbegin', stat);
 			$insert(row, 'span', { class: 'badge', text: value });
 		}
 	}
 
 	userstats.classList.remove('hide');
+
+	$('#user-loading').classList.add('hide');
+	$('#user-info').classList.remove('hide');
 
 	if (user.saved.length <= 0) {
 		if (user.stats.size <= 0) {
@@ -308,4 +331,10 @@ function userStats(user, siteoptions) {
 			meta: user.folderMeta
 		});
 	};
+}
+
+function setUserError() {
+	$('#user-loading').classList.add('hide');
+	$('#user-info').classList.add('hide');
+	$('#user-error').classList.remove('hide');
 }
