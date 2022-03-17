@@ -6,13 +6,14 @@
 	<title>Art Saver Settings</title>
 	<link rel="stylesheet" href="options.css" type="text/css">
 	<link rel="stylesheet" href="/css/iconfont.css" />
-	<script defer src="/general_scripts/selectors.js"></script>
+	<script defer src="/background/storagekeys.js"></script>
 	<script defer src="/background/settings.js"></script>
+	<script defer src="/general_scripts/selectors.js"></script>
 	<script defer src="/general_scripts/virtuallist.js"></script>
 	<script defer src="options.js"></script>
 </head>
 
-<body class="artsaver-theme-light">
+<body class="artsaver-theme-auto">
 	<template id="options-section-template">
 		<section class="site-options">
 			<h3 class="site-header"><a class="question" target="_blank">?</a></h3>
@@ -20,48 +21,49 @@
 	</template>
 	<template id="checkbox-template">
 		<div class="option-checkbox">
-			<label>
-				<input type="checkbox" />
+			<label class="checkbox-label">
+				<input class="checkbox-input" type="checkbox" />
 				<div class="switch"></div>
 			</label>
 		</div>
 	</template>
 	<template id="number-template">
 		<div class="option-number">
-			<label>
+			<label class="number-label">
 				<div class="custom-number">
-					<input type="number" />
-					<button class="increase"></button>
-					<button class="decrease"></button>
+					<input class="number-input" type="number" />
+					<button class="step-increase"></button>
+					<button class="step-decrease"></button>
 				</div>
 			</label>
 		</div>
 	</template>
 	<template id="select-template">
 		<div class="option-select">
-			<label></label>
-			<div class="select-holder">
-				<select class="custom-select"></select>
-			</div>
+			<label class="select-label">
+				<div class="select-holder">
+					<select class="select-input"></select>
+				</div>
+			</label>
 		</div>
 	</template>
 	<template id="slider-template">
 		<div class="option-slider">
-			<label>
+			<label class="slider-label">
 				<div class="custom-number">
-					<input type="number" />
-					<button class="increase"></button>
-					<button class="decrease"></button>
+					<input class="number-input" type="number" />
+					<button class="step-increase"></button>
+					<button class="step-decrease"></button>
 				</div>
 			</label>
-			<input type="range" class="slider">
+			<input class="slider-input" type="range">
 		</div>
 	</template>
 	<template id="textarea-template">
 		<div class="option-textarea">
-			<label></label>
-			<textarea spellcheck="false" rows="1"></textarea>
-			<button class="help-button default-button">Show Help</button>
+			<label class="textarea-label"></label>
+			<textarea class="textarea-input" spellcheck="false" rows="1"></textarea>
+			<button class="help-button">Show Help</button>
 			<table class="help-table hide"></table>
 		</div>
 	</template>
@@ -84,7 +86,7 @@
 				<div class="info-boxes">
 					<div class="info-box">
 						<div class="search-box">
-							<input type="text" placeholder="Search users">
+							<input class="search-input" type="text" placeholder="Search users">
 							<button class="search-clear"><i class="icon-x"></i></button>
 							<button class="search-sort" title="Sorted by descending" data-sort="descend">
 								<i class="icon-descend"></i>
@@ -94,7 +96,7 @@
 					</div>
 					<div class="info-box">
 						<div class="search-box">
-							<input type="text" placeholder="Search submissions">
+							<input class="search-input" type="text" placeholder="Search submissions">
 							<button class="search-clear hide"><i class="icon-x"></i></button>
 							<button class="search-sort" title="Sorted by descending" data-sort="descend">
 								<i class="icon-descend"></i>
@@ -112,9 +114,12 @@
 			<div class="row-label">
 				<span></span><strong></strong><span></span>
 			</div>
-			<a target="_blank" rel="noopener noreferrer" title="Open user page"><i class="icon-home"></i></a>
-			<a target="_blank" rel="noopener noreferrer" title="Open gallery page"><i class="icon-gallery"></i></a>
-			<a target="_blank" rel="noopener noreferrer" title="Open favorites page"><i class="icon-star"></i></a>
+			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open user page"><i
+					class="icon-home"></i></a>
+			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open gallery page"><i
+					class="icon-gallery"></i></a>
+			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open favorites page"><i
+					class="icon-star"></i></a>
 		</div>
 	</template>
 	<template id="submission-row-template">
@@ -123,7 +128,8 @@
 			<div class="row-label">
 				<span></span><strong></strong><span></span>
 			</div>
-			<a target="_blank" rel="noopener noreferrer" title="Open submission page"><i class="icon-link"></i></a>
+			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open submission page"><i
+					class="icon-link"></i></a>
 		</div>
 	</template>
 	<template id="site-toggle-template">
@@ -135,7 +141,7 @@
 
 	<div id="main-container">
 		<div id="tabs">
-			<div id="extension-icon"><img src="/icons/icon.svg" /></div>
+			<img id="extension-icon" src="/icons/icon.svg" width="32" height="32" />
 			<button id="global-options-tab" class="tab-button" data-tab="global">Global Options</button>
 			<button id="site-options-tab" class="tab-button" data-tab="sites">Site Options</button>
 			<button id="saved-info-tab" class="tab-button" data-tab="saved">Saved Information</button>
@@ -169,40 +175,53 @@
 
 				<div id="site-options-content" class="tab-content hide">
 					<div id="sites-side">
-						<button id="sites-open-all" class="default-button">Open all</button>
-						<button id="sites-close-all" class="default-button">Close all</button>
+						<button id="sites-open-all" class="button">Open all</button>
+						<button id="sites-close-all" class="button">Close all</button>
 						<div id="sites-toggles"></div>
 					</div>
 					<div id="sites-list"></div>
 				</div>
 
 				<div id="saved-info-content" class="tab-content hide">
-					<div id="saved-info-input">
-						<label>Upload saved information</label>
-						<div class="custom-input">
-							<input id="saved-info" accept=".json" type="file" />
-							<label for="saved-info">
-								<div class="before">Browse</div>
-								<div id="filename"><i class="icon-upload"></i>Choose file</div>
+					<div id="info-file-buttons">
+						<div id="saved-info-input" class="file-selector">
+							Upload saved information
+							<label class="file-label" for="saved-info">
+								<input id="saved-info" class="file-input" accept=".json" type="file" />
+								<div class="file-before">Browse</div>
+								<div id="saved-filename" class="file-name">
+									<i class="icon-upload"></i>
+									Choose file
+								</div>
+							</label>
+						</div>
+						<div id="add-info-input" class="file-selector">
+							Add saved information
+							<label class="file-label" for="add-info">
+								<input id="add-info" class="file-input" accept=".json" type="file" />
+								<div class="file-before">Browse</div>
+								<div id="add-filename" class="file-name">
+									<i class="icon-upload"></i>
+									Choose file
+								</div>
 							</label>
 						</div>
 					</div>
+
 					<div id="saved-info-undo" class="undo-bar hide">
 						<div>The saved information has been <span></span></div>
 						<div class="undo-button">Undo</div>
 						<div class="close-button"><i class="icon-x"></i></div>
 					</div>
 					<div id="table-side">
-						<button id="table-refresh" class="default-button"><i class="icon-reset"></i>Refresh</button>
-						<div id="saved-info-edit-switch" class="single-switch">
-							<label>
-								<input type="checkbox" />
-								<div class="switch"></div>
-								Enable editing
-							</label>
-						</div>
-						<button id="table-open-all" class="default-button">Open all</button>
-						<button id="table-close-all" class="default-button">Close all</button>
+						<button id="table-refresh" class="button"><i class="icon-reset"></i>Refresh</button>
+						<label id="saved-info-edit-switch" class="checkbox-label">
+							<input class="checkbox-input" type="checkbox" />
+							<div class="switch"></div>
+							Enable editing
+						</label>
+						<button id="table-open-all" class="button">Open all</button>
+						<button id="table-close-all" class="button">Close all</button>
 						<button id="export-list" class="blue-button"><i class="icon-download"></i>Export</button>
 						<button id="reset-list" class="blue-button"><i class="icon-reset"></i>Reset</button>
 					</div>
@@ -227,7 +246,6 @@
 				</div>
 			</form>
 		</div>
-
 	</div>
 </body>
 
