@@ -1,10 +1,8 @@
-var as = { deviantart: { check: {}, download: {} } };
-
 //---------------------------------------------------------------------------------------------------------------------
 // page and user information
 //---------------------------------------------------------------------------------------------------------------------
 
-function pageInfo() {
+function getPageInfo() {
 	let page = {
 		url: window.location.href,
 		site: 'deviantart'
@@ -45,7 +43,7 @@ function pageInfo() {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.deviantart.userInfo = async function (user_id) {
+async function getUserInfo(user_id) {
 	let userresponse = await fetcher(`https://www.deviantart.com/_napi/da-user-profile/api/init/gallery?username=${user_id}`);
 
 	let user = {
@@ -70,7 +68,7 @@ as.deviantart.userInfo = async function (user_id) {
 		user.icon = $(`img[title=${user.name}], img[alt="${user.name}'s avatar"]`).src;
 		user.stats = new Map([]);
 	}
-	
+
 	user.folderMeta = {
 		site: user.site,
 		userName: user.name
@@ -79,14 +77,26 @@ as.deviantart.userInfo = async function (user_id) {
 	return user;
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function userHomeLink(userName) {
+	return `https://www.deviantart.com/${userName}`;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function userGalleryLink(userName) {
+	return `https://www.deviantart.com/${userName}/gallery/all`;
+}
+
 //---------------------------------------------------------------------------------------------------------------------
 // main add checks and download buttons to image thumbnails
 //---------------------------------------------------------------------------------------------------------------------
 
-as.deviantart.check.startChecking = function () {
-	asLog('Checking Deviantart');
-	let page = pageInfo();
-	this.checkPage(page);
+function startChecking() {
+	asLog('Checking DeviantArt');
+	let page = getPageInfo();
+	checkPage(page);
 
 	let thumbselect = '.thumb, [data-hook=deviation_link]';
 
@@ -96,7 +106,7 @@ as.deviantart.check.startChecking = function () {
 
 		if (page.url !== window.location.href || newnodes.some(n => $('title').contains(n))) {
 			diffpage = true;
-			page = pageInfo();
+			page = getPageInfo();
 		}
 
 		if (page.page === 'art' && diffpage) {
@@ -104,10 +114,10 @@ as.deviantart.check.startChecking = function () {
 			$$(submission, '[data-checkstatus]').forEach(e => e.removeAttribute('data-checkstatus'));
 			$$(submission, '[class^=artsaver]:not(.artsaver-holder)').forEach(e => $remove(e));
 
-			this.checkPage(page);
+			checkPage(page);
 		}
 		else if (newnodes.some(n => n.nodeType === 1 && (n.matches(thumbselect) || $(n, thumbselect)))) {
-			this.checkPage(page);
+			checkPage(page);
 		}
 	});
 
@@ -117,21 +127,21 @@ as.deviantart.check.startChecking = function () {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.deviantart.check.checkPage = function (page) {
+function checkPage(page) {
 	//old thumbnails still show in art groups
-	this.checkOldThumbnails(this.getOldThumbnails());
+	checkOldThumbnails(getOldThumbnails());
 
-	this.checkThumbnails(this.getThumbnails());
+	checkThumbnails(getThumbnails());
 
 	if (page.page === 'art') {
-		this.checkSubmission(page.user, page.url);
+		checkSubmission(page.user, page.url);
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //Legacy
 
-as.deviantart.check.getOldThumbnails = function () {
+function getOldThumbnails() {
 	let thumbnails = [];
 
 	for (let thumb of $$('.thumb, .embedded-image-deviation')) {
@@ -159,7 +169,7 @@ as.deviantart.check.getOldThumbnails = function () {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.deviantart.check.checkOldThumbnails = function (thumbnails) {
+function checkOldThumbnails(thumbnails) {
 	for (let thumb of thumbnails) {
 		try {
 			let url = thumb.getAttribute('href') || $(thumb, 'a').href;
@@ -190,7 +200,7 @@ as.deviantart.check.checkOldThumbnails = function (thumbnails) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.deviantart.check.getThumbnails = function () {
+function getThumbnails() {
 	let thumbnails = [];
 	for (let thumb of $$('[data-hook=deviation_link]')) {
 		//filter out journals
@@ -225,7 +235,7 @@ as.deviantart.check.getThumbnails = function () {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.deviantart.check.checkThumbnails = function (thumbnails) {
+function checkThumbnails(thumbnails) {
 	for (let thumb of thumbnails) {
 		try {
 			let url = thumb.getAttribute('href') || $(thumb, 'a').href;
@@ -270,7 +280,7 @@ as.deviantart.check.checkThumbnails = function (thumbnails) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.deviantart.check.checkSubmission = function (user, url) {
+function checkSubmission(user, url) {
 	try {
 		let subid = parseInt(url.split('-').pop(), 10);
 		let stage = $('[data-hook=art_stage]');
@@ -304,7 +314,7 @@ as.deviantart.check.checkSubmission = function (user, url) {
 //gallery    - https://www.deviantart.com/_napi/da-user-profile/api/gallery/contents?username=<userName>&offset=0&limit=24&all_folder=true&mode=newest //24 is max
 //rss        - https://backend.deviantart.com/rss.xml?q=+sort:time+by:<userName>+-in:journals&type=deviation
 
-as.deviantart.download.startDownloading = async function (subid, progress) {
+async function startDownloading(subid, progress) {
 	progress.say('Getting submission');
 	let options = await getOptions('deviantart');
 	let pageurl = `https://www.deviantart.com/deviation/${subid}`;
@@ -316,7 +326,7 @@ as.deviantart.download.startDownloading = async function (subid, progress) {
 			include_session: false
 		});
 		let response = await fetcher(`https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch?${params}`, 'json');
-		let { info, meta } = await this.getMeta(response, options, progress);
+		let { info, meta } = await getMeta(response, options, progress);
 
 		let downloads = [{ url: info.downloadurl, meta, filename: options.file }];
 		if (info.blob) {
@@ -345,7 +355,7 @@ as.deviantart.download.startDownloading = async function (subid, progress) {
 				}
 				let stashresponse = parser.parseFromString(stashstring, 'text/html');
 
-				let { stashinfo, stashmeta } = await this.getStashMeta(stashresponse, { url: info.url, ...meta }, options, progress);
+				let { stashinfo, stashmeta } = await getStashMeta(stashresponse, { url: info.url, ...meta }, options, progress);
 				if (Object.entries(stashmeta).length === 0) {
 					continue;
 				}
@@ -364,7 +374,7 @@ as.deviantart.download.startDownloading = async function (subid, progress) {
 			stashworker.terminate();
 		}
 
-		let results = await this.handleDownloads(downloads, options, progress);
+		let results = await handleDownloads(downloads, options, progress);
 		if (results.some(r => r.response === 'Success')) {
 			progress.say('Updating');
 			await updateSavedInfo(info.savedSite, info.savedUser, info.savedId);
@@ -400,7 +410,7 @@ as.deviantart.download.startDownloading = async function (subid, progress) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.deviantart.download.getMeta = async function (r, options, progress) {
+async function getMeta(r, options, progress) {
 	r = r.deviation;
 	progress.say('Getting meta');
 	let info = {}, meta = {};
@@ -495,7 +505,7 @@ as.deviantart.download.getMeta = async function (r, options, progress) {
 	return { info, meta };
 }
 
-as.deviantart.download.getStashMeta = async function (sr, meta, options, progress) {
+async function getStashMeta(sr, meta, options, progress) {
 	let stashinfo = {}, stashmeta = {};
 	let url = $(sr, 'link[rel=canonical]').href;
 	let pageview = $(sr, 'div.dev-page-view');
@@ -563,7 +573,7 @@ as.deviantart.download.getStashMeta = async function (sr, meta, options, progres
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.deviantart.download.handleDownloads = async function (downloads, options, progress) {
+async function handleDownloads(downloads, options, progress) {
 	if (options.moveFile && downloads.length > 1) {
 		let stashfolder = /.*\//.exec(options.stashFile);
 		let newf = options.file.split('/').pop();
@@ -673,32 +683,6 @@ function deviantArtFileName(title, user, subid) {
 	let titlelower = title.replace(/[\s\W]/g, '_').toLowerCase();
 	let userlower = user.toLowerCase();
 	return `${titlelower}_by_${userlower}_d${id36}`;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-async function workerMessage(worker, func, data, callback) {
-	let result = new Promise((resolve, reject) => {
-		worker.onmessage = m => {
-			switch (m.data.message) {
-				case 'progress':
-					callback(m.data);
-					break;
-
-				case 'result':
-					resolve(m.data.result);
-
-				case 'error':
-					let error = new Error(m.data.description);
-					error.name = m.data.name;
-					reject(error);
-			}
-		}
-	});
-
-	worker.postMessage({ function: func, data });
-
-	return await result;
 }
 
 //---------------------------------------------------------------------------------------------------------------------

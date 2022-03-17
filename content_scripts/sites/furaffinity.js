@@ -1,10 +1,8 @@
-var as = { furaffinity: { check: {}, download: {} } };
-
 //---------------------------------------------------------------------------------------------------------------------
 // page and user information
 //---------------------------------------------------------------------------------------------------------------------
 
-function pageInfo() {
+function getPageInfo() {
 	let page = {
 		url: window.location.href,
 		site: 'furaffinity'
@@ -28,7 +26,7 @@ function pageInfo() {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.userInfo = async function (user_id) {
+async function getUserInfo(user_id) {
 	let userpage = await fetcher(`https://www.furaffinity.net/user/${user_id}/`, 'document');
 	let modern = $(userpage, '#ddmenu');
 	let iconelement = $(userpage, modern ? 'img.user-nav-avatar' : 'img.avatar');
@@ -75,14 +73,26 @@ as.furaffinity.userInfo = async function (user_id) {
 	return user;
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function userHomeLink(userLower) {
+	return `https://www.furaffinity.net/user/${userLower}`;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function userGalleryLink(userLower) {
+	return `https://www.furaffinity.net/gallery/${userLower}`;
+}
+
 //---------------------------------------------------------------------------------------------------------------------
 // main add checks and download buttons to image thumbnails
 //---------------------------------------------------------------------------------------------------------------------
 
-as.furaffinity.check.startChecking = function () {
-	asLog('Checking Furaffinity');
-	let page = pageInfo();
-	this.checkPage(page);
+function startChecking() {
+	asLog('Checking Fur Affinity');
+	let page = getPageInfo();
+	checkPage(page);
 
 	let observer = new MutationObserver((mutationsList, observer) => {
 		let changed = [...mutationsList].filter(m => m.attributeName === 'id').map(m => m.target);
@@ -97,7 +107,7 @@ as.furaffinity.check.startChecking = function () {
 		}
 
 		changed = changed.map(c => (c.matches('.preview_img a') ? c.parentElement.parentElement : c));
-		this.checkThumbnails(changed, page.user);
+		checkThumbnails(changed, page.user);
 	});
 
 	globalrunningobservers.push(observer);
@@ -110,21 +120,21 @@ as.furaffinity.check.startChecking = function () {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.check.checkPage = function (page) {
-	this.checkThumbnails(this.getThumbnails(), page.user);
+function checkPage(page) {
+	checkThumbnails(getThumbnails(), page.user);
 
 	if (['view', 'full'].includes(page.page)) {
-		this.checkSubmission(page.user, page.url, page.modern);
+		checkSubmission(page.user, page.url, page.modern);
 	}
 
 	if (page.page === 'user') {
-		this.checkUserFavorites();
+		checkUserFavorites();
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.check.getThumbnails = function () {
+function getThumbnails() {
 	$$('.preview-gallery-container').forEach(c => { c.style.position = 'relative' });
 
 	let previews = [];
@@ -148,7 +158,7 @@ as.furaffinity.check.getThumbnails = function () {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.check.checkThumbnails = function (thumbnails, user) {
+function checkThumbnails(thumbnails, user) {
 	for (let figure of thumbnails) {
 		try {
 			let sub = $(figure, 'img');
@@ -166,7 +176,7 @@ as.furaffinity.check.checkThumbnails = function (thumbnails, user) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.check.checkUserFavorites = function () {
+function checkUserFavorites() {
 	let favdata = JSON.parse(/submission_data\ =\ (.+);/.exec($('#pageid-userpage > div > script, #page-userpage + script').textContent)[1]);
 
 	for (let fav of $$('#gallery-latest-favorites > [id^="sid"]')) {
@@ -183,7 +193,7 @@ as.furaffinity.check.checkUserFavorites = function () {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.check.checkSubmission = function (user, url, modern) {
+function checkSubmission(user, url, modern) {
 	let submission = $('img#submissionImg');
 	if (!submission) {
 		return;
@@ -217,7 +227,7 @@ as.furaffinity.check.checkSubmission = function (user, url, modern) {
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
 
-as.furaffinity.download.startDownloading = async function (subid, progress) {
+async function startDownloading(subid, progress) {
 	progress.say('Getting submission');
 	let options = await getOptions('furaffinity');
 	let pageurl = `https://www.furaffinity.net/view/${subid}`;
@@ -225,10 +235,10 @@ as.furaffinity.download.startDownloading = async function (subid, progress) {
 	try {
 		let response = await fetcher(pageurl, 'document');
 
-		let { info, meta } = this.getMeta(response, pageurl, progress);
+		let { info, meta } = getMeta(response, pageurl, progress);
 		let downloads = [{ url: info.downloadurl, meta, filename: options.file }];
 
-		let results = await this.handleDownloads(downloads, progress);
+		let results = await handleDownloads(downloads, progress);
 		if (results.some(r => r.response === 'Success')) {
 			progress.say('Updating');
 			await updateSavedInfo(info.savedSite, info.savedUser, info.savedId);
@@ -264,7 +274,7 @@ as.furaffinity.download.startDownloading = async function (subid, progress) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.download.getMeta = function (r, url, progress) {
+function getMeta(r, url, progress) {
 	let info = {}, meta = {};
 	meta.site = 'furaffinity';
 	meta.userName = /([^ ]+)(?: -- )/.exec($(r, 'title').textContent)[1];
@@ -297,6 +307,6 @@ as.furaffinity.download.getMeta = function (r, url, progress) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.furaffinity.download.handleDownloads = async function (downloads, progress) {
+async function handleDownloads(downloads, progress) {
 	return await handleAllDownloads(downloads, progress);
 }

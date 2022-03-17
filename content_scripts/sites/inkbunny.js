@@ -1,10 +1,8 @@
-var as = { inkbunny: { check: {}, download: {} } };
-
 //---------------------------------------------------------------------------------------------------------------------
 // page and user information
 //---------------------------------------------------------------------------------------------------------------------
 
-function pageInfo() {
+function getPageInfo() {
 	let page = {
 		url: window.location.href,
 		site: 'inkbunny'
@@ -42,7 +40,7 @@ function pageInfo() {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.inkbunny.userInfo = async function (user_id) {
+async function getUserInfo(user_id) {
 	let userpage = await fetcher(`https://inkbunny.net/${user_id}`, 'document');
 
 	let user = {
@@ -80,29 +78,41 @@ as.inkbunny.userInfo = async function (user_id) {
 	return user;
 }
 
-//---------------------------------------------------------------------------------------------------------------------
-// main add checks and download buttons to image thumbnails
-//---------------------------------------------------------------------------------------------------------------------
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.inkbunny.check.startChecking = function () {
-	asLog('Checking Inkbunny');
-	let page = pageInfo();
-	this.checkPage(page);
+function userHomeLink(userName) {
+	return `https://inkbunny.net/${userName}`;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.inkbunny.check.checkPage = function (page) {
-	this.checkThumbnails(this.getThumbnails(), page.user);
+function userGalleryLink(userName) {
+	return `https://inkbunny.net/gallery/${userName}`;
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// main add checks and download buttons to image thumbnails
+//---------------------------------------------------------------------------------------------------------------------
+
+function startChecking() {
+	asLog('Checking Inkbunny');
+	let page = getPageInfo();
+	checkPage(page);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function checkPage(page) {
+	checkThumbnails(getThumbnails(), page.user);
 
 	if (page.page === 'submission') {
-		this.checkSubmission(page.user, page.url);
+		checkSubmission(page.user, page.url);
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.inkbunny.check.getThumbnails = function () {
+function getThumbnails() {
 	let widgets = $$('.widget_imageFromSubmission');
 	for (let parent of $$('#files_area, .content.magicboxParent')) {
 		widgets = widgets.filter(w => !parent.parentElement.contains(w));
@@ -112,7 +122,7 @@ as.inkbunny.check.getThumbnails = function () {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.inkbunny.check.checkThumbnails = function (thumbnails, user) {
+function checkThumbnails(thumbnails, user) {
 	for (let widget of thumbnails) {
 		try {
 			let sub = $(widget, 'img');
@@ -130,7 +140,7 @@ as.inkbunny.check.checkThumbnails = function (thumbnails, user) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.inkbunny.check.checkSubmission = function (user, url) {
+function checkSubmission(user, url) {
 	let contentbox = $('.content.magicboxParent');
 	if (!contentbox) {
 		return;
@@ -154,7 +164,7 @@ as.inkbunny.check.checkSubmission = function (user, url) {
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
 
-as.inkbunny.download.startDownloading = async function (subid, progress) {
+async function startDownloading(subid, progress) {
 	progress.say('Getting submission');
 	let options = await getOptions('inkbunny');
 	let pageurl = `https://inkbunny.net/s/${subid}`;
@@ -162,10 +172,10 @@ as.inkbunny.download.startDownloading = async function (subid, progress) {
 	try {
 		let response = await fetcher(pageurl, 'document');
 
-		let { info, meta } = this.getMeta(response, progress);
-		let downloads = await this.createDownloads(info, meta, options, progress);
+		let { info, meta } = getMeta(response, progress);
+		let downloads = await createDownloads(info, meta, options, progress);
 
-		let results = await this.handleDownloads(downloads, progress);
+		let results = await handleDownloads(downloads, progress);
 		if (results.some(r => r.response === 'Success')) {
 			progress.say('Updating');
 			await updateSavedInfo(info.savedSite, info.savedUser, info.savedId);
@@ -201,7 +211,7 @@ as.inkbunny.download.startDownloading = async function (subid, progress) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.inkbunny.download.getMeta = function (r, progress) {
+function getMeta(r, progress) {
 	let info = {}, meta = {};
 	meta.site = 'inkbunny';
 	meta.title = $(r, '#pictop h1').textContent;
@@ -226,13 +236,13 @@ as.inkbunny.download.getMeta = function (r, progress) {
 		info.pages = parseInt(p[2], 10);
 	}
 
-	let pm = this.getPageMeta(r);
+	let pm = getPageMeta(r);
 	return { info: { ...info, ...pm.info }, meta: { ...meta, ...pm.meta } };
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.inkbunny.download.getPageMeta = function (r) {
+function getPageMeta(r) {
 	let info = {}, meta = {};
 
 	let pages = $(r, '#files_area span');
@@ -256,7 +266,7 @@ as.inkbunny.download.getPageMeta = function (r) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.inkbunny.download.createDownloads = async function (info, meta, options, progress) {
+async function createDownloads(info, meta, options, progress) {
 	let downloads = [{ url: info.downloadurl, meta, filename: options.file }];
 	if (info.pages <= 1) {
 		return downloads;
@@ -278,7 +288,7 @@ as.inkbunny.download.createDownloads = async function (info, meta, options, prog
 				break;
 			}
 		}
-		let pm = this.getPageMeta(page);
+		let pm = getPageMeta(page);
 		downloads.push({
 			url: pm.info.downloadurl,
 			filename: options.multiple,
@@ -291,6 +301,6 @@ as.inkbunny.download.createDownloads = async function (info, meta, options, prog
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.inkbunny.download.handleDownloads = async function (downloads, progress) {
+async function handleDownloads(downloads, progress) {
 	return await handleAllDownloads(downloads, progress);
 }

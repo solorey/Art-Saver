@@ -1,10 +1,8 @@
-var as = { pixiv: { check: {}, download: {} } };
-
 //---------------------------------------------------------------------------------------------------------------------
 // page and user information
 //---------------------------------------------------------------------------------------------------------------------
 
-function pageInfo() {
+function getPageInfo() {
 	let page = {
 		url: window.location.href,
 		site: 'pixiv'
@@ -26,7 +24,7 @@ function pageInfo() {
 	}
 	else if (['artwork', 'novel'].includes(page.page)) {
 		let userelem = $('a[href*="/users/"] ~ div a[href*="/users/"] > div:first-child');
-		page.user = userelem.parentElement.href.split('/').pop();
+		page.user = /\/(\d+)/.exec(userelem.parentElement.href)[1];
 	}
 	else if (['following', 'mypixiv'].includes(page.page)) {
 		page.user = /\/(\d+)/.exec(page.url)[1];
@@ -37,7 +35,7 @@ function pageInfo() {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.pixiv.userInfo = async function (user_id) {
+async function getUserInfo(user_id) {
 	let pages = await Promise.all([
 		fetcher(`https://www.pixiv.net/ajax/user/${user_id}`, 'json'),
 		fetcher(`https://www.pixiv.net/touch/ajax/user/home?id=${user_id}`, 'json'),
@@ -72,28 +70,40 @@ as.pixiv.userInfo = async function (user_id) {
 	return user;
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function userHomeLink(userId) {
+	return `https://www.pixiv.net/users/${userId}`;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function userGalleryLink(userId) {
+	return `https://www.pixiv.net/users/${userId}/artworks`;
+}
+
 //---------------------------------------------------------------------------------------------------------------------
 // main add checks and download buttons to image thumbnails
 //---------------------------------------------------------------------------------------------------------------------
 
-as.pixiv.check.startChecking = function () {
+function startChecking() {
 	asLog('Checking Pixiv');
-	let page = pageInfo();
-	this.checkPage(page);
+	let page = getPageInfo();
+	checkPage(page);
 
 	let observer = new MutationObserver((mutationsList, observer) => {
 		if (page.url !== window.location.href || (page.page === 'artwork' && page.user !== $('a[href*="/users/"] ~ div a[href*="/users/"] > div:first-child').textContent)) {
-			page = pageInfo();
+			page = getPageInfo();
 		}
 
 		let newnodes = mutationsList.flatMap(m => [...m.addedNodes]).filter(n => n.nodeType === 1);
 
 		if (page.page === 'artwork' && newnodes.some(n => n.matches('.artsaver-holder ~ *'))) {
 			$remove($('div[role="presentation"] .artsaver-holder'));
-			this.checkPage(page);
+			checkPage(page);
 		}
 		else if (newnodes.some(n => $(n, 'a[href*="/artworks/"], canvas') || n.nodeName === 'IMG')) {
-			this.checkPage(page);
+			checkPage(page);
 		}
 		return;
 	});
@@ -104,17 +114,17 @@ as.pixiv.check.startChecking = function () {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.pixiv.check.checkPage = function (page) {
-	this.checkThumbnails(this.getThumbnails(), page.userId);
+function checkPage(page) {
+	checkThumbnails(getThumbnails(), page.userId);
 
 	if (page.page === 'artwork') {
-		this.checkSubmission(page.userId, page.url);
+		checkSubmission(page.userId, page.url);
 	}
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.pixiv.check.getThumbnails = function () {
+function getThumbnails() {
 	let thumbnails = [];
 
 	for (let n of $$('a[href*="/artworks/"] img')) {
@@ -138,7 +148,7 @@ as.pixiv.check.getThumbnails = function () {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.pixiv.check.checkThumbnails = function (thumbnails, user) {
+function checkThumbnails(thumbnails, user) {
 	for (let element of thumbnails) {
 		try {
 			let a = $(element, 'a[href*="/artworks/"]');
@@ -169,7 +179,7 @@ as.pixiv.check.checkThumbnails = function (thumbnails, user) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.pixiv.check.checkSubmission = function (user, url) {
+function checkSubmission(user, url) {
 	let presentation = $('figure > [role=presentation]');
 	if (!presentation) {
 		return;
@@ -190,7 +200,7 @@ as.pixiv.check.checkSubmission = function (user, url) {
 		holder.style = `position:absolute; width:${submission.width}px; height:${submission.height}px;`;
 
 		let resize = new ResizeObserver(entries => {
-			let change = [...entries].pop().contentRect;
+			let change = entries.pop().contentRect;
 			holder.style.height = `${change.height}px`;
 			holder.style.width = `${change.width}px`;
 		});
@@ -206,7 +216,7 @@ as.pixiv.check.checkSubmission = function (user, url) {
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
 
-as.pixiv.download.startDownloading = async function (subid, progress) {
+async function startDownloading(subid, progress) {
 	progress.say('Getting submission');
 	let options = await getOptions('pixiv');
 	let pageurl = `https://www.pixiv.net/artworks/${subid}`;
@@ -216,10 +226,10 @@ as.pixiv.download.startDownloading = async function (subid, progress) {
 
 		let response = await fetcher(ajaxurl, 'json');
 
-		let { info, meta } = await this.getMeta(response, ajaxurl, options, progress);
-		let downloads = this.createDownloads(info, meta, options);
+		let { info, meta } = await getMeta(response, ajaxurl, options, progress);
+		let downloads = createDownloads(info, meta, options);
 
-		let results = await this.handleDownloads(downloads, info, options, progress);
+		let results = await handleDownloads(downloads, info, options, progress);
 		if (results.some(r => r.response === 'Success')) {
 			progress.say('Updating');
 			await updateSavedInfo(info.savedSite, info.savedUser, info.savedId);
@@ -255,7 +265,7 @@ as.pixiv.download.startDownloading = async function (subid, progress) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.pixiv.download.getMeta = async function (r, url, options, progress) {
+async function getMeta(r, url, options, progress) {
 	let info = {}, meta = {};
 	meta.site = 'pixiv';
 	meta.submissionId = parseInt(r.body.id, 10);
@@ -288,7 +298,7 @@ as.pixiv.download.getMeta = async function (r, url, options, progress) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.pixiv.download.createDownloads = function (info, meta, options) {
+function createDownloads(info, meta, options) {
 	if (info.pages <= 1) {
 		return [{ url: info.downloadurl, meta, filename: options.file }];
 	}
@@ -310,7 +320,7 @@ as.pixiv.download.createDownloads = function (info, meta, options) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-as.pixiv.download.handleDownloads = async function (downloads, info, options, progress) {
+async function handleDownloads(downloads, info, options, progress) {
 	let type = options.ugoira;
 	if (!info.isUgoira || type === 'multiple') {
 		return await handleAllDownloads(downloads, progress);
