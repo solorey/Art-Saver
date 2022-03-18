@@ -1,4 +1,4 @@
-#artsaver-tip, .artsaver-progress, #artsaver-info-bar {
+.artsaver-progress, #artsaver-ui {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   font-style: normal;
   font-weight: normal;
@@ -39,10 +39,10 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
   left: 1.4166666667em;
 }
 
-#artsaver-tip .user-link, #artsaver-ui .row-button, #collapse, #show-tab {
+#artsaver-tip .user-link, #artsaver-ui .row-button, #artsaver-ui .row-error-button, #collapse, #show-tab {
   position: relative;
 }
-#artsaver-tip .user-link::after, #artsaver-ui .row-button::after, #collapse::after, #show-tab::after {
+#artsaver-tip .user-link::after, #artsaver-ui .row-button::after, #artsaver-ui .row-error-button::after, #collapse::after, #show-tab::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -119,7 +119,7 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
 #artsaver-tip {
   position: absolute;
   top: 0;
-  border-radius: 0.25rem;
+  border-radius: 0.25em;
   text-align: center;
   width: auto;
   z-index: 1000;
@@ -195,7 +195,7 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
 
 .artsaver-progress {
   height: 16px;
-  border-radius: 0.25rem;
+  border-radius: 0.25em;
   overflow: hidden;
   width: 100%;
   background-color: #373642;
@@ -212,7 +212,7 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
 .artsaver-bar {
   height: 100%;
   animation: animate-stripes 1s linear infinite;
-  border-radius: 0.25rem;
+  border-radius: 3px;
   box-sizing: border-box;
   color: white;
   background-color: #0a84ff;
@@ -323,36 +323,6 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
 #artsaver-ui .hide {
   display: none !important;
 }
-#artsaver-ui .row-button {
-  border: none;
-  box-sizing: border-box;
-  padding: 0;
-  width: 2em;
-  cursor: pointer;
-  color: var(--text);
-  background-color: var(--color-1);
-  font-size: inherit !important;
-  font-family: inherit;
-}
-#artsaver-ui .row-button::after {
-  mask-position: center;
-  mask-size: 1em 1em;
-}
-#artsaver-ui .row-button.link-icon::after {
-  mask-image: url("/icons/flat/link.svg");
-}
-#artsaver-ui .row-button.folder-icon::after {
-  mask-image: url("/icons/flat/folder.svg");
-}
-#artsaver-ui .row-button.home-icon::after {
-  mask-image: url("/icons/flat/home.svg");
-}
-#artsaver-ui .row-button.gallery-icon::after {
-  mask-image: url("/icons/flat/gallery.svg");
-}
-#artsaver-ui .row-button:hover {
-  background-color: var(--color-2);
-}
 #artsaver-ui .artsaver-progress {
   position: relative;
   margin-top: 0.25em;
@@ -366,7 +336,7 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
 }
 #artsaver-ui .badge {
   display: inline;
-  border-radius: 0.25rem;
+  border-radius: 0.25em;
   padding: 0.25em 0.5em;
   font-weight: 600;
 }
@@ -439,10 +409,6 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
 #artsaver-ui .stat-error .badge {
   background-color: var(--error-1);
 }
-#artsaver-ui .queue-stat {
-  margin: 0 auto;
-  padding: 0 0.25em;
-}
 #artsaver-ui .list-box {
   border-bottom: 1px solid var(--color-2);
 }
@@ -453,16 +419,106 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
 #artsaver-ui .row {
   display: flex;
 }
-#artsaver-ui .row:not(:last-child) {
-  border-bottom: 1px solid var(--color-2);
+#artsaver-ui .row:hover .row-text {
+  padding-left: 1.25em;
+  background-color: var(--color-1);
 }
 #artsaver-ui .row-text {
   flex: 1;
-  padding: 0.25em 0.75em;
-  white-space: nowrap;
-  overflow: hidden;
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: var(--color-0);
+  padding-top: 0.0833333333em;
+  padding-bottom: 0.0833333333em;
+  padding-left: 0.75em;
+  transition: padding-left 0.2s;
   min-width: 0;
   text-overflow: ellipsis;
+  overflow: hidden;
+}
+#artsaver-ui .row-error-button, #artsaver-ui .row-button {
+  border: none;
+  box-sizing: border-box;
+  padding: 0;
+  width: 1.6666666667em;
+  cursor: pointer;
+  font-size: inherit !important;
+  font-family: inherit;
+}
+#artsaver-ui .row-error-button::after, #artsaver-ui .row-button::after {
+  mask-position: center;
+  mask-size: 1em 1em;
+}
+#artsaver-ui .link-icon.row-error-button::after, #artsaver-ui .link-icon.row-button::after {
+  mask-image: url("/icons/flat/link.svg");
+}
+#artsaver-ui .folder-icon.row-error-button::after, #artsaver-ui .folder-icon.row-button::after {
+  mask-image: url("/icons/flat/folder.svg");
+}
+#artsaver-ui .home-icon.row-error-button::after, #artsaver-ui .home-icon.row-button::after {
+  mask-image: url("/icons/flat/home.svg");
+}
+#artsaver-ui .gallery-icon.row-error-button::after, #artsaver-ui .gallery-icon.row-button::after {
+  mask-image: url("/icons/flat/gallery.svg");
+}
+#artsaver-ui .row-button {
+  background-color: var(--color-0);
+  color: var(--text);
+}
+#artsaver-ui .row-button:hover {
+  background-color: var(--color-1);
+}
+#artsaver-ui .row-button:active {
+  background-color: var(--color-2);
+}
+#artsaver-ui .row-error {
+  display: grid;
+  grid-template-columns: 1fr 1.6666666667em;
+  color: var(--error-text);
+  background-color: var(--error-0);
+  white-space: nowrap;
+}
+#artsaver-ui .row-error:not(:last-child) {
+  border-bottom: 1px solid var(--error-2);
+}
+#artsaver-ui .row-error:hover .row-error-link {
+  padding-left: 1.25em;
+  background-color: var(--error-1);
+}
+#artsaver-ui .row-error-description {
+  grid-column: 1/3;
+  background-color: var(--error-1);
+  padding-top: 0.0833333333em;
+  padding-left: 0.75em;
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+#artsaver-ui .row-error-link {
+  grid-column: 1;
+  padding-bottom: 0.0833333333em;
+  padding-left: 0.75em;
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  transition: padding-left 0.2s;
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: var(--error-0);
+}
+#artsaver-ui .row-error-button {
+  background-color: var(--error-0);
+  grid-column: 2;
+  color: var(--error-text);
+  border-top-width: 1px;
+  border-top-style: solid;
+  border-top-color: var(--error-0);
+}
+#artsaver-ui .row-error-button:hover {
+  background-color: var(--error-1);
+}
+#artsaver-ui .row-error-button:active {
+  background-color: var(--error-2);
 }
 #artsaver-ui .list-bar {
   padding: 0.25em 0.75em;
@@ -478,7 +534,7 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
   bottom: 8px;
   left: 8px;
   width: 350px;
-  border-radius: 0.25rem;
+  border-radius: 0.25em;
   box-shadow: 0px 2px 5px #0000000e;
   min-width: 150px;
   overflow: hidden;
@@ -540,7 +596,7 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
   background-color: var(--error-0);
 }
 #list-errors .row:not(:last-child) {
-  border-bottom: 0.0833333333em solid var(--error-1);
+  border-bottom: 1px solid var(--error-1);
 }
 
 #history-stats {
@@ -561,7 +617,7 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
 
 #list-files .list-bar {
   display: flex;
-  gap: 0.5em;
+  gap: u(6);
   white-space: nowrap;
   align-items: center;
 }
@@ -585,7 +641,6 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
   overflow: hidden;
   opacity: 0;
   z-index: 1002;
-  font-size: 12px;
 }
 #artsaver-show-info-bar:hover {
   opacity: 1;

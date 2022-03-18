@@ -86,10 +86,9 @@
 }
 
 #artsaver-tip {
-	@extend %font;
 	position: absolute;
 	top: 0;
-	border-radius: $radius;
+	border-radius: ue(3);
 	text-align: center;
 	width: auto;
 	z-index: 1000;
@@ -174,7 +173,7 @@
 	@extend %aligntop;
 	@extend %font;
 	height: $size-bar;
-	border-radius: $radius;
+	border-radius: ue(3);
 	overflow: hidden;
 	width: 100%;
 	background-color: $color-progress;
@@ -194,7 +193,7 @@
 	height: 100%;
 
 	animation: animate-stripes 1s linear infinite;
-	border-radius: $radius;
+	border-radius: 3px;
 	box-sizing: border-box;
 	color: $color-progress-text;
 	background: {
@@ -258,6 +257,7 @@
 
 #artsaver-ui {
 	@include themes;
+	@extend %font;
 
 	:focus-visible {
 		outline: none;
@@ -278,44 +278,6 @@
 		display: none !important;
 	}
 
-	.row-button {
-		@include mask-svg() {
-			mask: {
-				position: center;
-				size: ue(12) ue(12);
-			}
-		}
-		border: none;
-		box-sizing: border-box;
-		padding: 0;
-		width: ue(24);
-		cursor: pointer;
-
-		color: var(--text);
-		background-color: var(--color-1);
-		font: {
-			size: inherit !important;
-			family: inherit;
-		}
-
-		&.link-icon::after {
-			mask-image: $icon-ex-link;
-		}
-		&.folder-icon::after {
-			mask-image: $icon-folder;
-		}
-		&.home-icon::after {
-			mask-image: $icon-home;
-		}
-		&.gallery-icon::after {
-			mask-image: $icon-gallery;
-		}
-
-		&:hover {
-			background-color: var(--color-2);
-		}
-	}
-
 	.artsaver-progress {
 		position: relative;
 		margin-top: ue(3);
@@ -332,7 +294,7 @@
 
 	%badge {
 		display: inline;
-		border-radius: $radius;
+		border-radius: ue(3);
 		padding: ue(3) ue(6);
 		font-weight: 600;
 	}
@@ -376,11 +338,6 @@
 		}
 	}
 
-	.queue-stat {
-		margin: 0 auto;
-		padding: 0 ue(3);
-	}
-
 	.list-box {
 		border-bottom: $border;
 	}
@@ -393,18 +350,127 @@
 	.row {
 		display: flex;
 
-		&:not(:last-child) {
-			border-bottom: $border;
+		// &:not(:last-child) {
+		// 	border-bottom: $border;
+		// }
+
+		&:hover .row-text {
+			padding-left: ue(15);
+			background-color: var(--color-1);
 		}
 	}
 
 	.row-text {
 		flex: 1;
-		padding: ue(3) ue(9);
-		white-space: nowrap;
-		overflow: hidden;
+		border-right: {
+			width: 1px;
+			style: solid;
+			color: var(--color-0);
+		}
+		padding: {
+			top: ue(1);
+			bottom: ue(1);
+			left: ue(9);
+		}
+		transition: padding-left 0.2s;
 		min-width: 0;
 		text-overflow: ellipsis;
+		overflow: hidden;
+	}
+
+	%row-button {
+		@include mask-svg() {
+			mask: {
+				position: center;
+				size: ue(12) ue(12);
+			}
+		}
+		border: none;
+		box-sizing: border-box;
+		padding: 0;
+		width: ue(20);
+		cursor: pointer;
+		font: {
+			size: inherit !important;
+			family: inherit;
+		}
+
+		&.link-icon::after {
+			mask-image: $icon-ex-link;
+		}
+		&.folder-icon::after {
+			mask-image: $icon-folder;
+		}
+		&.home-icon::after {
+			mask-image: $icon-home;
+		}
+		&.gallery-icon::after {
+			mask-image: $icon-gallery;
+		}
+	}
+
+	.row-button {
+		@extend %row-button;
+		@include hover;
+		color: var(--text);
+	}
+
+	.row-error {
+		display: grid;
+		grid-template-columns: 1fr ue(20);
+		color: var(--error-text);
+		background-color: var(--error-0);
+		white-space: nowrap;
+
+		&:not(:last-child) {
+			border-bottom: 1px solid var(--error-2);
+		}
+
+		&:hover .row-error-link {
+			padding-left: ue(15);
+			background-color: var(--error-1);
+		}
+	}
+
+	.row-error-description {
+		grid-column: 1/3;
+		background-color: var(--error-1);
+		padding: {
+			top: ue(1);
+			left: ue(9);
+		}
+		min-width: 0;
+		text-overflow: ellipsis;
+		overflow: hidden;
+	}
+
+	.row-error-link {
+		grid-column: 1;
+		padding: {
+			bottom: ue(1);
+			left: ue(9);
+		}
+		min-width: 0;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		transition: padding-left 0.2s;
+		border-right: {
+			width: 1px;
+			style: solid;
+			color: var(--error-0);
+		}
+	}
+
+	.row-error-button {
+		@extend %row-button;
+		@include hover(0, false, false, "error");
+		grid-column: 2;
+		color: var(--error-text);
+		border-top: {
+			width: 1px;
+			style: solid;
+			color: var(--error-0);
+		}
 	}
 
 	.list-bar {
@@ -420,13 +486,11 @@
 }
 
 #artsaver-info-bar {
-	@extend %font;
-
 	position: fixed;
 	bottom: 8px;
 	left: 8px;
 	width: 350px;
-	border-radius: $radius;
+	border-radius: ue(3);
 	box-shadow: $shadow;
 	min-width: 150px;
 	overflow: hidden;
@@ -491,7 +555,7 @@
 	background-color: var(--error-0);
 
 	&:not(:last-child) {
-		border-bottom: ue(1) solid var(--error-1);
+		border-bottom: 1px solid var(--error-1);
 	}
 }
 
@@ -513,7 +577,7 @@
 
 #list-files .list-bar {
 	display: flex;
-	gap: 0.5em;
+	gap: u(6);
 	white-space: nowrap;
 	align-items: center;
 
@@ -541,7 +605,6 @@
 	overflow: hidden;
 	opacity: 0;
 	z-index: 1002;
-	font-size: 12px;
 
 	&:hover {
 		opacity: 1;

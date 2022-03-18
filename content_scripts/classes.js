@@ -537,8 +537,8 @@ class InfoBar {
 		let errorrow = this.e.error_row_template.content.cloneNode(true);
 
 		let espans = $$(errorrow, 'span');
-		espans[0].textContent = error.url;
-		espans[1].textContent = error.error;
+		espans[0].textContent = error.error;
+		espans[1].textContent = error.url;
 		$(errorrow, 'a').href = error.url;
 
 		this.e.list_errors.firstElementChild.appendChild(errorrow);
@@ -586,5 +586,35 @@ class InfoBar {
 		this.e.stat_queue.textContent = inqueue;
 
 		classToggle(inqueue <= 0, this.e.stat_queue.parentElement, 'hide');
+	}
+	test() {
+		for (let i = 0; i < 3; i += 1) {
+			this.addSaved({
+				status: 'Success',
+				submission: {
+					url: 'https://art.site/s/12345',
+					user: 'user',
+					id: '12345',
+					title: 'title'
+				},
+				files: [
+					{ response: 'Success', url: 'https://art.img/i/12345_1.ext', filename: 'folder/12345_title_1_by_user.ext', id: 1 },
+					{ response: 'Success', url: 'https://art.img/i/12345_2.ext', filename: 'folder/12345_title_2_by_user.ext', id: 2 }
+				]
+			});
+		}
+		for (let i = 0; i < 3; i += 1) {
+			this.addError({
+				status: 'Failure',
+				error: new Error('Files failed to download.'),
+				url: 'https://art.site/s/12345'
+			});
+		}
+		for (let name of ['recent', 'files', 'errors']) {
+			this.e[`stat_${name}`].classList.add('active');
+			this.e[`list_${name}`].classList.remove('hide');
+		}
+		this.setProgress(10, 2, 3);
+		this.show();
 	}
 }
