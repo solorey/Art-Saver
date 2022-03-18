@@ -53,7 +53,7 @@ async function getOptions(site) {
 async function setSavedInfo(site) {
 	let key = savedKey(site);
 	let item = await browser.storage.local.get(key);
-	globalsavedinfo = item[key] || {};
+	globalsavedinfo = item[key] ?? {};
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

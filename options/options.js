@@ -126,7 +126,7 @@ async function setupOptions() {
 	};
 	setTheme();
 	for (let site of SITES) {
-		createOptions($('#sites-list'), site, SITEINFO[site], SITEOPTIONS[site], alloptions[optionsKey(site)] || {});
+		createOptions($('#sites-list'), site, SITEINFO[site], SITEOPTIONS[site], alloptions[optionsKey(site)] ?? {});
 		createSiteToggle($('#sites-toggles'), site, SITEINFO[site], $('#sites-list'));
 	}
 }
@@ -251,7 +251,7 @@ function createSelectOption(optionid, values, savedvalue) {
 		$insert(selectelem, 'option', { value: opt.value, text: opt.label });
 	}
 	selectelem.id = optionid;
-	selectelem.value = (typeof savedvalue !== 'undefined') ? savedvalue : values.default;
+	selectelem.value = savedvalue ?? values.default;
 
 	return option;
 }
@@ -271,7 +271,7 @@ function createNumberOption(optionid, values, savedvalue) {
 	let inputelem = $(option, 'input');
 	inputelem.id = optionid;
 	inputelem.setAttribute('min', values.min);
-	inputelem.value = (typeof savedvalue !== 'undefined') ? savedvalue : values.default;
+	inputelem.value = savedvalue ?? values.default;
 
 	$(option, '.step-increase').onmousedown = function () { numberChange(inputelem, this, 1) };
 	$(option, '.step-decrease').onmousedown = function () { numberChange(inputelem, this, -1) };
@@ -296,7 +296,7 @@ function createSliderOption(optionid, values, savedvalue) {
 	for (let inputelem of [number, range]) {
 		inputelem.setAttribute('min', values.min);
 		inputelem.setAttribute('max', values.max);
-		inputelem.value = (typeof savedvalue !== 'undefined') ? savedvalue : values.default;
+		inputelem.value = savedvalue ?? values.default;
 	}
 
 	$(option, '.step-increase').onmousedown = function () { numberChange(number, this, 1, range) };
@@ -348,7 +348,7 @@ function createCheckboxOption(optionid, values, savedvalue) {
 
 	let inputelem = $(option, 'input');
 	inputelem.id = optionid;
-	inputelem.checked = (typeof savedvalue !== 'undefined') ? savedvalue : values.default;
+	inputelem.checked = savedvalue ?? values.default;
 
 	return option;
 }
@@ -364,7 +364,7 @@ function createTextareaOption(optionid, values, savedvalue) {
 
 	let textareaelem = $(option, 'textarea');
 	textareaelem.id = optionid;
-	textareaelem.value = (typeof savedvalue !== 'undefined') ? savedvalue : values.default;
+	textareaelem.value = savedvalue ?? values.default;
 
 	textareaResize(textareaelem);
 	let resize = new ResizeObserver(entries => {
@@ -496,7 +496,7 @@ function setFormOptions(alloptions) {
 				related.push([site, values.related, optionblock]);
 			}
 
-			if (!alloptions[site] || typeof alloptions[site][key] === 'undefined') {
+			if (typeof alloptions[site]?.[key] === 'undefined') {
 				continue;
 			}
 			let value = alloptions[site][key];
@@ -948,9 +948,9 @@ function combineInfo(info1, info2) {
 	let saved_sites = intersection(new Set(SITES), union(keysSet(info1), keysSet(info2)));
 	for (let site of saved_sites) {
 		let users = {};
-		let site_users = union(keysSet(info1?.[site]), keysSet(info2?.[site]));
+		let site_users = union(keysSet(info1[site]), keysSet(info2[site]));
 		for (let user of site_users) {
-			let submissions = union(new Set(info1?.[site]?.[user] ?? []), new Set(info2?.[site]?.[user] ?? []));
+			let submissions = union(new Set(info1[site]?.[user] ?? []), new Set(info2[site]?.[user] ?? []));
 			if (submissions.size > 0) {
 				users[user] = [...submissions].sort((a, b) => b - a);
 			}

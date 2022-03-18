@@ -76,7 +76,7 @@ async function setState(ui) {
 	let res = await browser.storage.local.get(statekey);
 	let uistate = {};
 	let defaultstate = UISTATES[ui];
-	uistate[statekey] = { ...defaultstate, ...(res[statekey] || {}) };
+	uistate[statekey] = { ...defaultstate, ...(res[statekey] ?? {}) };
 	browser.storage.local.set(uistate);
 }
 
@@ -141,9 +141,9 @@ async function updateSavedInfo(site, user, sid) {
 	try {
 		let key = savedKey(site);
 		let storage = await browser.storage.local.get(key);
-		let sitesavedinfo = storage[key] || {};
+		let sitesavedinfo = storage[key] ?? {};
 
-		let saved = sitesavedinfo[user] || [];
+		let saved = sitesavedinfo[user] ?? [];
 		saved.push(sid);
 		sitesavedinfo[user] = [...new Set(saved)].sort((a, b) => b - a);
 

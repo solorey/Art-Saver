@@ -258,7 +258,7 @@ function createDownloads(info, meta, options) {
 			url = media.video_info.variants[0].url;
 		}
 		else if (media.type === 'video') {
-			media.video_info.variants.sort((a, b) => (b?.bitrate ?? -1) - (a?.bitrate ?? -1));
+			media.video_info.variants.sort((a, b) => (b.bitrate ?? -1) - (a.bitrate ?? -1));
 			url = media.video_info.variants[0].url;
 		}
 		else {
