@@ -365,6 +365,11 @@ body {
 
 #user-error-link {
 	color: var(--warning-text);
+
+	&:hover,
+	&:active {
+		font-weight: bold;
+	}
 }
 
 #link-tester {

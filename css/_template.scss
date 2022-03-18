@@ -216,7 +216,7 @@ $icon-selection: url("/icons/selection.svg");
 	}
 
 	.search-box {
-		padding: ur(2) ue(9);
+		padding: ur(2) ur(9);
 		display: flex;
 		background-color: var(--color-1);
 	}
@@ -241,7 +241,7 @@ $icon-selection: url("/icons/selection.svg");
 		color: inherit;
 		border: $border;
 		border-radius: $radius 0 0 $radius;
-		padding: ue(3) ue(6);
+		padding: ur(3) ur(6);
 		outline: none;
 		font: {
 			size: inherit;
@@ -293,9 +293,9 @@ $icon-selection: url("/icons/selection.svg");
 			style: solid;
 		}
 		padding: {
-			top: ue(1);
-			bottom: ue(1);
-			left: ue(9);
+			top: ur(1);
+			bottom: ur(1);
+			left: ur(9);
 		}
 		transition: padding-left 0.2s;
 		min-width: 0;
@@ -304,7 +304,7 @@ $icon-selection: url("/icons/selection.svg");
 		border-right-color: var(--color-0);
 
 		.list-row:hover & {
-			padding-left: ue(15);
+			padding-left: ur(15);
 			background-color: var(--color-1);
 		}
 	}
