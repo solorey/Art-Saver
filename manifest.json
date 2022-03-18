@@ -73,8 +73,8 @@
 				"*://*.deviantart.com/*"
 			],
 			"js": [
-				"content_scripts/sites/deviantart.js",
-				"lib/purify.min.js"
+				"lib/purify.min.js",
+				"content_scripts/sites/deviantart.js"
 			]
 		},
 		{
