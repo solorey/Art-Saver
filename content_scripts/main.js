@@ -22,6 +22,7 @@ async function main() {
 	if (globaloptions.infoBar) {
 		infobar = new InfoBar();
 		await infobar.load();
+		//infobar.test();
 	}
 
 	globalqueue = new DownloadQueue(concurrent, waittime, globalbuttons, infobar);
@@ -55,6 +56,12 @@ async function setSavedInfo(site) {
 	let item = await browser.storage.local.get(key);
 	globalsavedinfo = item[key] ?? {};
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+async function getUI(ui) {
+	return (await fetcher(browser.runtime.getURL(`/content_ui/${ui}.html`), 'document')).body.childNodes;
+} 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -133,12 +140,8 @@ async function fetcher(url, type = 'response', init = {}) {
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-// button classes
+// button functions
 //---------------------------------------------------------------------------------------------------------------------
-
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function removeSubmission(site, subid) {
 	globalbuttons.setValue(subid, 'status', 'removing');
@@ -152,14 +155,6 @@ async function removeSubmission(site, subid) {
 	catch (err) { }
 	globalbuttons.setValue(subid, 'status', 'finished');
 }
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -214,10 +209,6 @@ function checkSavedInfo(site, user, id) {
 
 	return { found, user: founduser, color };
 }
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

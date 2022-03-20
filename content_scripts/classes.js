@@ -5,11 +5,12 @@
 class ToolTip {
 	async load() {
 		$remove($('#artsaver-tip'));
-		let infobar_ui = await fetcher(browser.runtime.getURL('/content_ui/tooltip.html'), 'document');
-		$('#artsaver-ui').append(...infobar_ui.body.childNodes);
+		let infobar_ui = await getUI('tooltip');
+		$('#artsaver-ui').append(...infobar_ui);
 		this.tooltip = $('#artsaver-tip');
 		this.user = $(this.tooltip, '.user-value');
-		this.id = $(this.tooltip, '.id-value')
+		this.id = $(this.tooltip, '.id-value');
+		this.link = $(this.tooltip, 'a');
 	}
 	show() {
 		this.tooltip.setAttribute('data-display', 'show');
@@ -20,9 +21,7 @@ class ToolTip {
 	set(user, id) {
 		this.user.textContent = user;
 		this.id.textContent = id;
-		const links = $$(this.tooltip, 'a');
-		links[0].href = userHomeLink(user);
-		links[1].href = userGalleryLink(user);
+		this.link.href = userGalleryLink(user);
 	}
 	move(x, user, id) {
 		const rect = x.getBoundingClientRect();
@@ -459,13 +458,13 @@ class InfoBar {
 	}
 	async load() {
 		$remove($('#artsaver-info-bar'));
-		$remove($('#artsaver-show-info-bar'));
+		$remove($('#artsaver-show-tab'));
 
-		let infobar_ui = await fetcher(browser.runtime.getURL('/content_ui/infobar.html'), 'document');
-		$('#artsaver-ui').append(...infobar_ui.body.childNodes);
+		let infobar_ui = await getUI('infobar');
+		$('#artsaver-ui').append(...infobar_ui);
 
 		this.main = $('#artsaver-info-bar');
-		this.tab = $('#artsaver-show-info-bar');
+		this.tab = $('#artsaver-show-tab');
 
 		this.e = {}
 		for (let top_element of [this.main, this.tab]) {
@@ -589,25 +588,27 @@ class InfoBar {
 	}
 	test() {
 		for (let i = 0; i < 3; i += 1) {
+			let n = 12345 + i;
 			this.addSaved({
 				status: 'Success',
 				submission: {
-					url: 'https://art.site/s/12345',
+					url: `https://art.site/s/${n}`,
 					user: 'user',
-					id: '12345',
+					id: `${n}`,
 					title: 'title'
 				},
 				files: [
-					{ response: 'Success', url: 'https://art.img/i/12345_1.ext', filename: 'folder/12345_title_1_by_user.ext', id: 1 },
-					{ response: 'Success', url: 'https://art.img/i/12345_2.ext', filename: 'folder/12345_title_2_by_user.ext', id: 2 }
+					{ response: `Success`, url: `https://art.img/i/${n}_1.ext`, filename: `folder/${n}_title_1_by_user.ext`, id: 1 },
+					{ response: `Success`, url: `https://art.img/i/${n}_2.ext`, filename: `folder/${n}_title_2_by_user.ext`, id: 2 }
 				]
 			});
 		}
 		for (let i = 0; i < 3; i += 1) {
+			let n = 12345 + i;
 			this.addError({
 				status: 'Failure',
 				error: new Error('Files failed to download.'),
-				url: 'https://art.site/s/12345'
+				url: `https://art.site/s/${n}`
 			});
 		}
 		for (let name of ['recent', 'files', 'errors']) {

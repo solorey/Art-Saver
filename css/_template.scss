@@ -55,7 +55,7 @@ $shadow: 0px 2px 5px#0000000e;
 	&.artsaver-theme-dark {
 		@include theme-dark;
 	}
-	&.artsaver-theme-auto {
+	&.artsaver-theme-preferred {
 		@media (prefers-color-scheme: light) {
 			@include theme-light;
 		}

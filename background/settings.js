@@ -32,11 +32,11 @@ const GLOBALOPTIONS = {
 		type: 'select',
 		label: 'Theme',
 		options: [
-			{ value: 'auto', label: 'Auto' },
+			{ value: 'preferred', label: 'Preferred' },
 			{ value: 'light', label: 'Light' },
 			{ value: 'dark', label: 'Dark' }
 		],
-		default: 'auto'
+		default: 'preferred'
 	},
 	conflict: {
 		type: 'select',

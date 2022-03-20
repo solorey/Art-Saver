@@ -106,7 +106,7 @@ body.artsaver-theme-dark {
   --warning-text: #976700;
 }
 @media (prefers-color-scheme: light) {
-  body.artsaver-theme-auto {
+  body.artsaver-theme-preferred {
     --color-0: #ffffff;
     --color-1: #e2e1e7;
     --color-2: #d1d0da;
@@ -122,7 +122,7 @@ body.artsaver-theme-dark {
   }
 }
 @media (prefers-color-scheme: dark) {
-  body.artsaver-theme-auto {
+  body.artsaver-theme-preferred {
     --color-0: #1c1b22;
     --color-1: #282731;
     --color-2: #373642;
@@ -727,7 +727,7 @@ body.artsaver-theme-dark {
   display: grid;
   gap: 0.5rem;
   grid-template-columns: 10.3333333333rem 1fr;
-  margin-top: 0.5rem;
+  padding: 0.5rem 0;
 }
 
 #table-side {
@@ -753,6 +753,7 @@ body.artsaver-theme-dark {
 
 #settings-buttons {
   display: flex;
+  padding: 0.5rem 0;
   position: sticky;
   top: 0;
   height: min-content;
@@ -762,8 +763,7 @@ body.artsaver-theme-dark {
 }
 
 #import-options {
-  height: 0;
-  overflow: hidden;
+  display: none;
 }
 
 .undo-bar {
@@ -807,15 +807,13 @@ body.artsaver-theme-dark {
 
 #sites-side {
   display: flex;
+  padding: 0.5rem 0;
   position: sticky;
-  top: 0.5rem;
+  top: 0;
   height: min-content;
   flex-direction: column;
   gap: 0.5rem;
   grid-column: 1;
-}
-#sites-side:first-child {
-  margin-top: 0.5rem;
 }
 
 #sites-list {

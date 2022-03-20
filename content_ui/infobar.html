@@ -34,8 +34,8 @@
 		<div class="list"></div>
 		<div class="list-bar">
 			Files
-			<label>
-				<input id="folder-switch" type="checkbox">
+			<label class="bar-switch">
+				<input id="folder-switch" class="hide" type="checkbox">
 				<div class="switch"></div>
 				Show folders
 			</label>
@@ -47,19 +47,17 @@
 	</div>
 	<div id="info-bar">
 		<div id="collapse"></div>
-		<div id="history-stats">
-			<div id="stat-recent" class="stat">
-				Recently saved
-				<span class="badge">0</span>
-			</div>
-			<div id="stat-files" class="stat">
-				Files
-				<span class="badge">0</span>
-			</div>
-			<div id="stat-errors" class="stat-error hide">
-				Errors
-				<span class="badge">0</span>
-			</div>
+		<div id="stat-recent" class="stat">
+			Recently saved
+			<span class="badge">0</span>
+		</div>
+		<div id="stat-files" class="stat">
+			Files
+			<span class="badge">0</span>
+		</div>
+		<div id="stat-errors" class="stat-error hide">
+			Errors
+			<span class="badge">0</span>
 		</div>
 	</div>
 	<div id="queue" class="hide">
@@ -81,6 +79,6 @@
 		</div>
 	</div>
 </div>
-<div id="artsaver-show-info-bar">
+<div id="artsaver-show-tab">
 	<div id="show-tab"></div>
 </div>

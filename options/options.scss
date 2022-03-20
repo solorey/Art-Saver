@@ -638,7 +638,7 @@ body {
 	display: grid;
 	gap: ur(6);
 	grid-template-columns: ur(124) 1fr;
-	margin-top: ur(6);
+	padding: ur(6) 0;
 }
 
 #table-side {
@@ -666,6 +666,7 @@ body {
 
 #settings-buttons {
 	display: flex;
+	padding: ur(6) 0;
 	position: sticky;
 	top: 0;
 	height: min-content;
@@ -676,8 +677,7 @@ body {
 }
 
 #import-options {
-	height: 0;
-	overflow: hidden;
+	display: none;
 }
 
 .undo-bar {
@@ -727,17 +727,13 @@ body {
 
 #sites-side {
 	display: flex;
+	padding: ur(6) 0;
 	position: sticky;
-	top: ur(6);
+	top: 0;
 	height: min-content;
 	flex-direction: column;
 	gap: ur(6);
-
 	grid-column: 1;
-
-	&:first-child {
-		margin-top: ur(6);
-	}
 }
 
 #sites-list {

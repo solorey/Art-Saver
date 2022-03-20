@@ -59,7 +59,7 @@ body.artsaver-theme-dark {
   --warning-text: #976700;
 }
 @media (prefers-color-scheme: light) {
-  body.artsaver-theme-auto {
+  body.artsaver-theme-preferred {
     --color-0: #ffffff;
     --color-1: #e2e1e7;
     --color-2: #d1d0da;
@@ -75,7 +75,7 @@ body.artsaver-theme-dark {
   }
 }
 @media (prefers-color-scheme: dark) {
-  body.artsaver-theme-auto {
+  body.artsaver-theme-preferred {
     --color-0: #1c1b22;
     --color-1: #282731;
     --color-2: #373642;
