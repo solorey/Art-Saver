@@ -2,7 +2,7 @@
 
 onmessage = async function (m) {
 	try {
-		switch (m.data.function) {
+		switch (m.data.message) {
 			case 'getstashurls':
 				let urls = await navigateStacks(m.data.data);
 				postMessage({ message: 'result', result: urls });
