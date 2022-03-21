@@ -334,6 +334,7 @@
 
 	.list-box {
 		border-bottom: $border;
+		white-space: nowrap;
 	}
 
 	.list {
@@ -343,10 +344,6 @@
 
 	.row {
 		display: flex;
-
-		// &:not(:last-child) {
-		// 	border-bottom: $border;
-		// }
 
 		&:hover .row-text {
 			padding-left: ue(15);
@@ -411,6 +408,7 @@
 		@extend %row-button;
 		@include hover;
 		color: var(--text);
+		flex-shrink: 0;
 	}
 
 	.row-error {
@@ -418,7 +416,6 @@
 		grid-template-columns: 1fr ue(20);
 		color: var(--error-text);
 		background-color: var(--error-0);
-		white-space: nowrap;
 
 		&:not(:last-child) {
 			border-bottom: 1px solid var(--error-2);
@@ -465,7 +462,6 @@
 		display: flex;
 		gap: ue(6);
 		padding: ue(3) ue(9);
-		white-space: nowrap;
 		background-color: var(--color-1);
 		border-top: $border;
 	}

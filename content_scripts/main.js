@@ -61,7 +61,7 @@ async function setSavedInfo(site) {
 
 async function getUI(ui) {
 	return (await fetcher(browser.runtime.getURL(`/content_ui/${ui}.html`), 'document')).body.childNodes;
-} 
+}
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

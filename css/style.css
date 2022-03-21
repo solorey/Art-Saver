@@ -405,6 +405,7 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
 }
 #artsaver-ui .list-box {
   border-bottom: 1px solid var(--color-2);
+  white-space: nowrap;
 }
 #artsaver-ui .list {
   max-height: 300px;
@@ -460,6 +461,7 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
 #artsaver-ui .row-button {
   background-color: var(--color-0);
   color: var(--text);
+  flex-shrink: 0;
 }
 #artsaver-ui .row-button:hover {
   background-color: var(--color-1);
@@ -472,7 +474,6 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
   grid-template-columns: 1fr 1.6666666667em;
   color: var(--error-text);
   background-color: var(--error-0);
-  white-space: nowrap;
 }
 #artsaver-ui .row-error:not(:last-child) {
   border-bottom: 1px solid var(--error-2);
@@ -512,7 +513,6 @@ label:hover #artsaver-ui input:checked + .switch, #artsaver-ui label:hover input
   display: flex;
   gap: 0.5em;
   padding: 0.25em 0.75em;
-  white-space: nowrap;
   background-color: var(--color-1);
   border-top: 1px solid var(--color-2);
 }
