@@ -8,7 +8,7 @@ function getPageInfo() {
 		site: 'twitter'
 	};
 
-	let user_block = $$('[data-testid="UserName"] > div > div > div > div > span');
+	let user_block = $$('[data-testid="UserName"] [dir] > span');
 	let photoreg = /(\w+)\/status\/\d+\/photo\//.exec(page.url);
 
 	if (user_block.length === 3) {

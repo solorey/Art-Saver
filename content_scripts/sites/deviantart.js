@@ -29,13 +29,13 @@ function getPageInfo() {
 	}
 
 	if (['art'].includes(page.page)) {
-		page.user = $('[data-hook="deviation_meta"] .user-link').title
+		page.user = $('main > div a[data-hook="user_link"]').getAttribute('data-username');
 	}
 	if (['journal'].includes(page.page)) {
 		page.user = /by\ ([^\ ]+)\ on\ DeviantArt$/.exec($('title').textContent)[1];
 	}
 	else if (['about', 'user', 'gallery', 'prints', 'favourites', 'posts', 'shop'].includes(page.page)) {
-		page.user = $('#content-container [data-username]').title;
+		page.user = $('#content-container [data-username]').getAttribute('data-username');
 	}
 
 	return page;
@@ -461,7 +461,7 @@ async function getMeta(r, options, progress) {
 		//type.b = mp4, gif
 		let type = r.media.types.filter(m => m.f && (m.t === 'fullview' || m.s || m.b)).pop();
 
-		let url = (type.t === 'fullview') ? (type.c ? `${r.media.baseUri}/${type.c}` : r.media.baseUri) : type.s || type.b;
+		let url = (type.t === 'fullview') ? (type.c ? `${r.media.baseUri}${type.c}` : r.media.baseUri) : type.s || type.b;
 
 		if (r.media.prettyName) {
 			url = url.replace(/<prettyName>/g, r.media.prettyName);

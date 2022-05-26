@@ -198,20 +198,21 @@ function checkSubmission(user, url, modern) {
 	if (!submission) {
 		return;
 	}
-	//checkSubmission(submission.parentElement);
+
 	if (!submission.matches('.artsaver-holder *')) {
 		let holder = $insert(submission, 'div', { position: 'parent', class: 'artsaver-holder' });
 
-		if (modern) {
+		//story images
+		if (modern && submission.classList.contains('imgresizer')) {
 			holder.style.margin = '10px 0';
 			holder.style.display = 'inline-table';
 			submission.style.margin = '0';
 		}
-		else {
-			holder.style.maxWidth = '99%';
-			let flex = $insert(submission, 'div', { position: 'parent' });
-			flex.style.display = 'flex';
+		else if (!modern) {
+			//99% plus padding and border
+			holder.style.maxWidth = 'calc(99% + 6px)';
 			submission.style.maxWidth = '100%';
+			submission.style.boxSizing = 'border-box';
 		}
 	}
 
