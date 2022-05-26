@@ -53,10 +53,10 @@ Other:
 
 [addon]: https://addons.mozilla.org/en-US/firefox/addon/art-saver/
 
-[amo]: https://addons.cdn.mozilla.net/static/img/addons-buttons/AMO-button_1.png
+[amo]: https://ffp4g1ylyit3jdyti1hqcvtb-wpengine.netdna-ssl.com/addons/files/2015/11/get-the-addon.png
 
 [px]: https://addons.mozilla.org/en-US/firefox/addon/px-downloader/
-[px-logo]: https://addons.cdn.mozilla.net/user-media/addon_icons/802/802600-32.png
+[px-logo]: https://addons.mozilla.org/user-media/addon_icons/802/802600-32.png
 
 [raccony]: https://github.com/Simon-Tesla/RaccoonyWebEx
 [raccony-logo]: https://raw.githubusercontent.com/Simon-Tesla/RaccoonyWebEx/master/src/icon-32.png
