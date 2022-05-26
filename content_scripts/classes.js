@@ -183,7 +183,7 @@ class ButtonCheck {
 		};
 		this.button.onmouseout = () => {
 			this.tooltip.fade();
-		}
+		};
 		this.click_reference = (e) => this.clickEvent(e);
 		this.button.addEventListener('click', this.click_reference, { once: true });
 

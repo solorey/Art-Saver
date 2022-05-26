@@ -34,7 +34,7 @@ function getPageInfo() {
 	if (['journal'].includes(page.page)) {
 		page.user = /by\ ([^\ ]+)\ on\ DeviantArt$/.exec($('title').textContent)[1];
 	}
-	else if (['about', 'user', 'gallery', 'prints', 'favourites', 'posts', 'shop'].includes(page.page)) {
+	else if (['about', 'user', 'gallery', 'prints', 'favourites', 'posts', 'shop', 'subscriptions'].includes(page.page)) {
 		page.user = $('#content-container [data-username]').getAttribute('data-username');
 	}
 
