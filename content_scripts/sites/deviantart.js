@@ -586,6 +586,9 @@ async function handleDownloads(downloads, options, progress) {
 
 	progress.start('Starting download');
 
+        // fix for double slash "//v1/fill" in URL sometimes
+        downloads[0].url = downloads[0].url.replace('//v1/fill', '/v1/fill');
+
 	let bytes = 0;
 	let total = downloads.length;
 	let results = [];
