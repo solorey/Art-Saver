@@ -429,10 +429,11 @@ async function getMeta(r, options, progress) {
 	info.url = r.url;
 
 	//find stash in description
+	let description = r.extended.descriptionText?.html?.markup ?? "";
 	let stashreg = /"(https:\/\/sta\.sh\/.+?)"/g;
 	let stashresult;
 	let stashurls = [];
-	while ((stashresult = stashreg.exec(r.extended.description)) !== null) {
+	while ((stashresult = stashreg.exec(description)) !== null) {
 		stashurls.push(stashresult[1]);
 	}
 	info.stash = [...new Set(stashurls)];
