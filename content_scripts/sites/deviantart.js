@@ -29,7 +29,13 @@ function getPageInfo() {
 	}
 
 	if (['art'].includes(page.page)) {
-		page.user = $('main > div a[data-hook="user_link"]').getAttribute('data-username');
+		//Exclude user links in daily deviation popup
+		for (let u of $$('main > div a[data-hook="user_link"]')) {
+			if (!u.matches('[data-popper-reference-hidden] a')) {
+				page.user = u.getAttribute('data-username');
+				break;
+			}
+		}
 	}
 	if (['journal'].includes(page.page)) {
 		page.user = /by\ ([^\ ]+)\ on\ DeviantArt$/.exec($('title').textContent)[1];
@@ -694,7 +700,7 @@ function deviantArtFileName(title, user, subid) {
 async function literatureToHtml(r, meta, options) {
 	let page = await fetcher(r.url, 'document');
 
-	let storyelem = $(page, 'section .da-editor-journal > div > div > div, section .legacy-journal') || $create('div');
+	let storyelem = $(page, 'section .da-editor-journal > div > div > div, section > div > .legacy-journal') || $create('div');
 	let story = cleanContent(storyelem);
 	story.firstElementChild.id = 'content';
 
@@ -858,7 +864,7 @@ async function urlToDataUrl(url) {
 
 async function literatureToText(r, meta, options) {
 	let page = await fetcher(r.url, 'document');
-	let storyelem = $(page, 'section .da-editor-journal > div > div > div, section .legacy-journal') || $create('div');
+	let storyelem = $(page, 'section .da-editor-journal > div > div > div, section > div > .legacy-journal') || $create('div');
 	let story = getElementText(storyelem);
 
 	let words = story.replace(/[^\w\s]+/g, '').match(/\w+/g).length;
