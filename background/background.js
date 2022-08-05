@@ -219,14 +219,14 @@ function isUpdating() {
 //replace illegal filename characters
 function sanitize(text) {
 	return `${text}`
-		.replace(/\\/g, '＼')	//\uff3c
-		.replace(/\//g, '／')	//\uff0f
-		.replace(/:/g, '：')	//\uff1a
+		.replace(/\\/g, '＼') //\uff3c
+		.replace(/\//g, '／') //\uff0f
+		.replace(/:/g, '：')  //\uff1a
 		.replace(/\*/g, '＊') //\uff0a
 		.replace(/\?/g, '？') //\uff1f
-		.replace(/\"/g, '″')	//\u2033
-		.replace(/</g, '＜')	//\uff1c
-		.replace(/>/g, '＞')	//\uff1e
+		.replace(/\"/g, '″')  //\u2033
+		.replace(/</g, '＜')  //\uff1c
+		.replace(/>/g, '＞')  //\uff1e
 		.replace(/\|/g, '｜') //\uff5c
 		.replace(/[\u200e\u200f\u202a-\u202e]/g, ''); //remove bidirectional formatting characters.
 	//Not illegal in windows but firefox errors when trying to download a filename with them.
