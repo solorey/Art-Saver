@@ -163,8 +163,13 @@ function getOldThumbnails() {
 			thumb.style.position = 'relative';
 		}
 		//devations in texts
-		else if (thumb.matches('.shadow > *:not(.lit)') && !$(thumb, '.artsaver-holder')) {
-			$insert($(thumb, 'img'), 'div', { position: 'parent', class: 'artsaver-holder' });
+		else if (thumb.matches('.shadow > *:not(.lit)')) {
+			thumb.style.position = 'relative';
+			thumb.style.display = 'inline-block';
+			let img = $(thumb, ':scope > img');
+			if (img) {
+				img.style.display = 'block';
+			}
 		}
 
 		thumbnails.push(thumb);
@@ -221,6 +226,10 @@ function getThumbnails() {
 		else if (!thumb.firstElementChild) {
 			continue
 		}
+		//post date link
+		else if ($(thumb, ':scope > time')) {
+			continue;
+		}
 		//main gallery thumbnail
 		if (thumb.matches('[data-hook=deviation_std_thumb] > a')) {
 			thumb = thumb.parentElement;
@@ -232,6 +241,10 @@ function getThumbnails() {
 		//popup thumbnails
 		if (thumb.matches('[id^=popper] a')) {
 			thumb.style.position = 'relative';
+		}
+		//thumbnails in comments
+		if (thumb.matches('.draft-thumb > div > a')) {
+			thumb.parentElement.parentElement.style.position = 'relative';
 		}
 
 		thumbnails.push(thumb);
@@ -249,7 +262,7 @@ function checkThumbnails(thumbnails) {
 			let user = '';
 			let userlink = $(thumb, '.user-link');
 			if (userlink) {
-				user = userlink.getAttribute('title');
+				user = userlink.getAttribute('data-username') ?? userlink.getAttribute('title');
 			}
 			if (!user) {
 				//thumbs in the sidebar of a submission page
@@ -466,9 +479,17 @@ async function getMeta(r, options, progress) {
 		//type.c = image
 		//type.s = swf
 		//type.b = mp4, gif
-		let type = r.media.types.filter(m => m.f && (m.t === 'fullview' || m.s || m.b)).pop();
+		let types = r.media.types;
+		//sort by resolution
+		let compare_value = (t) => t.w * t.h + ((t.t === 'fullview') ? 1 : 0);
+		types.sort((a, b) => compare_value(b) - compare_value(a));
+		//sort by file size
+		//it is possible for no types to have a file size
+		//this assumes a larger file size is a better quality file
+		types.sort((a, b) => (b.f ?? 0) - (a.f ?? 0));
+		let type = types[0];
 
-		let url = (type.t === 'fullview') ? (type.c ? `${r.media.baseUri}${type.c}` : r.media.baseUri) : type.s || type.b;
+		let url = (type.t === 'fullview') ? (type.c ? `${r.media.baseUri}${type.c}` : r.media.baseUri) : (type.s ?? type.b);
 
 		if (r.media.prettyName) {
 			url = url.replace(/<prettyName>/g, r.media.prettyName);
@@ -650,11 +671,14 @@ async function compareUrls(url, options) {
 	let u = url.split('/');
 	let newurl = `https://${u[2]}/intermediary/f/${u[4]}/${u[5]}`;
 
-	let compare = await Promise.all([getImage(url), getImage(newurl)]);
-	if (compare[0].resolution < compare[1].resolution) {
-		url = newurl;
+	let new_image = await getImage(newurl);
+	if (new_image.resolution === 0) {
+		return url
 	}
-
+	let original_image = await getImage(url);
+	if (original_image.resolution < new_image.resolution) {
+		return  newurl;
+	}
 	return url;
 }
 
