@@ -187,6 +187,9 @@ class ButtonCheck {
 		this.click_reference = (e) => this.clickEvent(e);
 		this.button.addEventListener('click', this.click_reference, { once: true });
 
+		this.keypress_reference = (e) => this.keypressEvent(e);
+		document.addEventListener('keypress', this.keypress_reference);
+
 		if (globaloptions.addScreen && screen) {
 			this.screen = $insert(this.button, 'div', { position: 'beforebegin', class: 'artsaver-screen' });
 			this.screen.style.opacity = `${globaloptions.screenOpacity}%`;
@@ -200,6 +203,12 @@ class ButtonCheck {
 
 		removeSubmission(this.site, this.submission_id);
 		this.tooltip.fade();
+	}
+	keypressEvent(event) {
+		if (this.anchor.matches(':hover') && event.key === 'f') {
+			removeSubmission(this.site, this.submission_id);
+			this.tooltip.fade();
+		}
 	}
 	setStatus(status) {
 		if (this.status !== status) {
@@ -218,6 +227,7 @@ class ButtonCheck {
 	}
 	clearListeners() {
 		this.button.removeEventListener('click', this.click_reference);
+		document.removeEventListener('keypress', this.keypress_reference);
 	}
 	clear() {
 		this.clearListeners();
@@ -437,7 +447,7 @@ class DownloadQueue {
 	}
 	updateDownloadInfo() {
 		this.list.map(l => l[1]).forEach((subid, i) => {
-			this.buttons_state.setValue(subid, 'text', `In queue pos: ${i + 1}`);
+			this.buttons_state.setValue(subid, 'text', `Queued: ${i + 1}`);
 		});
 
 		if (this.infobar) {
