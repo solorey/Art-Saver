@@ -19,7 +19,8 @@ Check the [Wiki][wiki] for additional information.
 View the [Supported Sites][sites].
 
 ### Hotkeys
-- <kbd>D</kbd>: Download submission that is currently being hovered over.
+- <kbd>D</kbd>: Download the submission that is currently being hovered over.
+- <kbd>F</kbd>: Forget the check mark of the submission that is currently being hovered over.
 
 ## Features
 - Custom filenames
