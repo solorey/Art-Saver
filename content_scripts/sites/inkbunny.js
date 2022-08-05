@@ -149,13 +149,16 @@ function checkSubmission(user, url) {
 	try {
 		let subid = parseInt(/\/(\d+)/.exec(url)[1], 10);
 		let submission = $(contentbox, '#magicbox, .widget_imageFromSubmission img, #mediaspace');
-
-		let holder = $(contentbox, '.artsaver-holder');
-		if (!holder) {
-			holder = $insert(submission, 'div', { position: 'parent', class: 'artsaver-holder' });
+		if (submission.matches('img')) {
+			submission.style.display = 'block';
 		}
+		let parent = submission.parentElement;
+		if (parent.matches('a')) {
+			parent.style.display = 'inline-block';
+		}
+		parent.style.position = 'relative';
 
-		addButton('inkbunny', user, subid, holder, false);
+		addButton('inkbunny', user, subid, parent, false);
 	}
 	catch (err) { }
 }
