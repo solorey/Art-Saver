@@ -342,7 +342,8 @@ async function startDownloading(subid, progress) {
 		let params = new URLSearchParams({
 			deviationid: subid,
 			type: 'art',
-			include_session: false
+			include_session: false,
+			csrf_token: window.wrappedJSObject.__CSRF_TOKEN__
 		});
 		let response = await fetcher(`https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch?${params}`, 'json');
 		let { info, meta } = await getMeta(response, options, progress);
