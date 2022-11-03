@@ -17,7 +17,7 @@ async function main() {
 	await globaltooltip.load();
 
 	let concurrent = globaloptions.useQueue ? globaloptions.queueConcurrent : Infinity;
-	let waittime = globaloptions.useQueue ? globaloptions.waittime : 0;
+	let waittime = globaloptions.useQueue ? globaloptions.queueWait : 0;
 	let infobar;
 	if (globaloptions.infoBar) {
 		infobar = new InfoBar();
