@@ -265,7 +265,7 @@ async function startDownload(url, filename, meta) {
 		return { response: 'Success', url, filename, id: dlid };
 	}
 	catch (err) {
-		return { response: 'Failure', url, filename };
+		return { response: 'Failure', url, filename, message: err.message };
 	}
 }
 

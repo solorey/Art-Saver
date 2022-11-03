@@ -350,7 +350,7 @@ function logDownloadResponse(message) {
 		asLog('%cDownloading:', 'color: #006efe', message.filename);
 	}
 	else if (message.response === 'Failure') {
-		asLog('%cFailed to download:', 'color: #d70022', message.filename);
+		asLog('%cFailed to download:', 'color: #d70022', `${message.filename} | ${message.message}`);
 	}
 }
 

@@ -400,7 +400,7 @@ async function startDownloading(subid, progress) {
 			await updateSavedInfo(info.savedSite, info.savedUser, info.savedId);
 		}
 		else {
-			throw new Error('Files failed to download.');
+			throw new Error(results[0].message);
 		}
 
 		progress.finished();
