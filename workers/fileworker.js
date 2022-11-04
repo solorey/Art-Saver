@@ -33,7 +33,7 @@ create.gif = async function (data) {
 }
 
 create.apng = async function (data) {
-	importScripts('/lib/pako_deflate.min.js', '/lib/UPNG.js');
+	importScripts('/lib/UZIP.js', '/lib/UPNG.js');
 
 	let imgdata = data.frames.map(f => f.data);
 
@@ -42,21 +42,20 @@ create.apng = async function (data) {
 }
 
 create.zip = async function (data) {
-	importScripts('/lib/jszip.min.js');
-
-	var zip = new JSZip();
+	importScripts('/lib/UZIP.js');
 
 	let bl = data.blobs.length;
 	let npad = `${bl}`.length;
 	let dpad = `${Math.max(...data.delays)}`.length;
 
+	let zip_object = {};
 	for (let i = 0; i < bl; i++) {
 		let n = `${i + 1}`.padStart(npad, '0');
 		let d = `${data.delays[i]}`.padStart(dpad, '0');
-		zip.file(`${n}_${d}ms.${data.exts[i]}`, data.blobs[i]);
+		zip_object[`${n}_${d}ms.${data.exts[i]}`] = new Uint8Array(await data.blobs[i].arrayBuffer());
 	}
 
-	return await zip.generateAsync({ type: 'blob' });
+	return new Blob([UZIP.encode(zip_object)], { type: 'application/zip' });
 }
 
 create.bitmaps = async function (data) {
