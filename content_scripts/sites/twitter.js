@@ -114,12 +114,21 @@ function getThumbnails() {
 	for (let tweet of $$('[data-testid="tweet"]')) {
 		let media_box = $(tweet, ':scope [aria-labelledby] > div > div');
 		//media is a card to another website
-		if (!media_box || media_box.getAttribute('data-testid') === 'card.wrapper') {
+		if (!media_box || ['card.layoutSmall.media', 'card.layoutLarge.media', 'card.wrapper'].includes(media_box.getAttribute('data-testid'))) {
+			continue;
+		}
+		//media is a poll
+		if (media_box.firstElementChild.getAttribute('data-testid') == 'cardPoll') {
 			continue;
 		}
 		//media is a quote tweet
-		let quote = $(media_box, ':scope > div > span');
+		let quote = $(media_box, ':scope > span');
 		if (quote) {
+			continue;
+		}
+		//media is a quote placeholder
+		let article = $(media_box, ':scope > article');
+		if (article) {
 			continue;
 		}
 		tweets.push(tweet);
@@ -181,6 +190,9 @@ async function startDownloading(subid, progress) {
 		let tweet;
 		for (let entrie of response.data.threaded_conversation_with_injections.instructions[0].entries) {
 			let tweet_data = entrie.content?.itemContent?.tweet_results?.result;
+			if ('tweet' in tweet_data) {
+				tweet_data = tweet_data.tweet;
+			}
 			if (tweet_data && tweet_data.rest_id === subid) {
 				tweet = tweet_data;
 				break;
