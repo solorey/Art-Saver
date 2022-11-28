@@ -29,7 +29,7 @@ function getPageInfo() {
 async function getUserInfo(user_id) {
 	let userpage = await fetcher(`https://www.furaffinity.net/user/${user_id}/`, 'document');
 	let modern = $(userpage, '#ddmenu');
-	let iconelement = $(userpage, modern ? 'img.user-nav-avatar' : 'img.avatar');
+	let iconelement = $(userpage, modern ? 'a.current img' : 'img.avatar');
 
 	let user = {
 		site: 'furaffinity',
@@ -38,7 +38,7 @@ async function getUserInfo(user_id) {
 
 	if (iconelement) {
 		user.icon = iconelement.src;
-		user.name = /([^ ]+)(?: -- Fur |'s)/.exec($(userpage, 'title').textContent)[1]
+		user.name = /([^ ]+)(?: -- Fur |'s)/.exec($(userpage, 'title').textContent)[1];
 
 		let stats = modern ? $(userpage, 'div[class^=userpage-section-] .cell') : $(userpage, '[title^="Once"]').parentElement;
 		stats = stats.textContent.replace(/\D+/g, ' ').trim().split(' ');
@@ -59,7 +59,7 @@ async function getUserInfo(user_id) {
 		}
 	}
 	else {
-		user.name = /"(.+?)"/.exec($(userpage, '.alt1, .redirect-message').textContent)[1]
+		user.name = /"(.+?)"/.exec($(userpage, '.alt1, .redirect-message').textContent)[1];
 		user.stats = new Map([]);
 		user.icon = $('.submission-id-avatar img, .avatar img').src;
 	}
