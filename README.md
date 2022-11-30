@@ -37,13 +37,13 @@ View the [Supported Sites][sites].
 
 ## Credits
 Inspired by:
-- ![][px-logo] [Px Downloader][px]
-- ![][raccony-logo] [Raccoony][raccony]
+- [Px Downloader][px]
+- [Raccoony][raccony]
 
 Code used:
 - [UPNG.js][upng] : for APNG encoding
+- [UZIP][uzip] : for ZIP encoding
 - [gif.js][gif] : for GIF encoding
-- [JSZip][zip] : for ZIP encoding
 - [DOMPurify][dompurify]
 
 Other:
@@ -57,14 +57,12 @@ Other:
 [amo]: https://ffp4g1ylyit3jdyti1hqcvtb-wpengine.netdna-ssl.com/addons/files/2015/11/get-the-addon.png
 
 [px]: https://addons.mozilla.org/en-US/firefox/addon/px-downloader/
-[px-logo]: https://addons.mozilla.org/user-media/addon_icons/802/802600-32.png
 
 [raccony]: https://github.com/Simon-Tesla/RaccoonyWebEx
-[raccony-logo]: https://raw.githubusercontent.com/Simon-Tesla/RaccoonyWebEx/master/src/icon-32.png
 
 [upng]: https://github.com/photopea/UPNG.js/
+[uzip]: https://github.com/photopea/UZIP.js/
 [gif]: https://jnordberg.github.io/gif.js/
-[zip]: https://stuk.github.io/jszip/
 [dompurify]: https://github.com/cure53/DOMPurify
 
 [iconfont]: https://icomoon.io/
