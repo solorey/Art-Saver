@@ -181,8 +181,8 @@ function siteStats(request, sitelist) {
 		let listelem = $(`#${stat}-list`);
 
 		$(rowelem, '.badge').textContent = list.length;
+		rowelem.className = list.length > 0 ? 'stat-button' : 'stat-row';
 
-		classToggle(list.length > 0, rowelem, 'stat-button')
 		if (list.length > 0) {
 			let searchbox = $(listelem, '.search-box');
 			let list = new VirtualList($(listelem, '.list-box'), searchResult(searchbox, savedstats[stat]), createrows[stat]);
