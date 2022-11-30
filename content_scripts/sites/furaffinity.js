@@ -177,7 +177,7 @@ function checkThumbnails(thumbnails, user) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function checkUserFavorites() {
-	let favdata = JSON.parse(/submission_data\ =\ (.+);/.exec($('#pageid-userpage > div > script, #page-userpage + script').textContent)[1]);
+	let favdata = JSON.parse(/submission_data\ =\ (.+);/.exec($('#pageid-userpage + script, #page-userpage + script').textContent)[1]);
 
 	for (let fav of $$('#gallery-latest-favorites > [id^="sid"]')) {
 		try {
