@@ -230,6 +230,10 @@ function getThumbnails() {
 		else if ($(thumb, ':scope > time')) {
 			continue;
 		}
+		//thumbnail titles
+		else if (thumb.matches('[data-hook=deviation_std_thumb] > [data-hook=deviation_link] + div [data-hook=deviation_link]')) {
+			continue;
+		}
 		//main gallery thumbnail
 		if (thumb.matches('[data-hook=deviation_std_thumb] > a')) {
 			thumb = thumb.parentElement;
