@@ -132,7 +132,7 @@ class ButtonsState {
 	}
 	updateCheck(subid, info) {
 		for (let b of info.buttons) {
-			b.setStatus(info.status)
+			b.setStatus(info.status);
 		}
 		if (info.status === 'finished') {
 			this.removeState(subid);
@@ -140,7 +140,7 @@ class ButtonsState {
 	}
 	updateDownload(subid, info) {
 		for (let b of info.buttons) {
-			b.setStatus(info.status)
+			b.setStatus(info.status);
 			if (info.status === 'downloading') {
 				b.setProgress(info.width, info.text);
 			}

@@ -86,7 +86,14 @@ async function reCheck() {
 	globalrunningobservers = [];
 
 	$$('[data-checkstatus]').forEach(e => e.removeAttribute('data-checkstatus'));
-	$$('.artsaver-check, .artsaver-screen').forEach(e => $remove(e));
+	$$('.artsaver-check').forEach(e => {
+		//remove screens only if check is idle
+		let prev = e.previousElementSibling;
+		if (e.className === 'artsaver-screen') {
+			$remove(prev);
+		}
+		$remove(e)
+	});
 
 	startChecking();
 }
