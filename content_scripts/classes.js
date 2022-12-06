@@ -66,8 +66,11 @@ class ButtonsState {
 		if (!this.idsMap.has(button.submission_id)) {
 			this.createState(button.type, button.site, button.submission_id);
 		}
-		this.idsMap.get(button.submission_id).buttons.push(button);
-		this.setValue(button.submission_id, 'type', button.type);
+		let button_group = this.idsMap.get(button.submission_id);
+		button_group.buttons.push(button);
+		if (button_group.type !== 'error') {
+			this.setValue(button.submission_id, 'type', button.type);
+		}
 	}
 	setValue(subid, key, value) {
 		this.idsMap.get(subid)[key] = value;

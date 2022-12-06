@@ -87,7 +87,7 @@ async function reCheck() {
 
 	$$('[data-checkstatus]').forEach(e => e.removeAttribute('data-checkstatus'));
 	$$('.artsaver-check').forEach(e => {
-		//remove screens only if check is idle
+		//remove screen only if check is idle
 		let prev = e.previousElementSibling;
 		if (e.className === 'artsaver-screen') {
 			$remove(prev);
