@@ -115,10 +115,10 @@ function startChecking() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function checkPage(page) {
-	checkThumbnails(getThumbnails(), page.userId);
+	checkThumbnails(getThumbnails(), page.user);
 
 	if (page.page === 'artwork') {
-		checkSubmission(page.userId, page.url);
+		checkSubmission(page.user, page.url);
 	}
 }
 
