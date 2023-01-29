@@ -218,12 +218,16 @@ function getThumbnails() {
 		if (/\/journal\//.test(thumb.href)) {
 			continue;
 		}
+		//filter out comissions
+		else if (/\/commission\//.test(thumb.href)) {
+			continue;
+		}
 		//main gallery thumbnail title
 		else if (thumb.matches('span > a')) {
 			continue;
 		}
 		//deviation spotlight widget title
-		else if (!thumb.firstElementChild) {
+		else if (thumb.matches('[data-hook=user_link] + div [data-hook=deviation_link]')) {
 			continue
 		}
 		//post date link
@@ -236,6 +240,10 @@ function getThumbnails() {
 		}
 		//main gallery thumbnail
 		if (thumb.matches('[data-hook=deviation_std_thumb] > a')) {
+			thumb = thumb.parentElement;
+		}
+		//watch notification thumbnail
+		if (thumb.matches('[class=""] > a')) {
 			thumb = thumb.parentElement;
 		}
 		//literature thumbnail
