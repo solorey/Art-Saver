@@ -8,16 +8,14 @@ function getPageInfo() {
 		site: 'twitter'
 	};
 
-	let user_block = $$('[data-testid="UserName"] [dir] > span');
-	let photoreg = /(\w+)\/status\/\d+\/photo\//.exec(page.url);
-
-	if (user_block.length === 3) {
+	let canonical = $('link[rel="canonical"]').href.split('/')[3];
+	if ($('meta[content="profile"]')) {
 		page.page = 'user';
-		page.user = user_block[2].textContent.slice(1);
+		page.user = canonical;
 	}
-	else if (photoreg) {
+	else if (/\.com\/(?:\w+|i\/web)\/status\/\d+/.test(page.url)) {
 		page.page = 'submission';
-		page.user = photoreg[1];
+		page.user = canonical;
 	}
 
 	return page;
