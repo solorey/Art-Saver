@@ -340,7 +340,7 @@ function checkSubmission(user, url) {
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
-//submission - https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch?deviationid=<sumbissionId>&type=art&include_session=false
+//submission - https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch?deviationid=<sumbissionId>&username=<userName>&type=art&include_session=false
 //user       - https://www.deviantart.com/_napi/da-user-profile/api/init/gallery?username=<userName>
 //gallery    - https://www.deviantart.com/_napi/da-user-profile/api/gallery/contents?username=<userName>&offset=0&limit=24&all_folder=true&mode=newest //24 is max
 //rss        - https://backend.deviantart.com/rss.xml?q=+sort:time+by:<userName>+-in:journals&type=deviation
@@ -351,8 +351,10 @@ async function startDownloading(subid, progress) {
 	let pageurl = `https://www.deviantart.com/deviation/${subid}`;
 
 	try {
+		let preresponse = await fetcher(pageurl, 'response');
 		let params = new URLSearchParams({
 			deviationid: subid,
+			username: preresponse.url.split('/')[3],
 			type: 'art',
 			include_session: false,
 			csrf_token: window.wrappedJSObject.__CSRF_TOKEN__
