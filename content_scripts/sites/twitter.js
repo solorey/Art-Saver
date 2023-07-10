@@ -33,7 +33,7 @@ async function getUserInfo(user_id) {
 	});
 	let headers = {
 		authorization: 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
-		'x-csrf-token': /ct0=([0-9a-f]+);/.exec(document.cookie)[1]
+		'x-csrf-token': /ct0=([0-9a-f]+)(?=;|$)/.exec(document.cookie)[1]
 	};
 	let url = `https://twitter.com/i/api/graphql/7mjxD3-C6BxitPMVQ6w0-Q/UserByScreenName?${params}`;
 	let userresponse = await fetcher(url, 'json', { headers });
@@ -181,7 +181,7 @@ async function startDownloading(subid, progress) {
 		});
 		let headers = {
 			authorization: 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
-			'x-csrf-token': /ct0=([0-9a-f]+);/.exec(document.cookie)[1]
+			'x-csrf-token': /ct0=([0-9a-f]+)(?=;|$)/.exec(document.cookie)[1]
 		};
 		let response = await fetcher(`https://twitter.com/i/api/graphql/N_Am58sJXW8WRV7-cJLWvg/TweetDetail?${params}`, 'json', { headers });
 
