@@ -469,3 +469,27 @@ async function timer(s) {
 		setTimeout(resolve, s * 1000); //seconds
 	});
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function navigateUpSmaller(element) {
+	let current = element
+	let current_rect = element.getBoundingClientRect()
+
+	while (true) {
+		const parent = current.parentElement
+		if (!parent) {
+			return current
+		}
+		const parent_rect = parent.getBoundingClientRect()
+		if (parent_rect.width === 0 || parent_rect.height === 0) {
+			current = parent
+			continue
+		}
+		if (parent_rect.width > current_rect.width || parent_rect.height > current_rect.height) {
+			return current
+		}
+		current = parent
+		current_rect = parent_rect
+	}
+}

@@ -29,13 +29,7 @@ function getPageInfo() {
 	}
 
 	if (['art'].includes(page.page)) {
-		//Exclude user links in daily deviation popup
-		for (let u of $$('main > div a[data-hook="user_link"]')) {
-			if (!u.matches('[data-popper-reference-hidden] a')) {
-				page.user = u.getAttribute('data-username');
-				break;
-			}
-		}
+		page.user = $('[data-hook="deviation_meta"] [data-username]').getAttribute('data-username');
 	}
 	if (['journal'].includes(page.page)) {
 		page.user = /by\ ([^\ ]+)\ on\ DeviantArt$/.exec($('title').textContent)[1];
@@ -269,8 +263,8 @@ function getThumbnails() {
 function checkThumbnails(thumbnails) {
 	for (let thumb of thumbnails) {
 		try {
-			let url = thumb.getAttribute('href') || $(thumb, 'a').href;
-			let subid = parseInt(url.split('-').pop(), 10);
+			let link = thumb.matches('a') ? thumb : thumb.querySelector('a');
+			let subid = parseInt(link.href.split('-').pop(), 10);
 			let user = '';
 			let userlink = $(thumb, '.user-link');
 			if (userlink) {
@@ -302,10 +296,12 @@ function checkThumbnails(thumbnails) {
 					element = element.parentElement;
 				}
 			}
+			let parent = navigateUpSmaller(link);
+			parent.style.position = 'relative';
 
-			addButton('deviantart', user, subid, thumb);
+			addButton('deviantart', user, subid, parent);
 		}
-		catch (err) { }
+		catch (err) {}
 	}
 }
 
