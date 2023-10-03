@@ -352,12 +352,18 @@ async function startDownloading(subid, progress) {
 
 	try {
 		let preresponse = await fetcher(pageurl, 'response');
+		let username = preresponse.url.split('/')[3];
+		let csrf_token = window.wrappedJSObject?.__CSRF_TOKEN__
+		if (!csrf_token) {
+			const page_text = await preresponse.text()
+			csrf_token = /__CSRF_TOKEN__\s=\s'(.+?)'/.exec(page_text)?.[1]
+		}
 		let params = new URLSearchParams({
 			deviationid: subid,
-			username: preresponse.url.split('/')[3],
+			username: username,
 			type: 'art',
 			include_session: false,
-			csrf_token: window.wrappedJSObject.__CSRF_TOKEN__
+			csrf_token: csrf_token
 		});
 		let response = await fetcher(`https://www.deviantart.com/_puppy/dadeviation/init?${params}`, 'json');
 		let { info, meta } = await getMeta(response, options, progress);
