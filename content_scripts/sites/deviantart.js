@@ -44,7 +44,11 @@ function getPageInfo() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function getUserInfo(user_id) {
-	let userresponse = await fetcher(`https://www.deviantart.com/_napi/da-user-profile/api/init/gallery?username=${user_id}`);
+	const params = new URLSearchParams({
+		username: user_id,
+		csrf_token: window.wrappedJSObject?.__CSRF_TOKEN__
+	})
+	let userresponse = await fetcher(`https://www.deviantart.com/_puppy/dauserprofile/init/about?${params}`);
 
 	let user = {
 		site: 'deviantart',
@@ -53,11 +57,11 @@ async function getUserInfo(user_id) {
 	}
 
 	if (userresponse.ok) {
-		let userstats = (await userresponse.json()).pageData;
+		let userstats = await userresponse.json();
 
-		user.icon = userstats.gruser.usericon;
+		user.icon = userstats.owner.usericon;
 
-		let us = userstats.stats;
+		let us = userstats.pageExtraData.stats;
 		user.stats = new Map([
 			['Deviations', us.deviations],
 			['Favourites', us.favourites],
@@ -355,7 +359,7 @@ async function startDownloading(subid, progress) {
 			include_session: false,
 			csrf_token: window.wrappedJSObject.__CSRF_TOKEN__
 		});
-		let response = await fetcher(`https://www.deviantart.com/_napi/shared_api/deviation/extended_fetch?${params}`, 'json');
+		let response = await fetcher(`https://www.deviantart.com/_puppy/dadeviation/init?${params}`, 'json');
 		let { info, meta } = await getMeta(response, options, progress);
 
 		let downloads = [{ url: info.downloadurl, meta, filename: options.file }];
