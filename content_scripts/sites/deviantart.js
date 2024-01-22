@@ -29,7 +29,7 @@ function getPageInfo() {
 	}
 
 	if (['art'].includes(page.page)) {
-		page.user = $('[data-hook="deviation_meta"] [data-username]').getAttribute('data-username');
+		page.user = $(`a.user-link[href*="/${path.split('/')[1]}/"]`).getAttribute('data-username');
 	}
 	if (['journal'].includes(page.page)) {
 		page.user = /by\ ([^\ ]+)\ on\ DeviantArt$/.exec($('title').textContent)[1];
@@ -102,7 +102,7 @@ function startChecking() {
 	let page = getPageInfo();
 	checkPage(page);
 
-	let thumbselect = '.thumb, [data-hook=deviation_link]';
+	let thumbselect = '.thumb, a[href*="/art/"]';
 
 	let pageobserver = new MutationObserver((mutationsList, observer) => {
 		let diffpage = false;
@@ -114,7 +114,7 @@ function startChecking() {
 		}
 
 		if (page.page === 'art' && diffpage) {
-			let submission = $('[data-hook=art_stage]');
+			let submission = $('header + div > div > div > div > div');
 			$$(submission, '[data-checkstatus]').forEach(e => e.removeAttribute('data-checkstatus'));
 			$$(submission, '[class^=artsaver]:not(.artsaver-holder)').forEach(e => $remove(e));
 
@@ -211,31 +211,12 @@ function checkOldThumbnails(thumbnails) {
 
 function getThumbnails() {
 	let thumbnails = [];
-	for (let thumb of $$('[data-hook=deviation_link]')) {
-		//filter out journals
-		if (/\/journal\//.test(thumb.href)) {
-			continue;
-		}
-		//filter out comissions
-		else if (/\/commission\//.test(thumb.href)) {
-			continue;
-		}
-		//main gallery thumbnail title
-		else if (thumb.matches('span > a')) {
-			continue;
-		}
-		//deviation spotlight widget title
-		else if (thumb.matches('[data-hook=user_link] + div [data-hook=deviation_link]')) {
-			continue
-		}
-		//post date link
-		else if ($(thumb, ':scope > time')) {
-			continue;
-		}
-		//thumbnail titles
-		else if (thumb.matches('[data-hook=deviation_std_thumb] > [data-hook=deviation_link] + div [data-hook=deviation_link]')) {
-			continue;
-		}
+	for (let thumb of $$('a[href*="/art/"]')) {
+		// link contains a thumbnail
+        // old watch thumbnails are laid out next to link instead of inside
+		if (!thumb.parentElement?.querySelector('[data-testid="thumb"]')) {
+            continue;
+        }
 		//main gallery thumbnail
 		if (thumb.matches('[data-hook=deviation_std_thumb] > a')) {
 			thumb = thumb.parentElement;
@@ -314,7 +295,7 @@ function checkThumbnails(thumbnails) {
 function checkSubmission(user, url) {
 	try {
 		let subid = parseInt(url.split('-').pop(), 10);
-		let stage = $('[data-hook=art_stage]');
+		let stage = $('header + div > div > div > div > div');
 		//art, pdf
 		let submission = $(stage, 'img, [data-hook=react-playable], object[type="application/pdf"]');
 		if (submission) {
