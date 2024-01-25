@@ -212,9 +212,15 @@ function checkOldThumbnails(thumbnails) {
 function getThumbnails() {
 	let thumbnails = [];
 	for (let thumb of $$('a[href*="/art/"]')) {
-		// link contains a thumbnail
-        // old watch thumbnails are laid out next to link instead of inside
-		if (!thumb.parentElement?.querySelector('[data-testid="thumb"]')) {
+		if (
+            !(
+                thumb.parentElement?.querySelector('[data-testid="thumb"]') || // link contains/next to a thumbnail
+				// old watch thumbnails are laid out next to link instead of inside
+                thumb.matches('section + a[aria-label$=", literature"]') || // gallery literature thumbnails
+                thumb.querySelector('section > h2') || // individual literature thumbnails
+                (thumb.matches('.draft-thumb') && thumb.querySelector('img')) // thumbnails in literature
+            )
+        ) {
             continue;
         }
 		//main gallery thumbnail
