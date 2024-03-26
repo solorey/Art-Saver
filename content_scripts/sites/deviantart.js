@@ -369,7 +369,6 @@ async function startDownloading(subid, progress) {
 
 			let stashurls = await workerMessage(stashworker, 'getstashurls', info.stash);
 
-			let parser = new DOMParser();
 			let count = 0;
 			for (let stashurl of stashurls) {
 				count += 1;
@@ -380,9 +379,19 @@ async function startDownloading(subid, progress) {
 					//asLog(`%cError ${stashstring}:`, 'color: #d70022', stashurl);
 					continue;
 				}
-				let stashresponse = parser.parseFromString(stashstring, 'text/html');
+				let regex_result = /window\.__INITIAL_STATE__\s=\sJSON\.parse\((".+")\);/.exec(stashstring);
+				if (!regex_result) {
+					throw new Error('Stash data not found in RegExp');
+				}
+				let data_string = regex_result[1].replaceAll("\\'", "'");
+				let state_obj = JSON.parse(JSON.parse(data_string))['@@entities'];
+				let sr = {
+					deviation: Object.values(state_obj.deviation)[0],
+					extended: Object.values(state_obj.deviationExtended)[0],
+					user: Object.values(state_obj.user)[0],
+				};
 
-				let { stashinfo, stashmeta } = await getStashMeta(stashresponse, { url: info.url, ...meta }, options, progress);
+				let { stashinfo, stashmeta } = await getStashMeta(sr, { url: info.url, ...meta }, options, progress);
 				if (Object.entries(stashmeta).length === 0) {
 					continue;
 				}
@@ -457,13 +466,8 @@ async function getMeta(r, options, progress) {
 
 	//find stash in description
 	let description = r.extended.descriptionText?.html?.markup ?? "";
-	let stashreg = /"(https:\/\/sta\.sh\/.+?)"/g;
-	let stashresult;
-	let stashurls = [];
-	while ((stashresult = stashreg.exec(description)) !== null) {
-		stashurls.push(stashresult[1]);
-	}
-	info.stash = [...new Set(stashurls)];
+	let matches = description.matchAll(/"(https:\/\/(?:sta\.sh|www.deviantart.com\/stash)\/.+?)"/g);
+	info.stash = [...new Set([...matches].map((m) => m[1]))];
 
 	if (r.isDownloadable) { //the user is cool; downloading full resolution is easy
 		info.downloadurl = r.extended.download.url;
@@ -543,32 +547,23 @@ async function getMeta(r, options, progress) {
 
 async function getStashMeta(sr, meta, options, progress) {
 	let stashinfo = {}, stashmeta = {};
-	let url = $(sr, 'link[rel=canonical]').href;
-	let pageview = $(sr, 'div.dev-page-view');
-	if (!pageview) {
-		return { stashinfo, stashmeta }
-	}
-	stashmeta.stashSubmissionId = pageview.getAttribute('gmi-deviationid');
-	stashmeta.stashTitle = $(sr, '.dev-title-container .title').textContent;
-	stashmeta.stashUserName = $(sr, '.dev-title-container .username:not(.group)').textContent;
-	stashmeta.stashUrlId = url.split('/0').pop();
+	stashmeta.stashSubmissionId = sr.deviation.deviationId;
+	stashmeta.stashTitle = sr.deviation.title ?? '';
+	stashmeta.stashUserName = sr.user.username;
+	stashmeta.stashUrlId = sr.deviation.url.split('/0').pop();
+	
+	let parsed_time = timeParse(sr.deviation.publishedTime);
+	stashmeta.stashYYYY = parsed_time.YYYY;
+	stashmeta.stashMM = parsed_time.MM;
+	stashmeta.stashDD = parsed_time.DD;
+	stashmeta.stashhh = parsed_time.hh;
+	stashmeta.stashmm = parsed_time.mm;
+	stashmeta.stashss = parsed_time.ss;
+
 	let sid = parseInt(stashmeta.stashSubmissionId, 10);
 	stashmeta.stashFileName = deviantArtFileName(stashmeta.stashTitle, stashmeta.stashUserName, sid);
-
-	let timestring = $(sr, 'span[ts]').getAttribute('ts');
-	let time = new Date();
-	time.setTime(`${timestring}000`); //set time by milliseconds
-
-	let pad = (n) => `${n}`.padStart(2, '0');
-	stashmeta.stashYYYY = pad(time.getFullYear());
-	stashmeta.stashMM = pad(time.getMonth() + 1);
-	stashmeta.stashDD = pad(time.getDate());
-	stashmeta.stashhh = pad(time.getHours());
-	stashmeta.stashmm = pad(time.getMinutes());
-	stashmeta.stashss = pad(time.getSeconds());
-
 	//literature
-	if ($(sr, '.journal-wrapper font, .journal-wrapper .text')) {
+	if (sr.deviation.type === 'literature') {
 		if (options.literature === 'html') {
 			progress.say('Creating html');
 			stashmeta.stashExt = 'html';
@@ -581,29 +576,10 @@ async function getStashMeta(sr, meta, options, progress) {
 		}
 		return { stashinfo, stashmeta };
 	}
-	//video
-	let film_player = $(sr, '#gmi-FilmPlayer')
-	if (film_player) {
-		let sources = JSON.parse(film_player.getAttribute('gmon-sources'));
-		let source_list = Object.values(sources);
-		source_list.sort((a, b) => b.height - a.height);
 
-		stashinfo.downloadurl = source_list[0].src;
-		stashmeta.stashExt = /\.(\w+)$/.exec(stashinfo.downloadurl)[1];
+	stashinfo.downloadurl = sr.extended.download.url;
+	stashmeta.stashExt = sr.extended.download.type?.toLowerCase() ?? '';
 
-		return { stashinfo, stashmeta };
-	}
-
-	stashinfo.downloadurl = $(sr, '.dev-page-download').href;
-
-	let nopreview = $(sr, '.nopreview h2');
-	if (nopreview) {
-		stashmeta.stashExt = nopreview.textContent.toLowerCase();
-		return { stashinfo, stashmeta };
-	}
-
-	let dlbuttontext = $(sr, '.dev-page-download .text');
-	stashmeta.stashExt = dlbuttontext.textContent.split(' ')[0].toLowerCase();
 	return { stashinfo, stashmeta };
 }
 
@@ -772,13 +748,15 @@ async function literatureToHtml(r, meta, options) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function stashLiteratureToHtml(sr, meta, options) {
-	let storyelem = $(sr, '.journal-wrapper font, .journal-wrapper .text') || $create('div');
+	let page = await fetcher(sr.deviation.url, 'document');
+
+	let storyelem = $(page, 'section .da-editor-journal > div > div > div, section > div > .legacy-journal') || $create('div');
 	let story = cleanContent(storyelem);
 	story.firstElementChild.id = 'content';
 
 	let words = getElementText(story.cloneNode(true)).replace(/[^\w\s]+/g, '').match(/\w+/g).length;
 
-	let descelem = $(sr, '.dev-description') || $create('div');
+	let descelem = $(page, '[role=complementary] + div .legacy-journal') || $create('div');
 	let description = cleanContent(descelem);
 	description.firstElementChild.id = 'description';
 
@@ -790,7 +768,7 @@ async function stashLiteratureToHtml(sr, meta, options) {
 		story: story.innerHTML,
 		stashDescription: description.innerHTML,
 		wordCount: words,
-		stashUrl: $(sr, 'link[rel=canonical]').href,
+		stashUrl: sr.deviation.url,
 		...meta
 	}
 
@@ -923,19 +901,20 @@ async function literatureToText(r, meta, options) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function stashLiteratureToText(sr, meta, options) {
-	let storyelem = $(sr, '.journal-wrapper font, .journal-wrapper .text') || $create('div');
+	let page = await fetcher(sr.deviation.url, 'document');
+	let storyelem = $(page, 'section .da-editor-journal > div > div > div, section > div > .legacy-journal') || $create('div');
 	let story = getElementText(storyelem);
 
 	let words = story.replace(/[^\w\s]+/g, '').match(/\w+/g).length;
 
-	let descelem = $(sr, '.dev-description') || $create('div');
+	let descelem = $(page, '[role=complementary] + div .legacy-journal') || $create('div');
 	let description = getElementText(descelem);
 
 	let storymeta = {
 		story: story,
 		stashDescription: description,
 		wordCount: words,
-		stashUrl: $(sr, 'link[rel=canonical]').href,
+		stashUrl: sr.deviation.url,
 		...meta
 	}
 
