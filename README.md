@@ -52,11 +52,11 @@ Other:
 [wiki]: https://github.com/solorey/Art-Saver/wiki
 [sites]: https://github.com/solorey/Art-Saver/wiki/Supported-Sites
 
-[addon]: https://addons.mozilla.org/en-US/firefox/addon/art-saver/
+[addon]: https://addons.mozilla.org/firefox/addon/art-saver/
 
 [amo]: https://ffp4g1ylyit3jdyti1hqcvtb-wpengine.netdna-ssl.com/addons/files/2015/11/get-the-addon.png
 
-[px]: https://addons.mozilla.org/en-US/firefox/addon/px-downloader/
+[px]: https://addons.mozilla.org/firefox/addon/px-downloader/
 
 [raccony]: https://github.com/Simon-Tesla/RaccoonyWebEx
 
