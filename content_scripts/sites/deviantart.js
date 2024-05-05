@@ -466,7 +466,7 @@ async function getMeta(r, options, progress) {
 
 	//find stash in description
 	let description = r.extended.descriptionText?.html?.markup ?? "";
-	let matches = description.matchAll(/"(https:\/\/(?:sta\.sh|www.deviantart.com\/stash)\/.+?)"/g);
+	let matches = description.matchAll(/(https:\/\/(?:sta\.sh|www.deviantart.com\/stash)\/.+?)[\s'"]/g);
 	info.stash = [...new Set([...matches].map((m) => m[1]))];
 
 	if (r.isDownloadable) { //the user is cool; downloading full resolution is easy
