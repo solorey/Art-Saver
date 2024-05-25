@@ -35,7 +35,7 @@ async function getUserInfo(user_id) {
 		authorization: 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
 		'x-csrf-token': /ct0=([0-9a-f]+)(?=;|$)/.exec(document.cookie)[1]
 	};
-	let url = `https://${window.document.domain}/i/api/graphql/7mjxD3-C6BxitPMVQ6w0-Q/UserByScreenName?${params}`;
+	let url = `https://${window.location.hostname}/i/api/graphql/7mjxD3-C6BxitPMVQ6w0-Q/UserByScreenName?${params}`;
 	let userresponse = await fetcher(url, 'json', { headers });
 
 	let us = userresponse.data.user.result.legacy;
@@ -70,13 +70,13 @@ async function getUserInfo(user_id) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function userHomeLink(userId) {
-	return `https://${window.document.domain}/${userId}`;
+	return `https://${window.location.hostname}/${userId}`;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function userGalleryLink(userId) {
-	return `https://${window.document.domain}/${userId}/media`;
+	return `https://${window.location.hostname}/${userId}/media`;
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -158,7 +158,7 @@ function checkThumbnails(thumbnails) {
 async function startDownloading(subid, progress) {
 	progress.say('Getting submission');
 	let options = await getOptions('twitter');
-	let pageurl = `https://${window.document.domain}/i/web/status/${subid}`;
+	let pageurl = `https://${window.location.hostname}/i/web/status/${subid}`;
 
 	try {
 		let params = new URLSearchParams({
@@ -183,7 +183,7 @@ async function startDownloading(subid, progress) {
 			authorization: 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
 			'x-csrf-token': /ct0=([0-9a-f]+)(?=;|$)/.exec(document.cookie)[1]
 		};
-		let response = await fetcher(`https://${window.document.domain}/i/api/graphql/N_Am58sJXW8WRV7-cJLWvg/TweetDetail?${params}`, 'json', { headers });
+		let response = await fetcher(`https://${window.location.hostname}/i/api/graphql/N_Am58sJXW8WRV7-cJLWvg/TweetDetail?${params}`, 'json', { headers });
 
 		let tweet;
 		for (let entrie of response.data.threaded_conversation_with_injections.instructions[0].entries) {
