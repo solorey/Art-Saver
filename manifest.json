@@ -37,7 +37,8 @@
 		"*://*.furaffinity.net/*",
 		"*://*.ib.metapix.net/*",
 		"*://*.twitter.com/*",
-		"*://*.twimg.com/"
+		"*://*.twimg.com/",
+		"*://*.x.com/"
 	],
 	"page_action": {
 		"browser_style": false,
@@ -49,7 +50,8 @@
 			"*://*.deviantart.com/*",
 			"*://*.pixiv.net/*",
 			"*://*.inkbunny.net/*",
-			"*://*.twitter.com/*"
+			"*://*.twitter.com/*",
+			"*://*.x.com/*"
 		]
 	},
 	"web_accessible_resources": [
@@ -95,7 +97,8 @@
 		},
 		{
 			"matches": [
-				"*://*.twitter.com/*"
+				"*://*.twitter.com/*",
+				"*://*.x.com/*"
 			],
 			"js": [
 				"content_scripts/sites/twitter.js"
@@ -107,7 +110,8 @@
 				"*://*.deviantart.com/*",
 				"*://*.inkbunny.net/*",
 				"*://*.pixiv.net/*",
-				"*://*.twitter.com/*"
+				"*://*.twitter.com/*",
+				"*://*.x.com/*"
 			],
 			"js": [
 				"background/storagekeys.js",
