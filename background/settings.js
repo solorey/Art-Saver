@@ -222,7 +222,7 @@ const deviantart_options = {
 
 const twitter_info = {
 	site: 'twitter',
-	label: 'Twitter',
+	label: 'X (Twitter)',
 	helplink: 'https://github.com/solorey/Art-Saver/wiki/Twitter',
 	links: {
 		main: 'https://twitter.com',
