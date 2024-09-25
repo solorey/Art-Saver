@@ -1,0 +1,91 @@
+:host > * {
+  z-index: var(--as-z-index, 1);
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.action-button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--as-icon-size);
+  aspect-ratio: 1;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-position: center;
+  background-size: cover;
+  border-width: 0;
+}
+.action-button:not(:disabled) {
+  cursor: pointer;
+}
+.action-button:not(:disabled):hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  background-blend-mode: hard-light;
+}
+.action-button:not(:disabled):active {
+  background-color: rgba(0, 0, 0, 0.25);
+  background-blend-mode: multiply;
+}
+
+.icon-check {
+  border-radius: var(--as-icon-size);
+}
+.icon-check[data-color=green] {
+  background-image: var(--icon-check_green);
+}
+.icon-check[data-color=yellow] {
+  background-image: var(--icon-check_yellow);
+}
+.icon-check:hover, .icon-check:active {
+  background-image: var(--icon-remove);
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: var(--as-screen-display, flex);
+  justify-content: center;
+  align-items: center;
+  background-color: gray;
+  opacity: var(--as-screen-opacity);
+  pointer-events: none;
+}
+.screen::after {
+  content: "";
+  width: 80%;
+  height: 80%;
+  max-width: calc(var(--hem) * 16.6666666667);
+  max-height: calc(var(--hem) * 16.6666666667);
+  background-color: dimgray;
+  mask-image: var(--icon-16-check);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+
+.icon-download {
+  border-radius: calc(var(--as-icon-size) * 0.1875);
+  background-image: var(--icon-download);
+}
+
+.icon-remove {
+  border-radius: var(--as-icon-size);
+  background-image: var(--icon-remove);
+}
+
+.icon-error {
+  border-radius: calc(var(--as-icon-size) * 0.1875);
+  background-image: var(--icon-error);
+}
+
+.icon-loading {
+  border-radius: var(--as-icon-size);
+  background-image: var(--icon-loading);
+  animation-name: rotation;
+  animation-duration: 0.6s;
+  animation-timing-function: steps(12);
+  animation-iteration-count: infinite;
+}

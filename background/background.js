@@ -1,307 +1,239 @@
-browser.runtime.onInstalled.addListener(details => {
-	initalSetup(details);
+"use strict";
+browser.runtime.onInstalled.addListener((details) => {
+    initialBackgroundSetup(details);
 });
-
-async function initalSetup(details) {
-	for (let state of Object.keys(UISTATES)) {
-		setState(state);
-	}
-	await setupOptions();
-	if (details.reason === 'install') {
-		browser.runtime.openOptionsPage();
-	}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function initialBackgroundSetup(details) {
+    await Promise.all([setupStates(), setupOptionsStorage()]);
+    if (details.previousVersion && Number(details.previousVersion.split('.')[0]) < 2) {
+        await upgradeToVersion2();
+    }
+    if (details.reason === 'install') {
+        browser.runtime.openOptionsPage();
+    }
 }
-
 //---------------------------------------------------------------------------------------------------------------------
 // options functions
 //---------------------------------------------------------------------------------------------------------------------
-
-async function updateOldStorage() {
-	browser.storage.local.remove(['popup', 'infobar']);
-	let oldoptions = await browser.storage.local.get('options');
-	if (Object.entries(oldoptions).length > 0) {
-		console.log('Old options exists. Updating option storage')
-		for (let [key, values] of Object.entries(oldoptions.options)) {
-			//console.log(key, values);
-			await browser.storage.local.set(Object.fromEntries([[optionsKey(key), values]]));
-		}
-		await browser.storage.local.remove('options');
-	}
-	let olduserlist = await browser.storage.local.get('userlist');
-	if (Object.entries(olduserlist).length > 0) {
-		console.log('Old userlist exists. Updating saved information storage')
-		for (let [key, values] of Object.entries(olduserlist.userlist)) {
-			//console.log(key, values);
-			await browser.storage.local.set(Object.fromEntries([[savedKey(key), values]]));
-		}
-		await browser.storage.local.remove('userlist');
-	}
-	return;
+async function upgradeToVersion2() {
+    // upgrade storage to lowercase user ids
+    const current_info = await getSavedStorage(SITES);
+    const new_info = {};
+    for (const [site, info] of Object.entries(current_info)) {
+        const users = {};
+        for (const [user, submissions] of Object.entries(info)) {
+            if (submissions && submissions.length > 0) {
+                users[user.toLowerCase()] = submissions;
+            }
+        }
+        if (Object.keys(users).length > 0) {
+            new_info[site] = users;
+        }
+    }
+    await setSavedStorage(new_info);
+    // upgrade metas to new syntax
+    const stored_options = await getOptionsStorage(SITES);
+    const deviantart_keys = [
+        'userFolder',
+        'file',
+        'literatureHTML',
+        'literatureText',
+        'stashFile',
+        'stashLiteratureHTML',
+        'stashLiteratureText',
+    ];
+    const stash_keys = ['stashFile', 'stashLiteratureHTML', 'stashLiteratureText'];
+    const deviantart = stored_options.deviantart;
+    if (deviantart) {
+        for (const key of deviantart_keys) {
+            deviantart[key] = `${deviantart[key] ?? ''}`.replaceAll('{submissionId36}', '{submissionId!b36}');
+        }
+        for (const key of stash_keys) {
+            deviantart[key] = `${deviantart[key] ?? ''}`
+                .replaceAll('{submissionId!b36}', '{submissionId^!b36}')
+                .replaceAll('{urlId}', '{urlId^}')
+                .replaceAll('{stashUrlId}', '{urlId}')
+                .replaceAll('{userName}', '{userName^}')
+                .replaceAll('{stashUserName}', '{userName}')
+                .replaceAll('{title}', '{title^}')
+                .replaceAll('{stashTitle}', '{title}')
+                .replaceAll('{submissionId}', '{submissionId^}')
+                .replaceAll('{stashSubmissionId}', '{submissionId}')
+                .replaceAll('{fileName}', '{fileName^}')
+                .replaceAll('{stashFileName}', '{fileName}')
+                .replaceAll('{ext}', '{ext^}')
+                .replaceAll('{stashExt}', '{ext}')
+                .replaceAll('{YYYY}', '{YYYY^}')
+                .replaceAll('{stashYYYY}', '{YYYY}')
+                .replaceAll('{MM}', '{MM^}')
+                .replaceAll('{stashMM}', '{MM}')
+                .replaceAll('{DD}', '{DD^}')
+                .replaceAll('{stashDD}', '{DD}')
+                .replaceAll('{hh}', '{hh^}')
+                .replaceAll('{stashhh}', '{hh}')
+                .replaceAll('{mm}', '{mm^}')
+                .replaceAll('{stashmm}', '{mm}')
+                .replaceAll('{ss}', '{ss^}')
+                .replaceAll('{stashss}', '{ss}')
+                .replaceAll('{url}', '{url^}')
+                .replaceAll('{stashUrl}', '{url}')
+                .replaceAll('{stashDescription}', '{description}');
+        }
+    }
+    const furaffinity_keys = ['userFolder', 'file'];
+    const furaffinity = stored_options.furaffinity;
+    if (furaffinity) {
+        for (const key of furaffinity_keys) {
+            furaffinity[key] = `${furaffinity[key] ?? ''}`.replaceAll('{userLower}', '{userId}');
+        }
+    }
+    await setOptionsStorage(stored_options);
 }
-
-async function setupOptions() {
-	await updateOldStorage();
-	let allsavedoptions = await browser.storage.local.get(ALLOPTIONSKEYS);
-
-	let initaloptions = {}
-	for (let site of Object.keys(ALLOPTIONS)) {
-		let sitekey = optionsKey(site);
-		initaloptions[sitekey] = {};
-		for (let [key, values] of Object.entries(ALLOPTIONS[site])) {
-			let initialvalue;
-			if (!allsavedoptions[sitekey]) {
-				console.log('New site', site);
-				allsavedoptions[sitekey] = {};
-			}
-			if (![...Object.keys(allsavedoptions[sitekey])].includes(key)) {
-				console.log(`New option ${site}.${key}`);
-				initialvalue = values.default;
-			}
-			else {
-				initialvalue = allsavedoptions[sitekey][key];
-			}
-
-			initaloptions[sitekey][key] = initialvalue;
-		}
-	}
-	await browser.storage.local.set(initaloptions);
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function setupOptionsStorage() {
+    const stored_options = await getOptionsStorage(SITES_AND_GLOBAL);
+    const inital_options = {};
+    for (const site of SITES_AND_GLOBAL) {
+        if (!stored_options[site]) {
+            console.log('New site', site);
+        }
+        const options = {};
+        for (const [key, option] of Object.entries(SITES_AND_GLOBAL_FORMS[site])) {
+            let value = stored_options[site]?.[key];
+            if (typeof value === 'undefined') {
+                console.log(`New option ${site}.${key}`);
+                value = option.default;
+            }
+            options[key] = value;
+        }
+        inital_options[site] = options;
+    }
+    await setOptionsStorage(inital_options);
 }
-
 //---------------------------------------------------------------------------------------------------------------------
 // state functions
 //---------------------------------------------------------------------------------------------------------------------
-
-async function setState(ui) {
-	let statekey = stateKey(ui);
-	let res = await browser.storage.local.get(statekey);
-	let uistate = {};
-	let defaultstate = UISTATES[ui];
-	uistate[statekey] = { ...defaultstate, ...(res[statekey] ?? {}) };
-	browser.storage.local.set(uistate);
+async function setupStates() {
+    const stored_states = await getUIStorage(UIS);
+    const inital_states = {};
+    for (const ui of UIS) {
+        const state = {};
+        for (const [key, value] of Object.entries(UIS_STATES[ui])) {
+            state[key] = stored_states[ui]?.[key] ?? value;
+        }
+        inital_states[ui] = state;
+    }
+    await setUIStorage(inital_states);
 }
-
-async function updateState(ui, component, value) {
-	let statekey = stateKey(ui);
-	let uistate = await browser.storage.local.get(statekey);
-	uistate[statekey][component] = value;
-	browser.storage.local.set(uistate);
-}
-
 //---------------------------------------------------------------------------------------------------------------------
 // message functions
 //---------------------------------------------------------------------------------------------------------------------
-
-browser.runtime.onMessage.addListener(request => {
-	return messageActions(request);
+browser.runtime.onMessage.addListener((message) => {
+    return backgroundMessageActions(message);
 });
-
-async function messageActions(request) {
-	switch (request.function) {
-		case 'blob':
-			let bloburl = URL.createObjectURL(request.blob);
-			return startDownload(bloburl, request.filename, request.meta);
-
-		case 'updatesavedinfo':
-			return updateSavedInfo(request.site, request.user, request.id);
-
-		case 'createobjecturl':
-			return URL.createObjectURL(request.object);
-
-		case 'revokeobjecturl':
-			URL.revokeObjectURL(request.url);
-			return;
-
-		case 'openuserfolder':
-			return openFolder(request.folderFile, request.meta);
-
-		case 'showdownload':
-			return browser.downloads.show(request.id);
-
-		case 'updatestate':
-			return updateState(request.ui, request.component, request.value);
-
-		case 'removeuser':
-			return removeUser(request.site, request.user);
-
-		case 'removesubmission':
-			return removeSubmission(request.site, request.sid);
-	}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function backgroundMessageActions(message) {
+    switch (message.action) {
+        case 'background_download_blob':
+            return downloadBlob(message.blob, message.path);
+        case 'background_create_object_url':
+            return Promise.resolve(URL.createObjectURL(message.object));
+        case 'background_revoke_object_url':
+            return URL.revokeObjectURL(message.url);
+        case 'background_add_submission':
+            return waitAddSubmission(message.site, message.user, message.submission);
+        case 'background_remove_user':
+            return waitRemoveUser(message.site, message.user);
+        case 'background_remove_submission':
+            return waitRemoveSubmission(message.site, message.submission);
+        case 'background_open_user_folder':
+            return openFolder(message.path);
+        case 'background_show_download':
+            return browser.downloads.show(message.id);
+        case 'background_open_popup':
+            return browser.action.openPopup();
+    }
 }
-
 //---------------------------------------------------------------------------------------------------------------------
 // update saved info
 //---------------------------------------------------------------------------------------------------------------------
-
-var updating = false;
-
-async function updateSavedInfo(site, user, sid) {
-	let message;
-	updating = await isUpdating();
-
-	try {
-		let key = savedKey(site);
-		let storage = await browser.storage.local.get(key);
-		let sitesavedinfo = storage[key] ?? {};
-
-		let saved = sitesavedinfo[user] ?? [];
-		saved.push(sid);
-		sitesavedinfo[user] = [...new Set(saved)].sort((a, b) => b - a);
-
-		await browser.storage.local.set(Object.fromEntries([[key, sitesavedinfo]]));
-		message = { response: 'Success', list: sitesavedinfo };
-	}
-	catch (error) {
-		message = { response: 'Failure', error };
-	}
-
-	updating = false;
-	return message;
+var G_updating = false;
+// function to prevent the saved info from updating multiple times at once
+// it could cause some downloaded files to not be added to the list
+async function isUpdating() {
+    while (true) {
+        if (!G_updating) {
+            return true;
+        }
+        await new Promise((resolve) => {
+            setTimeout(resolve, 25);
+        });
+    }
 }
-
-async function removeUser(site, user) {
-	updating = await isUpdating();
-	let key = savedKey(site);
-	let storage = await browser.storage.local.get(key);
-	let sitesavedinfo = storage[key];
-
-	delete sitesavedinfo[user];
-
-	if (Object.keys(sitesavedinfo).length <= 0) {
-		await browser.storage.local.remove(key);
-	}
-	else {
-		await browser.storage.local.set(Object.fromEntries([[key, sitesavedinfo]]));
-	}
-	updating = false;
-	return sitesavedinfo;
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function waitRemoveUser(site, user) {
+    G_updating = await isUpdating();
+    const site_saved = await removeUserStorage(site, user);
+    G_updating = false;
+    return site_saved;
 }
-
-async function removeSubmission(site, sid) {
-	updating = await isUpdating();
-	let key = savedKey(site);
-	let storage = await browser.storage.local.get(key);
-	let sitesavedinfo = storage[key];
-
-	for (let [user, sids] of Object.entries(sitesavedinfo)) {
-		sitesavedinfo[user] = sids.filter(id => id !== sid);
-
-		if (sitesavedinfo[user].length <= 0) {
-			delete sitesavedinfo[user];
-		}
-	}
-	if (Object.keys(sitesavedinfo).length <= 0) {
-		await browser.storage.local.remove(key);
-	}
-	else {
-		await browser.storage.local.set(Object.fromEntries([[key, sitesavedinfo]]));
-	}
-	updating = false;
-	return sitesavedinfo;
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function waitAddSubmission(site, user, submission) {
+    G_updating = await isUpdating();
+    const site_saved = await addSubmissionStorage(site, user, submission);
+    G_updating = false;
+    return site_saved;
 }
-
-//function to prevent the saved info from updating multiple times at once
-//it could cause some downloaded files to not be added to the list
-function isUpdating() {
-	return new Promise((resolve, reject) => {
-		if (!updating) {
-			resolve(true);
-		}
-		else {
-			setTimeout(() => resolve(isUpdating()), 25);
-		}
-	});
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function waitRemoveSubmission(site, submission) {
+    G_updating = await isUpdating();
+    const site_saved = await removeSubmissionStorage(site, submission);
+    G_updating = false;
+    return site_saved;
 }
-
-//---------------------------------------------------------------------------------------------------------------------
-// filename creation
-//---------------------------------------------------------------------------------------------------------------------
-
-//replace illegal filename characters
-function sanitize(text) {
-	return `${text}`
-		.replace(/\\/g, '＼') //\uff3c
-		.replace(/\//g, '／') //\uff0f
-		.replace(/:/g, '：')  //\uff1a
-		.replace(/\*/g, '＊') //\uff0a
-		.replace(/\?/g, '？') //\uff1f
-		.replace(/\"/g, '″')  //\u2033
-		.replace(/</g, '＜')  //\uff1c
-		.replace(/>/g, '＞')  //\uff1e
-		.replace(/\|/g, '｜') //\uff5c
-		.replace(/[\u200e\u200f\u202a-\u202e]/g, ''); //remove bidirectional formatting characters.
-	//Not illegal in windows but firefox errors when trying to download a filename with them.
-}
-
-//create filename by replacing every {info} in the options filename with appropriate meta
-function createFilename(meta, path, replace) {
-	for (let key in meta) {
-		let metavalue = sanitize(meta[key]); //make sure it is a filesafe string
-		if (replace) {
-			metavalue = metavalue.replace(/\s/g, '_');
-		}
-		path = path.replace(RegExp(`{${key}}`, 'g'), metavalue);
-	}
-	//remove trailing whitespace
-	path = path.split('/').map(p => p.trim()).join('/');
-	//make sure no folders end with '.'
-	path = path.replace(/\.\//g, '．/'); //\uff0e
-
-	return path;
-}
-
 //---------------------------------------------------------------------------------------------------------------------
 // downloading functions
 //---------------------------------------------------------------------------------------------------------------------
-
-var currentdownloads = new Map();
-
-async function startDownload(url, filename, meta) {
-	let key = optionsKey('global');
-	let res = await browser.storage.local.get(key);
-	filename = createFilename(meta, filename, res[key].replace);
-	try {
-		let dlid = await browser.downloads.download({ url, filename, conflictAction: res[key].conflict, saveAs: res[key].saveAs });
-		currentdownloads.set(dlid, url);
-		return { response: 'Success', url, filename, id: dlid };
-	}
-	catch (err) {
-		return { response: 'Failure', url, filename, message: err.message };
-	}
+var G_current_downloads = new Map();
+async function downloadBlob(blob, path) {
+    const url = URL.createObjectURL(blob);
+    const stored_global = await getOptionsStorage('global');
+    const download_id = await browser.downloads.download({
+        url,
+        filename: path,
+        conflictAction: stored_global.conflict,
+        saveAs: stored_global.saveAs,
+    });
+    G_current_downloads.set(download_id, url);
+    return download_id;
 }
-
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-function handleChanged(delta) {
-	if (!delta.state || delta.state.current !== 'complete') {
-		return;
-	}
-
-	URL.revokeObjectURL(delta.url);
-	let dlid = delta.id;
-
-	if (folderfiles.has(dlid)) {
-		//Delete the file used to open the folder
-		//and remove from the download history
-		browser.downloads.removeFile(delta.id);
-		browser.downloads.erase({ id: delta.id });
-		folderfiles.delete(dlid);
-	}
-	else if (currentdownloads.has(dlid)) {
-		currentdownloads.delete(dlid);
-	}
+function onDownloadChanged(delta) {
+    if (!delta.state || delta.state.current !== 'complete') {
+        return;
+    }
+    const url = delta.url?.current;
+    if (url) {
+        URL.revokeObjectURL(url);
+    }
+    const download_id = delta.id;
+    if (G_folder_files.has(download_id)) {
+        // delete the file used to open the folder and remove from the download history
+        browser.downloads.removeFile(download_id);
+        browser.downloads.erase({ id: download_id });
+        G_folder_files.delete(download_id);
+    }
+    else if (G_current_downloads.has(download_id)) {
+        G_current_downloads.delete(download_id);
+    }
 }
-
-browser.downloads.onChanged.addListener(handleChanged);
-
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-var folderfiles = new Map();
-
-async function openFolder(filename, meta) {
-	let url = URL.createObjectURL(new Blob(['']));
-	let res = await browser.storage.local.get(optionsKey('global'));
-	filename = createFilename(meta, filename, res.replace);
-	let dlid = await browser.downloads.download({ url, filename, saveAs: false });
-	folderfiles.set(dlid, url);
-	browser.downloads.show(dlid);
+browser.downloads.onChanged.addListener(onDownloadChanged);
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const G_folder_files = new Map();
+async function openFolder(path) {
+    const url = URL.createObjectURL(new Blob(['']));
+    const download_id = await browser.downloads.download({ url, filename: path, saveAs: false });
+    G_folder_files.set(download_id, url);
+    browser.downloads.show(download_id);
 }

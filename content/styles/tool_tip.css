@@ -1,0 +1,48 @@
+.tool-tip {
+  position: absolute;
+  border-radius: calc(var(--hem) * 0.25);
+  overflow: hidden;
+  max-width: 500px;
+  transition: 0.5s ease-in;
+  visibility: hidden;
+  opacity: 0;
+}
+.tool-tip:hover, .tool-tip:active, .tool-tip.show {
+  transition: none;
+  visibility: visible;
+  opacity: 1;
+}
+
+.submission-tip {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  row-gap: 1px;
+  background-color: var(--color-scheme-3);
+  text-align: center;
+}
+.submission-tip > * {
+  padding-inline: calc(var(--hem) * 0.3333333333);
+  padding-block: calc(var(--hem) * 0.0833333333);
+}
+
+.label {
+  background-color: var(--color-scheme-2);
+}
+
+.value {
+  background-color: var(--color-scheme-1);
+}
+
+.submission-value {
+  grid-column: 2/4;
+}
+
+.user-link {
+  text-decoration: none;
+}
+
+.error-tip {
+  background-color: var(--color-scheme-1);
+  padding-inline: calc(var(--hem) * 0.3333333333);
+  padding-block: calc(var(--hem) * 0.0833333333);
+}

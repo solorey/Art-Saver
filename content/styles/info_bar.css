@@ -1,0 +1,263 @@
+@charset "UTF-8";
+.info-bar {
+  position: fixed;
+  bottom: calc(var(--hem) * 0.6666666667);
+  left: calc(var(--hem) * 0.6666666667);
+  width: calc(var(--hem) * 29.1666666667);
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.0549019608);
+  min-width: min-content;
+  border-radius: calc(var(--hem) * 0.25);
+  overflow: hidden;
+  resize: horizontal;
+  visibility: visible;
+  opacity: 1;
+  transition-property: visibility, opacity, bottom;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-out;
+}
+.info-bar.collapsed {
+  bottom: 0;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.stat-bar {
+  grid-template-columns: auto 1fr 1fr;
+  grid-auto-flow: column;
+}
+
+.show-area {
+  position: fixed;
+  bottom: 0;
+  left: calc(var(--hem) * -0.8333333333);
+  width: calc(var(--hem) * 6);
+  height: calc(var(--hem) * 3);
+  border-radius: calc(var(--hem) * 3) calc(var(--hem) * 3) 0 0;
+  overflow: hidden;
+  opacity: 0;
+}
+.show-area:hover {
+  opacity: 1;
+}
+
+.show-tab {
+  position: relative;
+  bottom: calc(var(--hem) * -1.6666666667);
+  padding-block: calc(var(--hem) * 0.25);
+  padding-inline: calc(var(--hem) * 0.75);
+  margin: auto;
+  scale: -1;
+  border-style: none;
+  border-radius: 0 0 calc(var(--hem) * 0.25) calc(var(--hem) * 0.25);
+  opacity: 0.5;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.0549019608);
+  transition-property: opacity, bottom;
+  transition-duration: 0.1s;
+  transition-timing-function: ease-out;
+}
+.show-tab:hover {
+  bottom: calc(var(--hem) * -1.1666666667);
+  opacity: 1;
+}
+
+.collapse {
+  padding-block: calc(var(--hem) * 0.25);
+  padding-inline: calc(var(--hem) * 0.75);
+}
+
+.stat-block {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: calc(var(--hem) * 0.5);
+  padding-block: calc(var(--hem) * 0.25);
+  padding-inline: calc(var(--hem) * 0.75);
+  white-space: nowrap;
+  align-items: center;
+  text-align: start;
+}
+.stat-block::before {
+  content: "▶";
+  font-size: calc(var(--hem) * 0.8333333333);
+  width: 1.5ch;
+}
+.stat-block[data-open]::before {
+  content: "▲";
+}
+
+.stat-value {
+  width: fit-content;
+  border-radius: calc(var(--hem) * 0.25);
+  overflow: hidden;
+  padding-block: calc(var(--hem) * 0.25);
+  padding-inline: calc(var(--hem) * 0.5);
+  font-weight: bold;
+  background-color: var(--color-scheme-2);
+}
+
+.switch {
+  position: relative;
+  transition-property: background-color;
+  transition-duration: 0.2s;
+  background-color: var(--color-scheme-2);
+  width: calc(var(--hem) * 2.6666666667);
+  height: calc(var(--hem) * 1.5);
+  border-radius: calc(var(--hem) * 0.75);
+  background-color: var(--color-scheme-3);
+}
+.switch:hover {
+  background-color: var(--color-scheme-3);
+}
+input:checked + .switch {
+  background-color: var(--color-blue-3);
+}
+label:hover input:checked + .switch {
+  background-color: var(--color-blue-2);
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  background-color: var(--color-scheme-1);
+  transition-property: left;
+  transition-duration: 0.2s;
+  width: var(--hem);
+  aspect-ratio: 1;
+  left: calc(var(--hem) * 0.25);
+  bottom: calc(var(--hem) * 0.25);
+  border-radius: calc(var(--hem) * 0.5);
+}
+input:checked + .switch::after {
+  background-color: white;
+  left: calc(var(--hem) * 1.4166666667);
+}
+.switch:hover {
+  background-color: var(--color-scheme-4);
+}
+
+.list {
+  min-width: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.list-row {
+  display: flex;
+  white-space: nowrap;
+}
+
+.list-row-error {
+  display: grid;
+  grid: "a a" auto "b c" auto/1fr auto;
+  column-gap: 1px;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: var(--color-scheme-1);
+}
+
+.error-message {
+  background-color: var(--color-scheme-2);
+  grid-area: a;
+  padding-block: calc(var(--hem) * 0.0833333333);
+  padding-inline-start: calc(var(--hem) * 0.75);
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.list-row-error:hover .error-message {
+  background-color: var(--color-scheme-3);
+}
+
+.error-submission {
+  grid-area: b;
+  padding-block: calc(var(--hem) * 0.0833333333);
+  padding-inline-start: calc(var(--hem) * 0.75);
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  transition-property: padding-inline-start;
+  transition-duration: 0.2s;
+}
+.list-row-error:hover .error-submission {
+  padding-inline-start: calc(var(--hem) * 1.25);
+  background-color: var(--color-scheme-2);
+}
+
+.error-link {
+  grid-area: c;
+  padding-inline: calc(var(--hem) * 0.3333333333);
+}
+
+.row-label {
+  flex: 1;
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: var(--color-scheme-1);
+  padding-block: calc(var(--hem) * 0.0833333333);
+  padding-inline-start: calc(var(--hem) * 0.75);
+  transition-property: padding-inline-start;
+  transition-duration: 0.2s;
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.list-row:hover .row-label {
+  padding-inline-start: calc(var(--hem) * 1.25);
+  background-color: var(--color-scheme-2);
+}
+
+.row-link {
+  padding-inline: calc(var(--hem) * 0.3333333333);
+  border-style: none;
+}
+
+.bar-switch {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--hem) * 0.5);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.list-bar {
+  display: grid;
+  gap: calc(var(--hem) * 0.5);
+  grid-template-columns: auto 1fr;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  padding-block: calc(var(--hem) * 0.25);
+  padding-inline: calc(var(--hem) * 0.5);
+  background-color: var(--color-scheme-2);
+  align-items: center;
+}
+.list-bar::before {
+  content: "▲";
+  font-size: calc(var(--hem) * 0.8333333333);
+  width: 1.5ch;
+}
+
+.queue {
+  padding-block: calc(var(--hem) * 0.25);
+  padding-inline: calc(var(--hem) * 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--hem) * 0.25);
+  background-color: var(--color-scheme-2);
+}
+
+.queue-stats {
+  display: flex;
+  white-space: nowrap;
+  justify-content: space-evenly;
+  min-width: min-content;
+  gap: calc(var(--hem) * 0.5);
+}
+
+.progress {
+  position: relative;
+}
+
+.folder-path {
+  display: none;
+}
+.show-folders .folder-path {
+  display: initial;
+}

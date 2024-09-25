@@ -1,340 +1,356 @@
-var globalopened = false;
-var globalrunningobservers = [];
-var globalpopupstate;
-
-//---------------------------------------------------------------------------------------------------------------------
-// state functions
-//---------------------------------------------------------------------------------------------------------------------
-
-browser.storage.local.get(optionsKey('global')).then(g => {
-	document.body.className = `artsaver-theme-${g[optionsKey('global')].theme}`;
+"use strict";
+class PopupUserTab {
+    content;
+    page_loading;
+    page_error;
+    error_message;
+    page_info;
+    profile_image;
+    user_name;
+    home_link;
+    gallery_link;
+    favorites_link;
+    user_folder;
+    folder_path;
+    stats;
+    stats_list;
+    saved_details;
+    saved_stat;
+    search_list;
+    constructor() {
+        this.content = document.querySelector('#user-content');
+        this.page_loading = document.querySelector('#user-loading');
+        this.page_error = document.querySelector('#user-error');
+        this.error_message = document.querySelector('#user-error-message');
+        this.page_info = document.querySelector('#user-info');
+        this.profile_image = document.querySelector('#profile-image');
+        this.user_name = document.querySelector('#user-name');
+        this.home_link = document.querySelector('#user-home');
+        this.gallery_link = document.querySelector('#user-gallery');
+        this.favorites_link = document.querySelector('#user-favorites');
+        const user_folder = document.querySelector('#user-folder');
+        user_folder?.addEventListener('click', () => {
+            this.openUserFolder();
+        });
+        this.user_folder = user_folder;
+        this.stats = document.querySelector('#user-stats');
+        this.stats_list = document.querySelector('#user-stats-list');
+        this.saved_stat = document.querySelector('#user-saved-stat');
+        const saved_details = document.querySelector('#user-saved');
+        if (saved_details) {
+            this.search_list = new SearchList(saved_details, createPopupSubmissionRow);
+        }
+        this.saved_details = saved_details;
+    }
+    setUserError(message) {
+        this.error_message?.replaceChildren(message);
+    }
+    setUserInfo(user) {
+        const links = SITES_INFO[user.site].links;
+        this.profile_image?.setAttribute('src', user.icon ?? '');
+        this.user_name?.replaceChildren(user.name);
+        this.home_link?.setAttribute('href', links.user(user.user));
+        this.gallery_link?.setAttribute('href', links.gallery(user.user));
+        this.favorites_link?.setAttribute('href', links.favorites(user.user));
+        const stat_blocks = [...user.stats.entries()].map(([name, value]) => {
+            const stat_block = document.createElement('div');
+            stat_block.classList.add('stat-block');
+            const stat_value = document.createElement('span');
+            stat_value.classList.add('stat-value');
+            stat_value.textContent = value;
+            stat_block.append(name, stat_value);
+            return stat_block;
+        });
+        this.stats?.classList.toggle('hide', stat_blocks.length === 0);
+        this.stats_list?.replaceChildren(...stat_blocks);
+        this.folder_path = user.folder;
+    }
+    setUserSaved(values) {
+        const compare_submissions = typeof values[0] === 'string'
+            ? new Intl.Collator(undefined, { numeric: true }).compare
+            : typeof values[0] === 'number'
+                ? (a, b) => a - b
+                : undefined;
+        const submissions = values.sort(compare_submissions);
+        this.saved_stat?.replaceChildren(`${submissions.length}`);
+        this.search_list?.updateValues(submissions);
+        const has_submissions = values.length > 0;
+        this.saved_details?.classList.toggle('hide', !has_submissions);
+        this.user_folder?.classList.toggle('hide', !has_submissions);
+    }
+    showPage(page) {
+        const pages = {
+            loading: this.page_loading,
+            error: this.page_error,
+            info: this.page_info,
+        };
+        for (const [p, element] of Object.entries(pages)) {
+            element?.classList.toggle('hide', p !== page);
+        }
+    }
+    openUserFolder() {
+        if (!this.folder_path) {
+            return;
+        }
+        browser.runtime.sendMessage({
+            action: 'background_open_user_folder',
+            path: `${this.folder_path}folder_opener.file`,
+        });
+    }
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class PopupSiteTab {
+    tab_id;
+    content;
+    page_loading;
+    page_error;
+    error_message;
+    page_info;
+    refresh_button;
+    saved_stat;
+    download_all_button;
+    downloads_stat;
+    site_name;
+    users_details;
+    users_stat;
+    users_list;
+    submissions_details;
+    submissions_stat;
+    submissions_list;
+    constructor() {
+        this.content = document.querySelector('#site-content');
+        this.page_loading = document.querySelector('#site-loading');
+        this.page_error = document.querySelector('#site-error');
+        this.error_message = document.querySelector('#site-error-message');
+        this.page_info = document.querySelector('#site-info');
+        const refresh_button = document.querySelector('#refresh');
+        refresh_button?.addEventListener('click', () => this.sendMessage('main_refresh'));
+        this.refresh_button = refresh_button;
+        this.saved_stat = document.querySelector('#saved-stat');
+        const download_all_button = document.querySelector('#download-all');
+        download_all_button?.addEventListener('click', () => this.sendMessage('main_download_all'));
+        this.download_all_button = download_all_button;
+        this.downloads_stat = document.querySelector('#downloads-stat');
+        this.site_name = document.querySelector('#stats-site');
+        this.users_stat = document.querySelector('#users-stat-value');
+        const users_details = document.querySelector('#users-details');
+        if (users_details) {
+            this.users_list = new SearchList(users_details, createPopupUserRow);
+        }
+        this.users_details = users_details;
+        this.submissions_stat = document.querySelector('#submissions-stat-value');
+        const submissions_details = document.querySelector('#submissions-details');
+        if (submissions_details) {
+            this.submissions_list = new SearchList(submissions_details, createPopupSubmissionRow);
+        }
+        this.submissions_details = submissions_details;
+    }
+    setSiteError(message) {
+        this.error_message?.replaceChildren(message);
+    }
+    setSiteInfo(tab_id, info, stats) {
+        this.tab_id = tab_id;
+        this.site_name?.replaceChildren(SITES_INFO[info.site].label);
+        this.saved_stat?.replaceChildren(`${stats.checks}`);
+        this.downloads_stat?.replaceChildren(`${stats.downloads}`);
+    }
+    setSiteSaved(values) {
+        const compare_users = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true }).compare;
+        const users = Object.keys(values).sort(compare_users);
+        this.users_list?.updateValues(users);
+        this.users_stat?.replaceChildren(`${users.length}`);
+        const submissions = Object.values(values).flat();
+        const compare_submissions = typeof submissions[0] === 'string'
+            ? new Intl.Collator(undefined, { numeric: true }).compare
+            : typeof submissions[0] === 'number'
+                ? (a, b) => a - b
+                : undefined;
+        submissions.sort(compare_submissions);
+        this.submissions_list?.updateValues(submissions);
+        this.submissions_stat?.replaceChildren(`${submissions.length}`);
+    }
+    showPage(page) {
+        const pages = {
+            loading: this.page_loading,
+            error: this.page_error,
+            info: this.page_info,
+        };
+        for (const [p, element] of Object.entries(pages)) {
+            element?.classList.toggle('hide', p !== page);
+        }
+    }
+    sendMessage(message) {
+        if (typeof this.tab_id === 'undefined') {
+            return;
+        }
+        browser.tabs.sendMessage(this.tab_id, {
+            action: message,
+        });
+    }
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let G_popup_site;
+let G_popup_user;
+const G_popup_user_tab = new PopupUserTab();
+const G_popup_site_tab = new PopupSiteTab();
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(async function () {
+    const popup_state = await getUIStorage('popup');
+    const tab_rank = {
+        about: 0,
+        site: 1,
+        user: 2,
+    };
+    const state_rank = tab_rank[popup_state.tab] ?? 0;
+    openTab('about');
+    const tabs = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+    });
+    const tab_id = tabs[0].id;
+    const tab_url = tabs[0].url;
+    if (typeof tab_id === 'undefined' || !tab_url || !/^https?:\/\//.test(tab_url)) {
+        return;
+    }
+    const art_sites_urls = Object.values(SITES_INFO).map((info) => info.links.main);
+    art_sites_urls.push('https://x.com');
+    if (!art_sites_urls.some((site) => tab_url.startsWith(site))) {
+        return;
+    }
+    G_popup_site_tab.showPage('loading');
+    showTab('site');
+    if (state_rank >= tab_rank.site) {
+        openTab('site');
+    }
+    let tab_data;
+    try {
+        tab_data = await browser.tabs.sendMessage(tab_id, {
+            action: 'main_page_info',
+        });
+    }
+    catch (error) {
+        G_popup_site_tab.setSiteError(`${error}`);
+        G_popup_site_tab.showPage('error');
+        return;
+    }
+    G_popup_site = tab_data.info.site;
+    G_popup_site_tab.setSiteInfo(tab_id, tab_data.info, tab_data.stats);
+    const site_saved = await getSavedStorage(tab_data.info.site);
+    G_popup_site_tab.setSiteSaved(site_saved);
+    G_popup_site_tab.showPage('info');
+    if (!tab_data.info.user) {
+        return;
+    }
+    G_popup_user = tab_data.info.user;
+    G_popup_user_tab.showPage('loading');
+    showTab('user');
+    if (state_rank >= tab_rank.user) {
+        openTab('user');
+    }
+    let user;
+    try {
+        user = await browser.tabs.sendMessage(tab_id, {
+            action: 'main_user_info',
+            user: tab_data.info.user,
+        });
+    }
+    catch (error) {
+        G_popup_user_tab.setUserError(`${error}`);
+        G_popup_user_tab.showPage('error');
+        return;
+    }
+    G_popup_user_tab.setUserInfo(user);
+    G_popup_user_tab.setUserSaved(site_saved[user.user] ?? []);
+    G_popup_user_tab.showPage('info');
+})();
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+getOptionsStorage('global').then((global_options) => {
+    document.body.setAttribute('data-theme', global_options.theme);
 });
-browser.storage.local.get(stateKey('popup')).then(s => globalpopupstate = s[stateKey('popup')]);
-
-function updateState(component, value) {
-	globalpopupstate[component] = value;
-	browser.runtime.sendMessage({
-		function: 'updatestate',
-		ui: 'popup',
-		component,
-		value
-	});
-}
-
-//---------------------------------------------------------------------------------------------------------------------
-// page information
-//---------------------------------------------------------------------------------------------------------------------
-
-async function getPageInfo() {
-	let tabs = await browser.tabs.query({
-		active: true,
-		currentWindow: true
-	});
-	let id = tabs[0].id;
-
-	send(id, 'sitestats');
-
-	$('#download-all').onclick = () => send(id, 'downloadall');
-	$('#recheck').onclick = () => send(id, 'recheck');
-}
-
-getPageInfo();
-
 //---------------------------------------------------------------------------------------------------------------------
 // message send/listen functions
 //---------------------------------------------------------------------------------------------------------------------
-
-function send(id, message) {
-	browser.tabs.sendMessage(id, {
-		command: message,
-	}).catch(() => {
-		openTab('unsupported-content');
-	});
-}
-
-browser.runtime.onMessage.addListener(request => {
-	messageActions(request);
+browser.storage.local.onChanged.addListener((changes) => {
+    const global_options_values = changes[optionsKey('global')]?.newValue;
+    if (global_options_values) {
+        document.body.setAttribute('data-theme', global_options_values.theme);
+    }
+    if (!G_popup_site) {
+        return;
+    }
+    const site_saved_changed = changes[savedKey(G_popup_site)];
+    if (!site_saved_changed) {
+        return;
+    }
+    const site_saved_values = site_saved_changed.newValue ?? {};
+    G_popup_site_tab.setSiteSaved(site_saved_values);
+    if (!G_popup_user) {
+        return;
+    }
+    const saved_changed = site_saved_values[G_popup_user];
+    if (!saved_changed) {
+        return;
+    }
+    G_popup_user_tab.setUserSaved(saved_changed);
 });
-
-async function messageActions(request) {
-	let savedkey = savedKey(request.site);
-	let sitekey = optionsKey(request.site);
-
-	let res = await browser.storage.local.get([savedkey, sitekey]);
-
-	switch (request.function) {
-		case 'sitestats':
-			siteStats(request, res[savedkey] ?? {});
-			break;
-
-		case 'siteerror':
-			setSiteError();
-			break;
-
-		case 'userstats':
-			request.user.saved = res[savedkey]?.[request.user.id] ?? [];
-			userStats(request.user, res[sitekey]);
-			break;
-
-		case 'usererror':
-			setUserError();
-			break;
-	}
-}
-
 //---------------------------------------------------------------------------------------------------------------------
 // tabs
 //---------------------------------------------------------------------------------------------------------------------
-
-function openTab(tab) {
-	$$('.tabs > button').forEach(t => t.classList.remove('active'));
-	$$('.tab-content').forEach(t => t.classList.add('hide'));
-
-	let tabbutton = $(`.tabs > button[data-tab="${tab}"]`);
-	if (tabbutton) {
-		tabbutton.classList.add('active');
-	}
-	$(`#${tab}`).classList.remove('hide')
+function showTab(tab) {
+    document.querySelector(`[data-tab="${tab}"]`)?.classList.remove('hide');
 }
-
-openTab('site-content');
-
-for (let t of $$('.tabs > button[data-tab]')) {
-	t.onclick = function () {
-		let tab = this.getAttribute('data-tab');
-
-		openTab(tab);
-
-		switch (tab) {
-			case 'user-content':
-				updateState('tab', 'user');
-				break;
-
-			case 'site-content':
-				updateState('tab', 'site');
-				break;
-		}
-	};
-}
-
-$('#settings-tab').onclick = () => browser.runtime.openOptionsPage();
-
-//---------------------------------------------------------------------------------------------------------------------
-// download all button
-//---------------------------------------------------------------------------------------------------------------------
-
-function toggleDownload() {
-	let lock = $('#download-lock');
-	let bolt = $('#download-bolt');
-	let dlall = $('#download-all');
-
-	if (lock.getAttribute('data-toggle') === 'closed') {
-		lock.setAttribute('data-toggle', 'open');
-		bolt.className = 'icon-lock-open';
-		dlall.removeAttribute('disabled');
-		return false;
-	}
-	else {
-		lock.setAttribute('data-toggle', 'closed');
-		bolt.className = 'icon-lock-closed';
-		dlall.setAttribute('disabled', true);
-		return true;
-	}
-}
-
-$('#download-lock').onclick = () => {
-	updateState('downloadLock', toggleDownload());
-};
-
-//---------------------------------------------------------------------------------------------------------------------
-// site
-//---------------------------------------------------------------------------------------------------------------------
-
-function siteStats(request, sitelist) {
-	globalrunningobservers.forEach(ob => ob.disconnect());
-	globalrunningobservers = [];
-	openTab('site-content');
-
-	$('#site-tab').classList.remove('hide');
-	$('#stats-site').textContent = SITEINFO[request.site].label;
-
-	$('#downloads-stat').textContent = request.total.downloads;
-	if (!globalpopupstate.downloadLock) {
-		$('#download-lock').setAttribute('data-toggle', 'open');
-		$('#download-bolt').className = 'icon-lock-open';
-		$('#download-all').removeAttribute('disabled');
-	}
-	$('#saved-stat').textContent = request.total.saved;
-
-	let savedstats = {
-		user: [...new Set(Object.keys(sitelist))].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })),
-		submission: [...new Set(Object.values(sitelist).flat())].sort((a, b) => b - a)
-	};
-
-	let createrows = {
-		user: (u) => createUserRow(request.site, u),
-		submission: (s) => createSubmissionRow(request.site, s)
-	};
-
-	for (let [stat, list] of Object.entries(savedstats)) {
-		let rowelem = $(`#total-${stat}s`);
-		let listelem = $(`#${stat}-list`);
-
-		$(rowelem, '.badge').textContent = list.length;
-		rowelem.className = list.length > 0 ? 'stat-button' : 'stat-row';
-
-		if (list.length > 0) {
-			let searchbox = $(listelem, '.search-box');
-			let list = new VirtualList($(listelem, '.list-box'), searchResult(searchbox, savedstats[stat]), createrows[stat]);
-			setupSearch(list, searchbox, savedstats[stat]);
-
-			rowelem.onclick = function () {
-				classToggle(!listelem.classList.toggle('hide'), this, 'active');
-			};
-		}
-	}
-
-	let ul = $('#user-list .list-box');
-	let srow = $('#submission-list');
-	let sl = $('#submission-list .list-box');
-
-	let resize = new ResizeObserver(() => {
-		let sblock = srow.classList.contains('hide') ? 45 : 0;
-		ul.style.maxHeight = `${600 - ul.offsetTop - sblock}px`;
-		sl.style.maxHeight = `${600 - sl.offsetTop}px`;
-	});
-	globalrunningobservers.push(resize);
-	resize.observe(ul);
-	resize.observe(sl);
-
-	$('#site-loading').classList.add('hide');
-	$('#site-info').classList.remove('hide');
-
-	if (request.hasuser && !globalopened) {
-		$('#user-tab').classList.remove('hide');
-		let link = $('#user-error-link')
-		link.textContent = request.user.id;
-		link.href = request.user.link;
-		if (globalpopupstate['tab'] === 'user') {
-			openTab('user-content');
-		}
-		globalopened = true;
-	}
-}
-
-function setSiteError() {
-	$('#site-tab').classList.remove('hide');
-	$('#site-loading').classList.add('hide');
-	$('#site-info').classList.add('hide');
-	$('#site-error').classList.remove('hide');
-}
-
-function createUserRow(site, reguser) {
-	let links = SITEINFO[site].links;
-
-	let row = $('#user-row-template').content.cloneNode(true);
-	let spans = $$(row, 'span')
-	spans[0].textContent = reguser[1];
-	spans[1].textContent = reguser[reguser.length - 1];
-	$(row, 'strong').textContent = reguser[2];
-
-	let alinks = $$(row, 'a');
-	alinks[0].href = links.user(reguser[0]);
-	alinks[1].href = links.gallery(reguser[0]);
-	alinks[2].href = links.favorites(reguser[0]);
-	return row.firstElementChild;
-}
-
-function createSubmissionRow(site, regsubmission) {
-	let links = SITEINFO[site].links;
-
-	let row = $('#submission-row-template').content.cloneNode(true);
-	let spans = $$(row, 'span')
-	spans[0].textContent = regsubmission[1];
-	spans[1].textContent = regsubmission[regsubmission.length - 1];
-	$(row, 'strong').textContent = regsubmission[2];
-
-	$(row, 'a').href = links.submission(regsubmission[0]);
-	return row.firstElementChild;
-}
-
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-function userStats(user, siteoptions) {
-	$('#user-loading').classList.add('hide');
-
-	$('#profile-cover').style.width = 'auto';
-
-	let pic = $('#profile-pic');
-	//make sure user icon url provided by the site is safe to display in the popup
-	//using DOMPurify as recommended by Mozilla
-	pic.src = DOMPurify.sanitize(user.icon);
-
-	let username = $('#user-name');
-	username.textContent = user.name;
-
-	let links = SITEINFO[user.site].links
-	$('#user-home').href = links.user(user.id);
-	$('#user-gallery').href = links.gallery(user.id);
-	$('#user-favorites').href = links.favorites(user.id);
-
-	let userstats = $('#user-stats');
-	$$(userstats, '.header ~ .stat-row').forEach(row => $remove(row));
-
-	let userprofile = $('#user-info');
-
-	classToggle(user.stats.size <= 0, userprofile, 'no-stats');
-	if (user.stats.size > 0) {
-		$(userstats, '.header').classList.remove('hide');
-
-		for (let [stat, value] of user.stats.entries()) {
-			let row = $insert(userstats, 'div', { class: 'stat-row' });
-			row.insertAdjacentText('afterbegin', stat);
-			$insert(row, 'span', { class: 'badge', text: value });
-		}
-	}
-
-	userstats.classList.remove('hide');
-
-	$('#user-loading').classList.add('hide');
-	$('#user-info').classList.remove('hide');
-
-	if (user.saved.length <= 0) {
-		if (user.stats.size <= 0) {
-			userstats.classList.add('hide');
-		}
-		return;
-	}
-
-	let savedelem = $('#total-saved');
-	$(savedelem, '.badge').textContent = user.saved.length;
-	savedelem.classList.remove('hide');
-
-	let listbox = $('#saved-list .list-box');
-	let searchbox = $('#saved-list .search-box');
-
-	listbox.style.maxHeight = `${600 - (userprofile.offsetTop + userprofile.offsetHeight + 29)}px`;
-
-	let list = new VirtualList(listbox, searchResult(searchbox, user.saved), (s) => createSubmissionRow(user.site, s));
-	setupSearch(list, searchbox, user.saved);
-
-	savedelem.onclick = function () {
-		classToggle(!$('#saved-list').classList.toggle('hide'), this, 'active');
-	};
-
-	let folderelem = $('#user-folder');
-	folderelem.classList.remove('hide');
-	folderelem.onclick = () => {
-		browser.runtime.sendMessage({
-			function: 'openuserfolder',
-			folderFile: `${siteoptions.userFolder}folderopener.file`,
-			meta: user.folderMeta
-		});
-	};
+function openTab(content) {
+    document.querySelectorAll('[data-tab]').forEach((tab) => tab.classList.remove('active'));
+    document.querySelectorAll('[data-tab-content]').forEach((content) => content.classList.add('hide'));
+    document.querySelector(`[data-tab="${content}"]`)?.classList.add('active');
+    document.querySelector(`#${content}-content`)?.classList.remove('hide');
 }
-
-function setUserError() {
-	$('#user-loading').classList.add('hide');
-	$('#user-info').classList.add('hide');
-	$('#user-error').classList.remove('hide');
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+document.querySelectorAll('[data-tab]').forEach((tab) => {
+    tab.addEventListener('click', function () {
+        const content = this.getAttribute('data-tab');
+        if (content) {
+            openTab(content);
+            updateUIStorage('popup', { tab: content });
+        }
+    });
+});
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+document.querySelector('#settings-tab')?.addEventListener('click', () => {
+    browser.runtime.openOptionsPage();
+});
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function createPopupUserRow(search) {
+    const fallback = document.createElement('div');
+    if (!G_popup_site) {
+        return fallback;
+    }
+    const links = SITES_INFO[G_popup_site].links;
+    const template = cloneTemplate('#user-row-template');
+    const label = template?.querySelector('[data-label]');
+    const strong = document.createElement('strong');
+    strong.append(search.value.substring(search.start, search.end));
+    label?.append(search.value.substring(0, search.start), strong, search.value.substring(search.end));
+    template?.querySelector('[data-user-link]')?.setAttribute('href', links.user(search.value));
+    template?.querySelector('[data-gallery-link]')?.setAttribute('href', links.gallery(search.value));
+    template?.querySelector('[data-favorites-link]')?.setAttribute('href', links.favorites(search.value));
+    return template.querySelector('[data-row]') ?? fallback;
 }
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function createPopupSubmissionRow(search) {
+    const fallback = document.createElement('div');
+    if (!G_popup_site) {
+        return fallback;
+    }
+    const links = SITES_INFO[G_popup_site].links;
+    const template = cloneTemplate('#submission-row-template');
+    const label = template?.querySelector('[data-label]');
+    const strong = document.createElement('strong');
+    strong.append(search.value.substring(search.start, search.end));
+    label?.append(search.value.substring(0, search.start), strong, search.value.substring(search.end));
+    template?.querySelector('[data-submission-link]')?.setAttribute('href', links.submission(search.value));
+    return template.querySelector('[data-row]') ?? fallback;
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+document.querySelector('#version-number')?.append(`v${browser.runtime.getManifest().version}`);

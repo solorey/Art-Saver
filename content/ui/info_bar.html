@@ -1,0 +1,93 @@
+<div id="info-bar" class="info-bar themed border-grid color-scheme-base collapsed" data-theme="preferred">
+    <template id="submission-row-template">
+        <div class="list-row">
+            <div class="row-label" data-label></div>
+            <a
+                class="row-link clickable"
+                data-flat-icon="12-image"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open submission page"
+                data-link
+            ></a>
+        </div>
+    </template>
+    <template id="file-row-template">
+        <div class="list-row">
+            <div class="row-label" data-label></div>
+            <button class="row-link" data-flat-icon="12-folder" data-show></button>
+        </div>
+    </template>
+    <template id="error-row-template">
+        <div class="list-row-error">
+            <div class="error-message" data-message></div>
+            <div class="error-submission" data-submission></div>
+            <a
+                class="error-link row-link clickable"
+                data-flat-icon="12-image"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open submission page"
+                data-link
+            ></a>
+        </div>
+    </template>
+    <div id="submissions" class="list-box border-grid hide">
+        <div id="list-submissions" class="list"></div>
+        <div class="list-bar">Submissions</div>
+    </div>
+    <div id="files" class="list-box border-grid hide">
+        <div id="list-files" class="list"></div>
+        <div class="list-bar">
+            Files
+            <label class="bar-switch">
+                <input id="folder-switch" class="hide" type="checkbox" />
+                <div class="switch"></div>
+                Show folders
+            </label>
+        </div>
+    </div>
+    <div id="errors" class="list-box border-grid hide">
+        <div id="list-errors" class="list list-errors color-scheme-error"></div>
+        <div class="list-bar">Errors</div>
+    </div>
+    <div id="stat-bar" class="stat-bar border-grid">
+        <button id="collapse" class="collapse" data-flat-icon="16-collapse"></button>
+        <button id="submissions-stat" class="stat-block">
+            Submissions
+            <span id="stat-submissions" class="stat-value">0</span>
+        </button>
+        <button id="files-stat" class="stat-block">
+            Files
+            <span id="stat-files" class="stat-value">0</span>
+        </button>
+        <button id="errors-stat" class="stat-block color-scheme-error hide">
+            Errors
+            <span id="stat-errors" class="stat-value">0</span>
+        </button>
+    </div>
+    <div id="queue" class="queue hide">
+        <div id="queue-stats" class="queue-stats">
+            <div class="queue-stat">
+                <span id="stat-downloading">0</span>
+                downloading
+            </div>
+            <div class="queue-stat">
+                <span id="stat-progress">0</span>
+                in progress
+            </div>
+            <div id="queued-stat" class="queue-stat hide">
+                <span id="stat-queued">0</span>
+                in queue
+            </div>
+        </div>
+        <div class="progress">
+            <div id="progress-bar" class="progress-bar">
+                <div id="progress-label" class="progress-label"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="show-area" class="show-area colors themed color-scheme-base" data-theme="preferred">
+    <button id="show-tab" class="show-tab" data-flat-icon="16-collapse"></button>
+</div>

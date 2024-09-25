@@ -1,127 +1,99 @@
 {
-	"manifest_version": 2,
-	"name": "Art Saver",
-	"version": "1.7.18",
-	"description": "Easily download and track downloads in supported art gallery websites.",
-	"browser_specific_settings": {
-		"gecko": {
-			"strict_min_version": "79.0"
-		}
-	},
-	"options_ui": {
-		"open_in_tab": true,
-		"page": "options/options.html"
-	},
-	"background": {
-		"scripts": [
-			"background/storagekeys.js",
-			"background/settings.js",
-			"background/background.js"
-		]
-	},
-	"icons": {
-		"16": "icons/icon_16.svg",
-		"48": "icons/icon.svg"
-	},
-	"permissions": [
-		"downloads",
-		"storage",
-		"*://*.pximg.net/*",
-		"*://sta.sh/*",
-		"*://api-da.wixmp.com/*",
-		"*://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/*",
-		"*://wixmp-ed30a86b8c4ca887773594c2.wixmp.com/",
-		"*://*.deviantart.net/*",
-		"*://*.deviantart.com/*",
-		"*://d.facdn.net/*",
-		"*://*.furaffinity.net/*",
-		"*://*.ib.metapix.net/*",
-		"*://*.twitter.com/*",
-		"*://*.twimg.com/",
-		"*://*.x.com/"
-	],
-	"page_action": {
-		"browser_style": false,
-		"default_icon": "icons/icon_16.svg",
-		"default_title": "Art Saver",
-		"default_popup": "popup/popup.html",
-		"show_matches": [
-			"*://*.furaffinity.net/*",
-			"*://*.deviantart.com/*",
-			"*://*.pixiv.net/*",
-			"*://*.inkbunny.net/*",
-			"*://*.twitter.com/*",
-			"*://*.x.com/*"
-		]
-	},
-	"web_accessible_resources": [
-		"workers/fileworker.js",
-		"workers/stashworker.js",
-		"workers/downloadworker.js",
-		"content_ui/tooltip.html",
-		"content_ui/infobar.html"
-	],
-	"content_scripts": [
-		{
-			"matches": [
-				"*://*.furaffinity.net/*"
-			],
-			"js": [
-				"content_scripts/sites/furaffinity.js"
-			]
-		},
-		{
-			"matches": [
-				"*://*.deviantart.com/*"
-			],
-			"js": [
-				"lib/purify.min.js",
-				"content_scripts/sites/deviantart.js"
-			]
-		},
-		{
-			"matches": [
-				"*://*.pixiv.net/*"
-			],
-			"js": [
-				"content_scripts/sites/pixiv.js"
-			]
-		},
-		{
-			"matches": [
-				"*://*.inkbunny.net/*"
-			],
-			"js": [
-				"content_scripts/sites/inkbunny.js"
-			]
-		},
-		{
-			"matches": [
-				"*://*.twitter.com/*",
-				"*://*.x.com/*"
-			],
-			"js": [
-				"content_scripts/sites/twitter.js"
-			]
-		},
-		{
-			"matches": [
-				"*://*.furaffinity.net/*",
-				"*://*.deviantart.com/*",
-				"*://*.inkbunny.net/*",
-				"*://*.pixiv.net/*",
-				"*://*.twitter.com/*",
-				"*://*.x.com/*"
-			],
-			"js": [
-				"background/storagekeys.js",
-				"general_scripts/selectors.js",
-				"content_scripts/classes.js",
-				"content_scripts/main.js"
-			],
-			"css": [
-				"css/style.css"
-			]
-		}
-	]
+    "manifest_version": 3,
+    "name": "Art Saver",
+    "version": "2.0.0",
+    "description": "Easily download and track downloads in supported art gallery websites.",
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{d1af7113-37c0-495e-8396-ee18861346c7}",
+            "strict_min_version": "109.0"
+        }
+    },
+    "options_ui": {
+        "page": "options/options.html",
+        "open_in_tab": true
+    },
+    "background": {
+        "scripts": [
+            "scripts/storage.js",
+            "background/sites/deviantart.js",
+            "background/sites/twitter.js",
+            "background/sites/pixiv.js",
+            "background/sites/furaffinity.js",
+            "background/sites/inkbunny.js",
+            "background/settings.js",
+            "background/background.js"
+        ]
+    },
+    "icons": {
+        "16": "icons/icon_16.svg",
+        "48": "icons/icon.svg"
+    },
+    "action": {
+        "default_popup": "/popup/popup.html"
+    },
+    "commands": {
+        "_execute_action": {
+            "suggested_key": {},
+            "description": "Activate toolbar button"
+        }
+    },
+    "permissions": ["downloads", "storage"],
+    "host_permissions": ["*://*/*"],
+    "web_accessible_resources": [
+        {
+            "resources": ["icons/*", "content/ui/*", "content/styles/*", "styles/*", "workers/*"],
+            "matches": [
+                "*://*.deviantart.com/*",
+                "*://*.twitter.com/*",
+                "*://*.x.com/*",
+                "*://*.pixiv.net/*",
+                "*://*.furaffinity.net/*",
+                "*://*.inkbunny.net/*"
+            ]
+        }
+    ],
+    "content_scripts": [
+        {
+            "matches": ["*://*.deviantart.com/*"],
+            "js": [
+                "lib/purify.min.js",
+                "lib/UZIP.js",
+                "background/sites/deviantart.js",
+                "content/scripts/sites/deviantart.js"
+            ]
+        },
+        {
+            "matches": ["*://*.twitter.com/*", "*://*.x.com/*"],
+            "js": ["background/sites/twitter.js", "content/scripts/sites/twitter.js"]
+        },
+        {
+            "matches": ["*://*.pixiv.net/*"],
+            "js": ["background/sites/pixiv.js", "content/scripts/sites/pixiv.js"]
+        },
+        {
+            "matches": ["*://*.furaffinity.net/*"],
+            "js": ["background/sites/furaffinity.js", "content/scripts/sites/furaffinity.js"]
+        },
+        {
+            "matches": ["*://*.inkbunny.net/*"],
+            "js": ["background/sites/inkbunny.js", "content/scripts/sites/inkbunny.js"]
+        },
+        {
+            "matches": [
+                "*://*.deviantart.com/*",
+                "*://*.twitter.com/*",
+                "*://*.x.com/*",
+                "*://*.pixiv.net/*",
+                "*://*.furaffinity.net/*",
+                "*://*.inkbunny.net/*"
+            ],
+            "js": [
+                "scripts/storage.js",
+                "scripts/shortcuts.js",
+                "content/scripts/classes.js",
+                "content/scripts/main.js"
+            ]
+        }
+    ]
 }

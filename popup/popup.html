@@ -1,174 +1,337 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Art Saver Popup</title>
+        <link rel="stylesheet" href="/styles/page.css" type="text/css" />
+        <link rel="stylesheet" href="/styles/colors.css" type="text/css" />
+        <link rel="stylesheet" href="/styles/common.css" type="text/css" />
+        <link rel="stylesheet" href="popup.css" />
+        <script defer src="/lib/purify.min.js"></script>
+        <script defer src="/scripts/storage.js"></script>
+        <script defer src="/background/sites/deviantart.js"></script>
+        <script defer src="/background/sites/twitter.js"></script>
+        <script defer src="/background/sites/pixiv.js"></script>
+        <script defer src="/background/sites/furaffinity.js"></script>
+        <script defer src="/background/sites/inkbunny.js"></script>
+        <script defer src="/background/settings.js"></script>
+        <script defer src="/scripts/templates.js"></script>
+        <script defer src="/scripts/virtual_list.js"></script>
+        <script defer src="popup.js"></script>
+    </head>
 
-<head>
-	<meta charset="utf-8">
-	<title>Art Saver Popup</title>
-	<link rel="stylesheet" href="popup.css" />
-	<link rel="stylesheet" href="/css/iconfont.css" />
-	<script defer src="/lib/purify.min.js"></script>
-	<script defer src="/background/storagekeys.js"></script>
-	<script defer src="/background/settings.js"></script>
-	<script defer src="/general_scripts/selectors.js"></script>
-	<script defer src="/general_scripts/virtuallist.js"></script>
-	<script defer src="popup.js"></script>
-</head>
+    <body class="themed color-scheme-base" data-theme="preferred">
+        <template id="user-row-template">
+            <div class="list-row" data-row>
+                <div class="row-label" data-label></div>
+                <a
+                    class="row-link clickable"
+                    data-flat-icon="12-home"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open user page"
+                    data-user-link
+                ></a>
+                <a
+                    class="row-link clickable"
+                    data-flat-icon="12-gallery"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open gallery page"
+                    data-gallery-link
+                ></a>
+                <a
+                    class="row-link clickable"
+                    data-flat-icon="12-star"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open favorites page"
+                    data-favorites-link
+                ></a>
+            </div>
+        </template>
+        <template id="submission-row-template">
+            <div class="list-row" data-row>
+                <div class="row-label" data-label></div>
+                <a
+                    class="row-link clickable"
+                    data-flat-icon="12-image"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open submission page"
+                    data-submission-link
+                ></a>
+            </div>
+        </template>
 
-<body class="artsaver-theme-preferred">
-	<template id="user-row-template">
-		<div class="list-row">
-			<div class="row-label">
-				<span></span><strong></strong><span></span>
-			</div>
-			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open user page">
-				<i class="icon-home"></i>
-			</a>
-			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open gallery page">
-				<i class="icon-gallery"></i>
-			</a>
-			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open favorites page">
-				<i class="icon-star"></i>
-			</a>
-		</div>
-	</template>
-	<template id="submission-row-template">
-		<div class="list-row">
-			<div class="row-label">
-				<span></span><strong></strong><span></span>
-			</div>
-			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open submission page">
-				<i class="icon-link"></i>
-			</a>
-		</div>
-	</template>
-	<div id="popup-container">
-		<div class="tabs">
-			<button id="user-tab" class="tab-button hide" data-tab="user-content" title="User stats">
-				<i class="icon-user"></i>
-			</button>
-			<button id="site-tab" class="tab-button hide" data-tab="site-content" title="Page and Site stats">
-				<i class="icon-stats"></i>
-			</button>
-			<button id="settings-tab" class="tab-button" title="Go to options page">
-				<i class="icon-gear"></i>
-			</button>
-		</div>
+        <header class="header">
+            <nav class="tabs">
+                <button
+                    id="user-tab"
+                    class="tab-button hide"
+                    data-flat-icon="16-user"
+                    data-tab="user"
+                    title="User stats"
+                ></button>
+                <button
+                    id="site-tab"
+                    class="tab-button hide"
+                    data-flat-icon="16-stats"
+                    data-tab="site"
+                    title="Page and Site stats"
+                ></button>
+                <button
+                    id="about-tab"
+                    class="tab-button"
+                    data-flat-icon="16-addon"
+                    data-tab="about"
+                    title="About Art Saver"
+                ></button>
+                <button
+                    id="settings-tab"
+                    class="tab-button"
+                    data-flat-icon="16-gear"
+                    title="Go to options page"
+                ></button>
+            </nav>
+        </header>
+        <main class="main">
+            <section id="user-content" class="tab-content" data-tab-content>
+                <div id="user-loading" class="content-loading hide">
+                    <img src="/icons/loading.svg" class="loading-icon" width="16" height="16" />
+                    Getting user information...
+                </div>
+                <div id="user-error" class="content-error color-scheme-warning hide">
+                    Unable to get user information.
+                    <hr class="line-break" />
+                    <span id="user-error-message"></span>
+                </div>
+                <div id="user-info" class="content-info border-grid hide">
+                    <div class="user-profile border-grid">
+                        <div id="profile-cover" class="profile-cover">
+                            <img id="profile-image" class="profile-image" alt="Profile picture" />
+                            <h2 id="user-name" class="user-name"></h2>
+                            <div id="user-buttons" class="user-buttons">
+                                <a
+                                    id="user-home"
+                                    class="user-button clickable"
+                                    data-flat-icon="12-home"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Open user page"
+                                ></a>
+                                <a
+                                    id="user-gallery"
+                                    class="user-button clickable"
+                                    data-flat-icon="12-gallery"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Open gallery page"
+                                ></a>
+                                <a
+                                    id="user-favorites"
+                                    class="user-button clickable"
+                                    data-flat-icon="12-star"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Open favorites page"
+                                ></a>
+                                <button
+                                    id="user-folder"
+                                    class="user-button hide"
+                                    data-flat-icon="12-folder"
+                                    title="Open user folder"
+                                ></button>
+                            </div>
+                        </div>
+                        <div id="user-stats">
+                            <div class="stat-header">User stats</div>
+                            <div id="user-stats-list" class="user-stats-list border-grid"></div>
+                        </div>
+                    </div>
+                    <details id="user-saved" class="saved-details hide">
+                        <summary class="saved-summary clickable">
+                            Saved
+                            <span id="user-saved-stat" class="stat-value">-</span>
+                        </summary>
+                        <div id="saved-list" class="info-box border-grid">
+                            <div class="search-box">
+                                <div class="search-controls border-grid">
+                                    <input class="search-input" type="text" placeholder="Search saved" data-search />
+                                    <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                                    <label
+                                        class="search-flag clickable"
+                                        data-flat-icon="16-match_case"
+                                        title="Match case"
+                                    >
+                                        <input type="checkbox" data-match-case />
+                                    </label>
+                                    <label
+                                        class="search-flag clickable"
+                                        data-flat-icon="16-match_whole"
+                                        title="Match whole word"
+                                    >
+                                        <input type="checkbox" data-match-whole />
+                                    </label>
+                                    <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                                        <input type="checkbox" data-use-regex />
+                                    </label>
+                                    <button
+                                        class="search-sort"
+                                        data-flat-icon="16-ascend"
+                                        title="Sorted by ascending"
+                                        data-sort="ascend"
+                                    ></button>
+                                </div>
+                            </div>
+                            <div class="list-box" data-list></div>
+                        </div>
+                    </details>
+                </div>
+            </section>
 
-		<div id="user-content" class="tab-content hide">
-			<div id="user-loading" class="content-loading">
-				<img src="/icons/loading.svg" class="loading-icon" width="16" height="16">
-				Getting user information...
-			</div>
-			<div id="user-error" class="content-error hide">
-				Unable to get user information.
-				<div class="linebreak"></div>
-				<div>Does the user <a id="user-error-link" target="_blank" rel="noopener noreferrer"></a> exist?</div>
-			</div>
-			<div id="user-info" class="hide">
-				<div id="profile-cover">
-					<img id="profile-pic" alt="Profile picture" width="50" height="50">
-					<div id="user-name"></div>
-					<div id="user-buttons">
-						<a id="user-home" class="user-button" target="_blank" rel="noopener noreferrer"
-							title="Open user page">
-							<i class="icon-home"></i>
-						</a>
-						<a id="user-gallery" class="user-button" target="_blank" rel="noopener noreferrer"
-							title="Open gallery page">
-							<i class="icon-gallery"></i>
-						</a>
-						<a id="user-favorites" class="user-button" target="_blank" rel="noopener noreferrer"
-							title="Open favorites page">
-							<i class="icon-star"></i>
-						</a>
-						<a id="user-folder" class="user-button hide" title="Open user folder">
-							<i class="icon-folder"></i>
-						</a>
-					</div>
-				</div>
-				<div id="user-stats" class="hide">
-					<div id="total-saved" class="stat-button hide" data-toggle="closed">
-						Saved
-						<span class="badge">-</span>
-					</div>
+            <section id="site-content" class="tab-content" data-tab-content>
+                <div id="site-loading" class="content-loading hide">
+                    <img src="/icons/loading.svg" class="loading-icon" width="16" height="16" />
+                    Getting site information...
+                </div>
+                <div id="site-error" class="content-error color-scheme-warning hide">
+                    Unable to get site information.
+                    <hr class="line-break" />
+                    <span id="site-error-message"></span>
+                </div>
+                <div id="site-info" class="content-info border-grid hide">
+                    <div class="stat-header">On current page</div>
+                    <div id="page-stats" class="page-stats">
+                        <button id="refresh" class="stat-colored-button green-stat">
+                            <span class="label-1">Saved</span>
+                            <span class="label-2">Refresh</span>
+                            <span id="saved-stat" class="stat-value">-</span>
+                        </button>
+                        <button id="download-all" class="stat-colored-button blue-stat">
+                            <span class="label-1">Downloads</span>
+                            <span class="label-2">Download all</span>
+                            <span id="downloads-stat" class="stat-value">-</span>
+                        </button>
+                    </div>
+                    <div id="stats-site" class="stat-header">-</div>
+                    <details id="users-details" class="saved-details">
+                        <summary id="total-users" class="saved-summary clickable" data-toggle="closed">
+                            Users saved
+                            <span id="users-stat-value" class="stat-value">-</span>
+                        </summary>
+                        <div id="user-list" class="info-box border-grid" data-users-info>
+                            <div class="search-box">
+                                <div class="search-controls border-grid">
+                                    <input class="search-input" type="text" placeholder="Search users" data-search />
+                                    <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                                    <label
+                                        class="search-flag clickable"
+                                        data-flat-icon="16-match_case"
+                                        title="Match case"
+                                    >
+                                        <input type="checkbox" data-match-case />
+                                    </label>
+                                    <label
+                                        class="search-flag clickable"
+                                        data-flat-icon="16-match_whole"
+                                        title="Match whole word"
+                                    >
+                                        <input type="checkbox" data-match-whole />
+                                    </label>
+                                    <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                                        <input type="checkbox" data-use-regex />
+                                    </label>
+                                    <button
+                                        class="search-sort"
+                                        data-flat-icon="16-descend"
+                                        title="Sorted by descending"
+                                        data-sort="descend"
+                                    ></button>
+                                </div>
+                            </div>
+                            <div class="list-box" data-list></div>
+                        </div>
+                    </details>
 
-					<div class="header hide">User stats</div>
-				</div>
-			</div>
+                    <details id="submissions-details" class="saved-details">
+                        <summary id="total-submissions" class="saved-summary clickable">
+                            Submissions saved
+                            <span id="submissions-stat-value" class="stat-value">-</span>
+                        </summary>
+                        <div id="submission-list" class="info-box border-grid" data-submissions-info>
+                            <div class="search-box">
+                                <div class="search-controls border-grid">
+                                    <input
+                                        class="search-input"
+                                        type="text"
+                                        placeholder="Search submissions"
+                                        data-search
+                                    />
+                                    <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                                    <label
+                                        class="search-flag clickable"
+                                        data-flat-icon="16-match_case"
+                                        title="Match case"
+                                    >
+                                        <input type="checkbox" data-match-case />
+                                    </label>
+                                    <label
+                                        class="search-flag clickable"
+                                        data-flat-icon="16-match_whole"
+                                        title="Match whole word"
+                                    >
+                                        <input type="checkbox" data-match-whole />
+                                    </label>
+                                    <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                                        <input type="checkbox" data-use-regex />
+                                    </label>
+                                    <button
+                                        class="search-sort"
+                                        data-flat-icon="16-ascend"
+                                        title="Sorted by ascending"
+                                        data-sort="ascend"
+                                    ></button>
+                                </div>
+                            </div>
+                            <div class="list-box" data-list></div>
+                        </div>
+                    </details>
+                </div>
+            </section>
 
-			<div id="saved-list" class="info-box hide">
-				<div class="search-box">
-					<input class="search-input" type="text" placeholder="Search saved">
-					<button class="search-clear hide"><i class="icon-x"></i></button>
-					<button class="search-sort" title="Sorted by descending" data-sort="descend">
-						<i class="icon-descend"></i>
-					</button>
-				</div>
-				<div class="list-box"></div>
-			</div>
-		</div>
-
-		<div id="site-content" class="tab-content hide">
-			<div id="site-loading" class="content-loading">
-				<img src="/icons/loading.svg" class="loading-icon" width="16" height="16">
-				Getting page and site information...
-			</div>
-			<div id="site-error" class="content-error hide">
-				Unable to get site information.
-				<div class="linebreak"></div>
-				Make sure you are on a supported site and the page is fully loaded.
-			</div>
-			<div id="site-info" class="hide">
-				<div class="header">On current page</div>
-				<div id="found-stats">
-					<button id="recheck" class="action-button">
-						<span class="label-1">Saved</span>
-						<span class="label-2">Recheck</span>
-						<span id="saved-stat" class="green-badge">-</span>
-					</button>
-					<button id="download-all" class="action-button" disabled>
-						<span class="label-1">Downloads</span>
-						<span class="label-2">Download</span>
-						<span id="downloads-stat" class="blue-badge">-</span>
-					</button>
-					<button id="download-lock" data-toggle="closed">
-						<i id="download-bolt" class="icon-lock-closed"></i>
-					</button>
-				</div>
-				<div id="stats-site" class="header">Unknown site</div>
-				<div id="total-users" class="stat-button" data-toggle="closed">
-					Users saved
-					<span class="badge">-</span>
-				</div>
-				<div id="total-submissions" class="stat-button" data-toggle="closed">
-					Submissions saved
-					<span class="badge">-</span>
-				</div>
-			</div>
-
-			<div id="user-list" class="info-box hide">
-				<div class="search-box">
-					<input class="search-input" type="text" placeholder="Search users">
-					<button class="search-clear hide"><i class="icon-x"></i></button>
-					<button class="search-sort" title="Sorted by descending" data-sort="descend">
-						<i class="icon-descend"></i>
-					</button>
-				</div>
-				<div class="list-box"></div>
-			</div>
-
-			<div id="submission-list" class="info-box hide">
-				<div class="search-box">
-					<input class="search-input" type="text" placeholder="Search submissions">
-					<button class="search-clear hide"><i class="icon-x"></i></button>
-					<button class="search-sort" title="Sorted by descending" data-sort="descend">
-						<i class="icon-descend"></i>
-					</button>
-				</div>
-				<div class="list-box"></div>
-			</div>
-		</div>
-	</div>
-</body>
-
+            <section id="about-content" class="tab-content about-info" data-tab-content>
+                <section class="about-section">
+                    <header class="about-header">
+                        <img class="about-icon" src="/icons/icon.svg" alt="" />
+                        <h2 class="about-title">Art Saver</h2>
+                    </header>
+                    <div class="about-list">
+                        <p id="version-number"></p>
+                        <p>
+                            <a
+                                class="about-link"
+                                href="https://github.com/solorey/Art-Saver"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Github
+                            </a>
+                        </p>
+                        <p>
+                            <a
+                                class="about-link"
+                                href="https://github.com/solorey/Art-Saver/wiki"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Wiki
+                            </a>
+                        </p>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </body>
 </html>

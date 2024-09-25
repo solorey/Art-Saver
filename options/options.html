@@ -1,252 +1,367 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Art Saver Settings</title>
+        <link rel="stylesheet" href="/styles/page.css" type="text/css" />
+        <link rel="stylesheet" href="/styles/colors.css" type="text/css" />
+        <link rel="stylesheet" href="/styles/common.css" type="text/css" />
+        <link rel="stylesheet" href="options.css" type="text/css" />
+        <script defer src="/scripts/storage.js"></script>
+        <script defer src="/background/sites/deviantart.js"></script>
+        <script defer src="/background/sites/twitter.js"></script>
+        <script defer src="/background/sites/pixiv.js"></script>
+        <script defer src="/background/sites/furaffinity.js"></script>
+        <script defer src="/background/sites/inkbunny.js"></script>
+        <script defer src="/background/settings.js"></script>
+        <script defer src="/scripts/templates.js"></script>
+        <script defer src="/scripts/shortcuts.js"></script>
+        <script defer src="/scripts/virtual_list.js"></script>
+        <script defer src="options.js"></script>
+    </head>
 
-<head>
-	<meta charset="utf-8">
-	<title>Art Saver Settings</title>
-	<link rel="stylesheet" href="options.css" type="text/css">
-	<link rel="stylesheet" href="/css/iconfont.css" />
-	<script defer src="/background/storagekeys.js"></script>
-	<script defer src="/background/settings.js"></script>
-	<script defer src="/general_scripts/selectors.js"></script>
-	<script defer src="/general_scripts/virtuallist.js"></script>
-	<script defer src="options.js"></script>
-</head>
+    <body class="themed color-scheme-base" data-theme="preferred">
+        <template id="options-section-template">
+            <section class="site-options">
+                <header class="site-header">
+                    <h3 data-site-header></h3>
+                    <a class="help-link" target="_blank" rel="noopener noreferrer" data-help-link>?</a>
+                </header>
+            </section>
+        </template>
+        <template id="checkbox-template">
+            <div class="option-checkbox">
+                <label class="checkbox-label">
+                    <input class="checkbox-input" type="checkbox" />
+                    <div class="switch"></div>
+                </label>
+            </div>
+        </template>
+        <template id="number-template">
+            <div class="option-number">
+                <div class="custom-number border-grid" data-number-controls>
+                    <input class="number-input" type="number" />
+                    <button class="step-increase"></button>
+                    <button class="step-decrease"></button>
+                </div>
+                <span class="number-unit hide" data-number-unit></span>
+                –
+                <label class="number-label"></label>
+            </div>
+        </template>
+        <template id="select-template">
+            <div class="option-select">
+                <label class="select-label">
+                    <select class="select-input"></select>
+                </label>
+            </div>
+        </template>
+        <template id="slider-template">
+            <div class="option-slider">
+                <div class="custom-number border-grid" data-number-controls>
+                    <input class="number-input" type="number" />
+                    <button class="step-increase"></button>
+                    <button class="step-decrease"></button>
+                </div>
+                <span class="number-unit hide" data-number-unit></span>
+                <input class="slider-input" type="range" />
+                <label class="slider-label"></label>
+            </div>
+        </template>
+        <template id="textarea-template">
+            <div class="option-textarea">
+                <label class="textarea-label"></label>
+                <textarea class="textarea-input" spellcheck="false" rows="1"></textarea>
+                <details>
+                    <summary class="metas-summary clickable">Usable metas</summary>
+                    <a class="metas-help" href="https://github.com/solorey/Art-Saver/wiki/Template-Syntax" target="_blank" rel="noopener noreferrer">Syntax help</a>
+                    <table class="metas-table" data-meta-table></table>
+                </details>
+            </div>
+        </template>
+        <template id="shortcut-template">
+            <div class="option-shortcut">
+                <label class="shortcut-label">
+                    <input class="shortcut-input" type="text" placeholder="Type a shortcut" />
+                    <button class="shortcut-delete" data-flat-icon="12-x"></button>
+                </label>
+            </div>
+        </template>
+        <template id="command-template">
+            <div class="option-shortcut">
+                <label class="shortcut-label">
+                    <input class="shortcut-input" type="text" placeholder="Type a shortcut" />
+                    <button class="shortcut-delete" data-flat-icon="12-x"></button>
+                </label>
+                <p class="shortcut-error hide color-scheme-error">
+                    A command must consist of either a combination of one or two modifiers, including a mandatory
+                    primary modifier and a key. Commands that conflict with browser shortcuts will be ignored.
+                </p>
+            </div>
+        </template>
+        <template id="meta-row-template">
+            <tr>
+                <td>
+                    <button class="meta-copy" data-flat-icon="12-copy" title="copy" data-copy-button></button>
+                </td>
+                <td class="meta-name">
+                    <code data-meta-name></code>
+                </td>
+                <td class="meta-description" data-meta-description></td>
+            </tr>
+        </template>
+        <template id="stats-row-template">
+            <details class="contents hide" data-saved-details>
+                <summary class="table-summary clickable" data-stat-row>
+                    <span class="table-site" data-site-label></span>
+                    <span class="table-users stat-value justify-end" data-total-users></span>
+                    <span class="stat-value justify-end" data-total-submissions></span>
+                </summary>
+                <div class="contents">
+                    <div class="info-box info-users border-grid" data-users-info>
+                        <div class="search-box">
+                            <div class="search-controls border-grid">
+                                <input class="search-input" type="text" placeholder="Search users" data-search />
+                                <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                                <label class="search-flag clickable" data-flat-icon="16-match_case" title="Match case">
+                                    <input type="checkbox" data-match-case />
+                                </label>
+                                <label
+                                    class="search-flag clickable"
+                                    data-flat-icon="16-match_whole"
+                                    title="Match whole word"
+                                >
+                                    <input type="checkbox" data-match-whole />
+                                </label>
+                                <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                                    <input type="checkbox" data-use-regex />
+                                </label>
+                                <button
+                                    class="search-sort"
+                                    data-flat-icon="16-descend"
+                                    title="Sorted by descending"
+                                    data-sort="descend"
+                                ></button>
+                            </div>
+                        </div>
+                        <div class="list-box" data-list></div>
+                    </div>
+                    <div class="info-box border-grid" data-submissions-info>
+                        <div class="search-box">
+                            <div class="search-controls border-grid">
+                                <input class="search-input" type="text" placeholder="Search submissions" data-search />
+                                <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                                <label class="search-flag clickable" data-flat-icon="16-match_case" title="Match case">
+                                    <input type="checkbox" data-match-case />
+                                </label>
+                                <label
+                                    class="search-flag clickable"
+                                    data-flat-icon="16-match_whole"
+                                    title="Match whole word"
+                                >
+                                    <input type="checkbox" data-match-whole />
+                                </label>
+                                <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                                    <input type="checkbox" data-use-regex />
+                                </label>
+                                <button
+                                    class="search-sort"
+                                    data-flat-icon="16-ascend"
+                                    title="Sorted by ascending"
+                                    data-sort="ascend"
+                                ></button>
+                            </div>
+                        </div>
+                        <div class="list-box" data-list></div>
+                    </div>
+                </div>
+            </details>
+        </template>
+        <template id="user-row-template">
+            <div class="list-row">
+                <button class="color-scheme-error row-delete" data-flat-icon="12-x" data-delete-button></button>
+                <span class="row-label" data-label></span>
+                <a
+                    class="row-link clickable"
+                    data-flat-icon="12-home"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open user page"
+                    data-user-link
+                ></a>
+                <a
+                    class="row-link clickable"
+                    data-flat-icon="12-gallery"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open gallery page"
+                    data-gallery-link
+                ></a>
+                <a
+                    class="row-link clickable"
+                    data-flat-icon="12-star"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open favorites page"
+                    data-favorites-link
+                ></a>
+            </div>
+        </template>
+        <template id="submission-row-template">
+            <div class="list-row">
+                <button class="color-scheme-error row-delete" data-flat-icon="12-x" data-delete-button></button>
+                <span class="row-label" data-label></span>
+                <a
+                    class="row-link clickable"
+                    data-flat-icon="12-image"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open submission page"
+                    data-submission-link
+                ></a>
+            </div>
+        </template>
+        <template id="site-toggle-template">
+            <div class="site-toggle">
+                <button class="site-radio active"></button>
+                <button class="site-button"></button>
+            </div>
+        </template>
 
-<body class="artsaver-theme-preferred">
-	<template id="options-section-template">
-		<section class="site-options">
-			<h3 class="site-header"><a class="question" target="_blank">?</a></h3>
-		</section>
-	</template>
-	<template id="checkbox-template">
-		<div class="option-checkbox">
-			<label class="checkbox-label">
-				<input class="checkbox-input" type="checkbox" />
-				<div class="switch"></div>
-			</label>
-		</div>
-	</template>
-	<template id="number-template">
-		<div class="option-number">
-			<label class="number-label">
-				<div class="custom-number">
-					<input class="number-input" type="number" />
-					<button class="step-increase"></button>
-					<button class="step-decrease"></button>
-				</div>
-			</label>
-		</div>
-	</template>
-	<template id="select-template">
-		<div class="option-select">
-			<label class="select-label">
-				<div class="select-holder">
-					<select class="select-input"></select>
-				</div>
-			</label>
-		</div>
-	</template>
-	<template id="slider-template">
-		<div class="option-slider">
-			<label class="slider-label">
-				<div class="custom-number">
-					<input class="number-input" type="number" />
-					<button class="step-increase"></button>
-					<button class="step-decrease"></button>
-				</div>
-			</label>
-			<input class="slider-input" type="range">
-		</div>
-	</template>
-	<template id="textarea-template">
-		<div class="option-textarea">
-			<label class="textarea-label"></label>
-			<textarea class="textarea-input" spellcheck="false" rows="1"></textarea>
-			<button class="help-button">Show Help</button>
-			<table class="help-table hide"></table>
-		</div>
-	</template>
-	<template id="meta-row-template">
-		<tr>
-			<td>
-				<li><strong></strong></li>
-			</td>
-			<td></td>
-		</tr>
-	</template>
-	<template id="stats-row-template">
-		<tr class="stat-row">
-			<td class="stat-site"></td>
-			<td><span class="badge"></span></td>
-			<td><span class="badge"></span></td>
-		</tr>
-		<tr class="info-row hide">
-			<td colspan="3">
-				<div class="info-boxes">
-					<div class="info-box">
-						<div class="search-box">
-							<input class="search-input" type="text" placeholder="Search users">
-							<button class="search-clear"><i class="icon-x"></i></button>
-							<button class="search-sort" title="Sorted by descending" data-sort="descend">
-								<i class="icon-descend"></i>
-							</button>
-						</div>
-						<div class="list-box"></div>
-					</div>
-					<div class="info-box">
-						<div class="search-box">
-							<input class="search-input" type="text" placeholder="Search submissions">
-							<button class="search-clear hide"><i class="icon-x"></i></button>
-							<button class="search-sort" title="Sorted by descending" data-sort="descend">
-								<i class="icon-descend"></i>
-							</button>
-						</div>
-						<div class="list-box"></div>
-					</div>
-				</div>
-			</td>
-		</tr>
-	</template>
-	<template id="user-row-template">
-		<div class="list-row">
-			<button class="row-delete"><i class="icon-x"></i></button>
-			<div class="row-label">
-				<span></span><strong></strong><span></span>
-			</div>
-			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open user page"><i
-					class="icon-home"></i></a>
-			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open gallery page"><i
-					class="icon-gallery"></i></a>
-			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open favorites page"><i
-					class="icon-star"></i></a>
-		</div>
-	</template>
-	<template id="submission-row-template">
-		<div class="list-row">
-			<button class="row-delete"><i class="icon-x"></i></button>
-			<div class="row-label">
-				<span></span><strong></strong><span></span>
-			</div>
-			<a class="row-link" target="_blank" rel="noopener noreferrer" title="Open submission page"><i
-					class="icon-link"></i></a>
-		</div>
-	</template>
-	<template id="site-toggle-template">
-		<div class="site-toggle active">
-			<button class="site-radio"></button>
-			<button class="site-button"></button>
-		</div>
-	</template>
+        <header class="header">
+            <img class="extension-icon" src="/icons/icon.svg" />
+            <nav class="tabs">
+                <button class="tab-button" data-tab="global">Global Options</button>
+                <button class="tab-button" data-tab="sites">Site Options</button>
+                <button class="tab-button" data-tab="saved">Saved Information</button>
+                <button class="tab-button" data-tab="about">About</button>
+            </nav>
+        </header>
+        <main class="main">
+            <form id="options" class="options-form">
+                <section id="global-content" class="tab-content side-grid hide" data-tab-content>
+                    <div class="side-controls">
+                        <input id="import-options" class="hide" accept=".json" type="file" />
+                        <button id="click-import" class="blue-button">
+                            <i data-flat-icon="12-upload"></i>
+                            Import settings
+                        </button>
+                        <button id="export-options" class="blue-button">
+                            <i data-flat-icon="12-download"></i>
+                            Export settings
+                        </button>
+                        <button id="reset-options" class="blue-button">
+                            <i data-flat-icon="12-reset"></i>
+                            Reset to default
+                        </button>
+                    </div>
+                    <div id="globals-list" class="globals-list">
+                        <section id="commands-list" class="site-options">
+                            <header class="site-header">
+                                <h3 data-site-header>Commands</h3>
+                            </header>
+                        </section>
+                    </div>
+                </section>
 
-	<div id="main-container">
-		<div id="tabs">
-			<img id="extension-icon" src="/icons/icon.svg" width="32" height="32" />
-			<button id="global-options-tab" class="tab-button" data-tab="global">Global Options</button>
-			<button id="site-options-tab" class="tab-button" data-tab="sites">Site Options</button>
-			<button id="saved-info-tab" class="tab-button" data-tab="saved">Saved Information</button>
-			<button id="about-tab" class="tab-button" data-tab="about">About</button>
-		</div>
-		<div id="options-container">
-			<form id="options">
-				<div id="global-options-content" class="tab-content hide">
-					<div id="settings-buttons">
-						<input id="import-options" accept=".json" type="file" />
-						<button id="click-import" class="blue-button">
-							<i class="icon-upload"></i>
-							Import settings
-						</button>
-						<button id="export-options" class="blue-button">
-							<i class="icon-download"></i>
-							Export settings
-						</button>
-						<button id="reset-options" class="blue-button">
-							<i class="icon-reset"></i>
-							Reset to default
-						</button>
-					</div>
-					<div id="options-undo" class="undo-bar hide">
-						<div>The options have been reset to default</div>
-						<div class="undo-button">Undo</div>
-						<div class="close-button"><i class="icon-x"></i></div>
-					</div>
-					<div id="global-options"></div>
-				</div>
+                <section id="sites-content" class="tab-content side-grid hide" data-tab-content>
+                    <div class="side-controls">
+                        <button id="sites-open-all" class="base-button">Open all</button>
+                        <button id="sites-close-all" class="base-button">Close all</button>
+                        <div id="sites-toggles" class="sites-toggles border-grid"></div>
+                    </div>
+                    <div id="sites-list" class="sites-list"></div>
+                </section>
 
-				<div id="site-options-content" class="tab-content hide">
-					<div id="sites-side">
-						<button id="sites-open-all" class="button">Open all</button>
-						<button id="sites-close-all" class="button">Close all</button>
-						<div id="sites-toggles"></div>
-					</div>
-					<div id="sites-list"></div>
-				</div>
+                <section id="saved-content" class="saved-content tab-content side-grid hide" data-tab-content>
+                    <div class="import-info-buttons">
+                        <div id="saved-info-input" class="file-selector">
+                            Overwrite saved information
+                            <input id="saved-info" class="file-input" accept=".json" type="file" />
+                            <label class="file-label border-grid" for="saved-info">
+                                <div class="file-before">Browse</div>
+                                <div id="saved-filename" class="file-name">
+                                    <i data-flat-icon="12-upload"></i>
+                                    Choose file
+                                </div>
+                            </label>
+                        </div>
+                        <div id="add-info-input" class="file-selector">
+                            Add saved information
+                            <input id="add-info" class="file-input" accept=".json" type="file" />
+                            <label class="file-label border-grid" for="add-info">
+                                <div class="file-before">Browse</div>
+                                <div id="add-filename" class="file-name">
+                                    <i data-flat-icon="12-upload"></i>
+                                    Choose file
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <span class="table-caption">Total users and submissions saved</span>
+                    <div class="side-controls table-controls">
+                        <button id="table-refresh" class="base-button">Refresh</button>
+                        <label id="saved-info-edit-switch" class="checkbox-label">
+                            <input class="checkbox-input" type="checkbox" />
+                            <div class="switch"></div>
+                            Enable editing
+                        </label>
+                        <button id="table-open-all" class="base-button">Open all</button>
+                        <button id="table-close-all" class="base-button">Close all</button>
+                        <button id="export-list" class="blue-button">
+                            <i data-flat-icon="12-download"></i>
+                            Export
+                        </button>
+                        <button id="reset-list" class="blue-button">
+                            <i data-flat-icon="12-reset"></i>
+                            Reset
+                        </button>
+                    </div>
+                    <div id="saved-table" class="saved-table border-grid">
+                        <div class="table-head">
+                            <div class="table-head-site">Site</div>
+                            <div class="table-users justify-end">Users</div>
+                            <div class="justify-end">Submissions</div>
+                        </div>
+                    </div>
+                </section>
 
-				<div id="saved-info-content" class="tab-content hide">
-					<div id="info-file-buttons">
-						<div id="saved-info-input" class="file-selector">
-							Overwrite saved information
-							<label class="file-label" for="saved-info">
-								<input id="saved-info" class="file-input" accept=".json" type="file" />
-								<div class="file-before">Browse</div>
-								<div id="saved-filename" class="file-name">
-									<i class="icon-upload"></i>
-									Choose file
-								</div>
-							</label>
-						</div>
-						<div id="add-info-input" class="file-selector">
-							Add saved information
-							<label class="file-label" for="add-info">
-								<input id="add-info" class="file-input" accept=".json" type="file" />
-								<div class="file-before">Browse</div>
-								<div id="add-filename" class="file-name">
-									<i class="icon-upload"></i>
-									Choose file
-								</div>
-							</label>
-						</div>
-					</div>
-
-					<div id="saved-info-undo" class="undo-bar hide">
-						<div>The saved information has been <span></span></div>
-						<div class="undo-button">Undo</div>
-						<div class="close-button"><i class="icon-x"></i></div>
-					</div>
-					<div id="table-side">
-						<button id="table-refresh" class="button"><i class="icon-reset"></i>Refresh</button>
-						<label id="saved-info-edit-switch" class="checkbox-label">
-							<input class="checkbox-input" type="checkbox" />
-							<div class="switch"></div>
-							Enable editing
-						</label>
-						<button id="table-open-all" class="button">Open all</button>
-						<button id="table-close-all" class="button">Close all</button>
-						<button id="export-list" class="blue-button"><i class="icon-download"></i>Export</button>
-						<button id="reset-list" class="blue-button"><i class="icon-reset"></i>Reset</button>
-					</div>
-					<span id="saved-table-caption">Total users and submissions saved</span>
-					<table id="saved-table">
-						<tr>
-							<th>Site</th>
-							<th>Users</th>
-							<th>Submissions</th>
-						</tr>
-					</table>
-				</div>
-
-				<div id="about-content" class="tab-content hide">
-					<div id="about-info">
-						<p>Art Saver v<span id="version"></span></p>
-						<p><a class="about-link" href="https://github.com/solorey/Art-Saver" target="_blank"
-								rel="noopener noreferrer">Github</a></p>
-						<p><a class="about-link" href="https://github.com/solorey/Art-Saver/wiki" target="_blank"
-								rel="noopener noreferrer">Wiki</a></p>
-					</div>
-				</div>
-			</form>
-		</div>
-	</div>
-</body>
-
+                <section id="about-content" class="tab-content hide about-info" data-tab-content>
+                    <section class="about-section">
+                        <h2 class="about-title">Art Saver</h2>
+                        <div class="about-list">
+                            <p id="version-number"></p>
+                            <p>
+                                <a
+                                    class="about-link"
+                                    href="https://github.com/solorey/Art-Saver"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Github
+                                </a>
+                            </p>
+                            <p>
+                                <a
+                                    class="about-link"
+                                    href="https://github.com/solorey/Art-Saver/wiki"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Wiki
+                                </a>
+                            </p>
+                        </div>
+                    </section>
+                </section>
+            </form>
+            <div id="undo-bar" class="undo-bar color-scheme-warning hide">
+                <span id="undo-label"></span>
+                <button id="undo-button" class="undo-button">Undo</button>
+                <button id="undo-close" class="undo-close" data-flat-icon="12-x"></button>
+                <div id="undo-timer" class="undo-timer"></div>
+            </div>
+        </main>
+    </body>
 </html>

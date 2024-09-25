@@ -1,0 +1,181 @@
+:root,
+:host {
+  font-family: system-ui, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: normal;
+}
+
+*,
+::before,
+::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--color-scheme-text);
+}
+
+button,
+.clickable {
+  cursor: pointer;
+  background-color: var(--color-initial, var(--color-scheme-1));
+}
+button:hover,
+.clickable:hover {
+  background-color: var(--color-hover, var(--color-scheme-2));
+}
+button:active,
+.clickable:active {
+  background-color: var(--color-active, var(--color-scheme-3));
+}
+
+.border-grid {
+  display: grid;
+  gap: 1px;
+  background-color: var(--color-scheme-3);
+}
+:where(.border-grid > *) {
+  background-color: var(--color-scheme-1);
+  border: none;
+}
+
+.hide {
+  display: none !important;
+}
+
+img {
+  display: block;
+}
+
+strong {
+  font-weight: bold;
+}
+
+code {
+  font-family: monospace;
+}
+
+[data-flat-icon] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+[data-flat-icon]::after {
+  content: "";
+  aspect-ratio: 1;
+  background-color: currentColor;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+
+[data-flat-icon="12-file"]::after {
+  mask-image: var(--icon-12-file);
+}
+
+[data-flat-icon="12-folder"]::after {
+  mask-image: var(--icon-12-folder);
+}
+
+[data-flat-icon="12-copy"]::after {
+  mask-image: var(--icon-12-copy);
+}
+
+[data-flat-icon="12-download"]::after {
+  mask-image: var(--icon-12-download);
+}
+
+[data-flat-icon="12-upload"]::after {
+  mask-image: var(--icon-12-upload);
+}
+
+[data-flat-icon="12-link"]::after {
+  mask-image: var(--icon-12-link);
+}
+
+[data-flat-icon="12-reset"]::after {
+  mask-image: var(--icon-12-reset);
+}
+
+[data-flat-icon="12-user"]::after {
+  mask-image: var(--icon-12-user);
+}
+
+[data-flat-icon="12-home"]::after {
+  mask-image: var(--icon-12-home);
+}
+
+[data-flat-icon="12-gallery"]::after {
+  mask-image: var(--icon-12-gallery);
+}
+
+[data-flat-icon="12-image"]::after {
+  mask-image: var(--icon-12-image);
+}
+
+[data-flat-icon="12-star"]::after {
+  mask-image: var(--icon-12-star);
+}
+
+[data-flat-icon="12-x"]::after {
+  mask-image: var(--icon-12-x);
+}
+
+[data-flat-icon="12-selection"]::after {
+  mask-image: var(--icon-12-selection);
+}
+
+[data-flat-icon="16-addon"]::after {
+  mask-image: var(--icon-16-addon);
+}
+
+[data-flat-icon="16-stats"]::after {
+  mask-image: var(--icon-16-stats);
+}
+
+[data-flat-icon="16-user"]::after {
+  mask-image: var(--icon-16-user);
+}
+
+[data-flat-icon="16-gear"]::after {
+  mask-image: var(--icon-16-gear);
+}
+
+[data-flat-icon="16-check"]::after {
+  mask-image: var(--icon-16-check);
+}
+
+[data-flat-icon="16-collapse"]::after {
+  mask-image: var(--icon-16-collapse);
+}
+
+[data-flat-icon="16-descend"]::after {
+  mask-image: var(--icon-16-descend);
+}
+
+[data-flat-icon="16-ascend"]::after {
+  mask-image: var(--icon-16-ascend);
+}
+
+[data-flat-icon="16-match_case"]::after {
+  mask-image: var(--icon-16-match_case);
+}
+
+[data-flat-icon="16-match_whole"]::after {
+  mask-image: var(--icon-16-match_whole);
+}
+
+[data-flat-icon="16-regex"]::after {
+  mask-image: var(--icon-16-regex);
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

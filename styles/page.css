@@ -1,0 +1,126 @@
+[data-flat-icon^="12"]::after {
+  width: 1rem;
+}
+
+[data-flat-icon^="16"]::after {
+  width: 1.3333333333rem;
+}
+
+:root {
+  --icon-12-file: url("/icons/flat/flat_12.svg#icon1");
+  --icon-12-folder: url("/icons/flat/flat_12.svg#icon2");
+  --icon-12-copy: url("/icons/flat/flat_12.svg#icon3");
+  --icon-12-download: url("/icons/flat/flat_12.svg#icon4");
+  --icon-12-upload: url("/icons/flat/flat_12.svg#icon5");
+  --icon-12-link: url("/icons/flat/flat_12.svg#icon6");
+  --icon-12-reset: url("/icons/flat/flat_12.svg#icon7");
+  --icon-12-user: url("/icons/flat/flat_12.svg#icon8");
+  --icon-12-home: url("/icons/flat/flat_12.svg#icon9");
+  --icon-12-gallery: url("/icons/flat/flat_12.svg#icon10");
+  --icon-12-image: url("/icons/flat/flat_12.svg#icon11");
+  --icon-12-star: url("/icons/flat/flat_12.svg#icon12");
+  --icon-12-x: url("/icons/flat/flat_12.svg#icon13");
+  --icon-12-selection: url("/icons/flat/flat_12.svg#icon14");
+  --icon-16-addon: url("/icons/flat/flat_16.svg#icon1");
+  --icon-16-stats: url("/icons/flat/flat_16.svg#icon2");
+  --icon-16-user: url("/icons/flat/flat_16.svg#icon3");
+  --icon-16-gear: url("/icons/flat/flat_16.svg#icon4");
+  --icon-16-check: url("/icons/flat/flat_16.svg#icon5");
+  --icon-16-collapse: url("/icons/flat/flat_16.svg#icon6");
+  --icon-16-descend: url("/icons/flat/flat_16.svg#icon7");
+  --icon-16-ascend: url("/icons/flat/flat_16.svg#icon8");
+  --icon-16-match_case: url("/icons/flat/flat_16.svg#icon9");
+  --icon-16-match_whole: url("/icons/flat/flat_16.svg#icon10");
+  --icon-16-regex: url("/icons/flat/flat_16.svg#icon11");
+}
+
+body {
+  background-color: var(--color-scheme-1);
+}
+
+.search-box {
+  padding-block: 0.1666666667rem;
+  padding-inline: 0.75rem;
+  background-color: var(--color-scheme-2);
+}
+
+.search-controls {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-scheme-3);
+  border-radius: 0.25rem;
+  overflow: hidden;
+  grid-template-columns: 1fr;
+  grid-auto-flow: column;
+}
+
+.search-clear {
+  padding-inline: 0.4166666667rem;
+}
+
+.search-flag {
+  padding-inline: 0.25rem;
+}
+.search-flag input {
+  appearance: none;
+  position: absolute;
+  width: 1.5rem;
+  aspect-ratio: 1;
+}
+.search-flag input:checked {
+  outline-width: 1px;
+  outline-style: solid;
+  outline-color: var(--color-blue-3);
+}
+
+.search-sort {
+  padding-inline: 0.25rem;
+}
+
+.search-input {
+  min-width: 0;
+  padding-block: 0.25rem;
+  padding-inline: 0.5rem;
+}
+
+.list-box {
+  position: relative;
+  overflow: auto;
+  resize: vertical;
+}
+
+.list {
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.list-row {
+  display: flex;
+  position: absolute;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+}
+
+.row-label {
+  flex: 1;
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: var(--color-scheme-1);
+  padding-block: 0.0833333333rem;
+  padding-inline-start: 0.75rem;
+  transition-property: padding-inline-start;
+  transition-duration: 0.2s;
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.list-row:hover .row-label {
+  padding-inline-start: 1.25rem;
+  background-color: var(--color-scheme-2);
+}
+
+.row-link {
+  padding-inline: 0.3333333333rem;
+}
