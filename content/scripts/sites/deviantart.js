@@ -458,7 +458,10 @@ function createStashDownload(submission_meta, stash_meta, file_data, options) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function getStashUrls(obj, init, progress) {
     // find stash in description
-    const description = obj.deviation.extended.descriptionText?.html?.markup ?? '';
+    let description = obj.deviation.extended.descriptionText?.html?.markup ?? '';
+    if (description.startsWith('{"') && description.endsWith('}')) {
+        description = JSON.stringify(JSON.parse(description));
+    }
     // example stash urls
     // https://sta.sh/
     // https://www.deviantart.com/stash/
