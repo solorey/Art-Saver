@@ -68,7 +68,7 @@ function onDocumentKeyEvent(event) {
     if (G_options.infoBar && shortcutsMatch(event_shortcut, G_options.shortcutInfoBar)) {
         G_info_bar?.toggle();
     }
-    else if (shortcutsMatch(event_shortcut, G_options.shortcutInfoBar)) {
+    else if (shortcutsMatch(event_shortcut, G_options.shortcutDownloadAll)) {
         downloadAll();
     }
     else if (shortcutsMatch(event_shortcut, G_options.shortcutDownload)) {
