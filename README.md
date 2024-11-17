@@ -26,7 +26,7 @@ View the [Supported Sites][sites].
 
 ## Download
 
-[![For Firefox][amo]][addon]
+[![For Firefox][gta]][addon]
 
 ## Install Temporarily
 
@@ -44,7 +44,7 @@ Inspired by:
 Code used:
 
 -   [UPNG.js][upng] : for APNG encoding
--   [UZIP][uzip] : for ZIP encoding
+-   [UZIP.js][uzip] : for ZIP encoding
 -   [gif.js][gif] : for GIF encoding
 -   [Whammy][whammy] : for WebM encoding
 -   [DOMPurify][dompurify]
@@ -52,7 +52,7 @@ Code used:
 [wiki]: https://github.com/solorey/Art-Saver/wiki
 [sites]: https://github.com/solorey/Art-Saver/wiki/Supported-Sites
 [addon]: https://addons.mozilla.org/firefox/addon/art-saver/
-[amo]: https://ffp4g1ylyit3jdyti1hqcvtb-wpengine.netdna-ssl.com/addons/files/2015/11/get-the-addon.png
+[gta]: https://blog.mozilla.org/addons/files/2015/11/get-the-addon.png
 [px]: https://addons.mozilla.org/firefox/addon/px-downloader/
 [raccony]: https://github.com/Simon-Tesla/RaccoonyWebEx
 [upng]: https://github.com/photopea/UPNG.js/
