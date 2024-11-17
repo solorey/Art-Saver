@@ -116,12 +116,12 @@ function checkFuraffinityPage(page_user) {
     if (is_modern_layout) {
         const view_preview_thumbnails = document.querySelectorAll('.preview-gallery-container');
         view_preview_thumbnails.forEach((e) => checkFuraffinityThumbnail(e, page_user));
-        const profile_submission = document.querySelector('.section-submission');
+        const profile_submission = document.querySelector('.section-submission > a');
         if (profile_submission) {
-            const img = profile_submission.querySelector('img');
-            if (img) {
-                wrapElement(img);
-                checkFuraffinityThumbnail(profile_submission, page_user);
+            profile_submission.style.display = 'inline-block';
+            const parent = profile_submission.parentElement;
+            if (parent) {
+                checkFuraffinityThumbnail(parent, page_user);
             }
         }
     }
