@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Art Saver",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "Easily download and track downloads in supported art gallery websites.",
     "browser_specific_settings": {
         "gecko": {
@@ -58,7 +58,6 @@
             "matches": ["*://*.deviantart.com/*"],
             "js": [
                 "lib/purify.min.js",
-                "lib/UZIP.js",
                 "background/sites/deviantart.js",
                 "content/scripts/sites/deviantart.js"
             ]
