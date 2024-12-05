@@ -139,11 +139,11 @@ function checkDeviantartThumbnail(element, page_user) {
         return;
     }
     const url = link.href;
-    if (/https?:\/\/sta\.sh/.test(url)) {
+    if (/https?:\/\/(?:sta\.sh|www\.deviantart\.com\/stash)\//.test(url)) {
         // asLog('debug', 'Unable to download sta.sh thumbnails', element)
         return;
     }
-    const submission_id = /-(\d+)$/.exec(url)?.[1];
+    const submission_id = /(?:\/|-)(\d+)(?:\?|#|$)/.exec(url)?.[1];
     if (!submission_id) {
         asLog('debug', 'Submission not found for', element);
         return;
@@ -175,7 +175,7 @@ function checkDeviantartSubmissionPage(url, user) {
     if (!stage) {
         return;
     }
-    const submission_id = url.split('-').pop();
+    const submission_id = /(?:\/|-)(\d+)(?:\?|#|$)/.exec(url)?.[1];
     if (!submission_id) {
         return;
     }
@@ -465,7 +465,7 @@ async function getStashUrls(obj, init, progress) {
     // example stash urls
     // https://sta.sh/
     // https://www.deviantart.com/stash/
-    const matches = description.matchAll(/(https:\/\/(?:sta\.sh|www.deviantart.com\/stash)\/.+?)[\s'"]/g);
+    const matches = description.matchAll(/(https?:\/\/(?:sta\.sh|www\.deviantart\.com\/stash)\/.+?)[\s'"]/g);
     const urls = [...new Set([...matches].map((m) => m[1]))];
     if (urls.length > 0) {
         progress.say('Found stash links');
