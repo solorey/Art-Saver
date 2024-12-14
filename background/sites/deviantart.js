@@ -31,6 +31,9 @@ class DeviantartFile extends DeviantartUserFolder {
     mm = '';
     ss = '';
 }
+class DeviantartMultiple extends DeviantartFile {
+    page = '';
+}
 class DeviantartLiterature extends DeviantartFile {
     url = '';
     wordCount = '';
@@ -55,6 +58,12 @@ const deviantart_form = {
         label: 'Save file as',
         default: 'Saved/{site}/{userName}/{submissionId}_{title}_by_{userName}.{ext}',
         metas: Object.keys(new DeviantartFile()),
+    },
+    multiple: {
+        type: 'textarea',
+        label: 'Save multiple files as',
+        default: 'Saved/{site}/{userName}/{submissionId}/{submissionId}_{title}_{page}_by_{userName}.{ext}',
+        metas: Object.keys(new DeviantartMultiple()),
     },
     larger: {
         type: 'checkbox',

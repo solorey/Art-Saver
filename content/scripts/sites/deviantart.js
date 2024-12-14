@@ -135,23 +135,23 @@ function checkDeviantartOldThumbnails(page_user) {
 function checkDeviantartThumbnail(element, page_user) {
     const link = element.matches('a') ? element : element.querySelector('a');
     if (!link) {
-        asLog('debug', 'Link not found for', element);
+        G_check_log.log('Link not found for', element);
         return;
     }
     const url = link.href;
     if (/https?:\/\/(?:sta\.sh|www\.deviantart\.com\/stash)\//.test(url)) {
-        // asLog('debug', 'Unable to download sta.sh thumbnails', element)
+        G_check_log.log('Unable to download sta.sh thumbnails', element);
         return;
     }
     const submission_id = /(?:\/|-)(\d+)(?:\?|#|$)/.exec(url)?.[1];
     if (!submission_id) {
-        asLog('debug', 'Submission not found for', element);
+        G_check_log.log('Submission not found for', element);
         return;
     }
     const submission = parseInt(submission_id, 10);
     const user = url.split('/')[3] ?? page_user;
     if (!user) {
-        asLog('debug', 'User not found for', element);
+        G_check_log.log('User not found for', element);
         return;
     }
     const parent = navigateUpSmaller(link);
@@ -171,7 +171,7 @@ function checkDeviantartThumbnails(page_user) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkDeviantartSubmissionPage(url, user) {
-    const stage = document.querySelector('header + div > div > div > div > div');
+    const stage = document.querySelector('header + div > div > div > div > :nth-child(2)');
     if (!stage) {
         return;
     }
@@ -232,7 +232,7 @@ var startDownloading = async function (submission, progress) {
     const response = await fetchOk(`https://www.deviantart.com/_puppy/dadeviation/init?${params}`, init);
     let obj = await parseJSON(response);
     const { info, meta } = getDeviantartSubmissionData(submission, obj);
-    const downloads = [];
+    const stash_downloads = [];
     if (options.stash) {
         const start_time = Date.now();
         const stashes = await getStashUrls(obj, init, progress);
@@ -242,7 +242,7 @@ var startDownloading = async function (submission, progress) {
             if (stash.submission.meta.submissionId in stashes.blobs) {
                 download.download = stashes.blobs[stash.submission.meta.submissionId];
             }
-            downloads.push(download);
+            stash_downloads.push(download);
         }
         // re-get the submission data after 5 minutes for a new download token
         if (Date.now() - start_time > 300_000) {
@@ -251,12 +251,16 @@ var startDownloading = async function (submission, progress) {
         }
     }
     const file_data = await getDeviantartFileData(obj, meta, options, progress);
-    downloads.unshift(createDeviantartDownload(meta, file_data, options));
-    if (options.moveFile && downloads.length > 1) {
-        const stash_folder = /.*\//.exec(downloads[1].path)?.[0] ?? '';
-        const deviant_file = downloads[0].path.split('/').pop();
-        downloads[0].path = `${stash_folder}${deviant_file}`;
+    const file_datas = [file_data, ...getDeviantartAdditionalFileDatas(obj)];
+    const downloads = createDeviantartDownloads(meta, file_datas, options);
+    if (options.moveFile && stash_downloads.length > 0) {
+        const stash_folder = /.*\//.exec(stash_downloads[0].path)?.[0] ?? '';
+        for (const download of downloads) {
+            const deviant_file = download.path.split('/').pop();
+            download.path = `${stash_folder}${deviant_file}`;
+        }
     }
+    downloads.push(...stash_downloads);
     const download_ids = await handleDownloads(downloads, init, progress);
     progress.say('Updating');
     await sendAddSubmission(info.site, info.user, info.submission);
@@ -340,6 +344,30 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
     return { info, meta };
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function getDeviantartAdditionalFileDatas(obj) {
+    const file_datas = [];
+    const additional_media = obj.deviation?.extended?.additionalMedia;
+    if (additional_media) {
+        for (const item of additional_media) {
+            const file_name_ext = item.filename;
+            const file_regex_result = /(.+)\.(\w+)$/.exec(file_name_ext);
+            if (!file_regex_result) {
+                throw new Error('File does not match RegExp');
+            }
+            const meta = {
+                fileName: file_regex_result[1],
+                ext: file_regex_result[2],
+            };
+            const info = {
+                download: item.media.baseUri,
+                size: item.fileSize,
+            };
+            file_datas.push({ info, meta });
+        }
+    }
+    return file_datas;
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function buildMediaUrl(media_obj) {
     // usually:
     // type.c = image
@@ -372,13 +400,32 @@ function buildMediaUrl(media_obj) {
     return media_url;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function createDeviantartDownload(submission_meta, file_data, options) {
-    const meta = { ...submission_meta, ...file_data.meta };
-    const download = {
-        ...file_data.info,
-        path: renderPath(options.file, meta),
-    };
-    return download;
+function createDeviantartDownloads(submission_meta, file_datas, options) {
+    const downloads = [];
+    if (file_datas.length > 1) {
+        for (const [i, file] of enumerate(file_datas)) {
+            const meta = {
+                ...submission_meta,
+                ...file.meta,
+                page: `${i + 1}`,
+            };
+            downloads.push({
+                ...file.info,
+                path: renderPath(options.multiple, meta),
+            });
+        }
+    }
+    else {
+        const meta = {
+            ...submission_meta,
+            ...file_datas[0].meta,
+        };
+        downloads.push({
+            ...file_datas[0].info,
+            path: renderPath(options.file, meta),
+        });
+    }
+    return downloads;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function getStashDatas(urls, init, options, progress) {

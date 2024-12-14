@@ -112,12 +112,12 @@ function checkPixivPage(page_user) {
 function checkPixivThumbnail(element, page_user) {
     const link = element.querySelector('a[href*="/artworks/"]');
     if (!link) {
-        asLog('debug', 'Link not found for', element);
+        G_check_log.log('Link not found for', element);
         return;
     }
     const submission_id = /\/(\d+)$/.exec(link.href)?.[1];
     if (!submission_id) {
-        asLog('debug', 'Submission not found for', element);
+        G_check_log.log('Submission not found for', element);
         return;
     }
     const submission = parseInt(submission_id, 10);
@@ -137,7 +137,7 @@ function checkPixivThumbnail(element, page_user) {
     }
     const user = /\/(\d+)/.exec(user_link?.href ?? '')?.[1] ?? page_user;
     if (!user) {
-        asLog('debug', 'User not found for', element);
+        G_check_log.log('User not found for', element);
         return;
     }
     const parent = navigateUpSmaller(link);

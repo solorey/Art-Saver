@@ -140,14 +140,14 @@ function checkFuraffinityPage(page_user) {
 function checkFuraffinityThumbnail(element, page_user) {
     const link = element.querySelector('a[href*="/view/"]');
     if (!link) {
-        asLog('debug', 'Link not found for', element);
+        G_check_log.log('Link not found for', element);
         return;
     }
     const submission = parseInt(link.href.split('/')[4], 10);
     const user_link = element.querySelector('a[href*="/user/"]');
     const user = user_link?.href.split('/')[4] ?? page_user;
     if (!user) {
-        asLog('debug', 'User not found for', element);
+        G_check_log.log('User not found for', element);
         return;
     }
     const parent = navigateUpSmaller(link);
@@ -201,7 +201,6 @@ function checkFuraffinitySubmissionPage(url, user) {
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
 var startDownloading = async function (submission, progress) {
-    progress.say('Getting submission');
     const options = await getOptionsStorage(furaffinity_info.site);
     const init = {
         credentials: 'include',

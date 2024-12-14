@@ -583,7 +583,9 @@ class DownloadQueue {
             G_state_manager.updateState(submission, { is_stoppable: false });
             this.updateDownloadInfo();
             try {
-                const result = await startDownloading(submission, new ProgressController(submission));
+                const progress = new ProgressController(submission);
+                progress.say('Getting submission');
+                const result = await startDownloading(submission, progress);
                 G_info_bar?.addSubmission(submission, result.files, result.user, result.title);
             }
             catch (error) {
@@ -809,5 +811,18 @@ class InfoBar {
         this.e.stat_progress?.replaceChildren(`${in_progress}`);
         this.e.stat_queued?.replaceChildren(`${queued}`);
         this.e.queued_stat?.classList.toggle('hide', queued === 0);
+    }
+}
+//---------------------------------------------------------------------------------------------------------------------
+// check log cache: to avoid repeating the same console log when checking submissions
+//---------------------------------------------------------------------------------------------------------------------
+class CheckLogCache {
+    cache = new Map();
+    log(message, element) {
+        const cache_message = this.cache.get(element);
+        if (cache_message != message) {
+            asLog('debug', message, element);
+            this.cache.set(element, message);
+        }
     }
 }

@@ -18,6 +18,7 @@
             "scripts/storage.js",
             "background/sites/deviantart.js",
             "background/sites/twitter.js",
+            "background/sites/bluesky.js",
             "background/sites/pixiv.js",
             "background/sites/furaffinity.js",
             "background/sites/inkbunny.js",
@@ -47,6 +48,7 @@
                 "*://*.deviantart.com/*",
                 "*://*.twitter.com/*",
                 "*://*.x.com/*",
+                "*://*.bsky.app/*",
                 "*://*.pixiv.net/*",
                 "*://*.furaffinity.net/*",
                 "*://*.inkbunny.net/*"
@@ -67,6 +69,10 @@
             "js": ["background/sites/twitter.js", "content/scripts/sites/twitter.js"]
         },
         {
+            "matches": ["*://*.bsky.app/*"],
+            "js": ["background/sites/bluesky.js", "content/scripts/sites/bluesky.js"]
+        },
+        {
             "matches": ["*://*.pixiv.net/*"],
             "js": ["background/sites/pixiv.js", "content/scripts/sites/pixiv.js"]
         },
@@ -83,6 +89,7 @@
                 "*://*.deviantart.com/*",
                 "*://*.twitter.com/*",
                 "*://*.x.com/*",
+                "*://*.bsky.app/*",
                 "*://*.pixiv.net/*",
                 "*://*.furaffinity.net/*",
                 "*://*.inkbunny.net/*"

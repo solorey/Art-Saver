@@ -53,7 +53,7 @@ class UndoBar {
     primeUndoOptions(label) {
         this.type = 'options';
         this.label?.replaceChildren(label);
-        this.old_options = G_options_form.getFormValues();
+        this.old_options = G_options_form.getValues();
     }
     async primeUndoSaved(label) {
         this.type = 'saved';
@@ -62,7 +62,7 @@ class UndoBar {
     }
     undo() {
         if (this.type === 'options' && this.old_options) {
-            G_options_form.setFormValues(this.old_options);
+            G_options_form.setValues(this.old_options);
         }
         else if (this.type === 'saved' && this.old_saved) {
             setSavedStorage(this.old_saved);
@@ -78,6 +78,7 @@ const METAS = {
     site: "Name of the website. 'deviantart', 'pixiv', etc.",
     userName: 'User name of the artist.',
     userId: 'ID of the artist. Usually as shown in the URL of the user page.',
+    userDid: 'Decentralized Identifier of the artist.',
     title: 'Title of the submission.',
     submissionId: 'ID of the submission. Usually as shown in the URL of the submission page.',
     fileName: 'Original site filename of the submission. Does not include extension.',
@@ -423,7 +424,7 @@ class OptionsForm {
             }
         }
     }
-    getFormValues() {
+    getValues() {
         const form_options = {};
         for (const site of SITES_AND_GLOBAL) {
             const values = {};
@@ -434,7 +435,7 @@ class OptionsForm {
         }
         return form_options;
     }
-    setFormValues(all_options, initialize_default = false) {
+    setValues(all_options, initialize_default = false) {
         const related = [];
         for (const site of SITES_AND_GLOBAL) {
             const site_form = SITES_AND_GLOBAL_FORMS[site];
@@ -456,8 +457,8 @@ class OptionsForm {
         related.forEach((r) => this.showRelated(...r));
         saveOptions();
     }
-    setFormDefault() {
-        this.setFormValues({}, true);
+    setDefault() {
+        this.setValues({}, true);
     }
     showRelated(site, related, option) {
         for (const r of related) {
@@ -468,6 +469,80 @@ class OptionsForm {
             }
         }
         option.block.classList.remove('hide');
+    }
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class CommandInput {
+    command;
+    block;
+    value_element;
+    error_message;
+    constructor(command) {
+        this.command = command;
+        const template = cloneTemplate('#command-template');
+        const id = `command-${command.name}`;
+        const label = template.querySelector('label');
+        label?.append(command.description ?? '');
+        label?.setAttribute('for', id);
+        const input = selectOrError(template, 'input');
+        input.id = id;
+        input.value = command.shortcut ?? '';
+        input.addEventListener('keyup', this.keyEvent);
+        input.addEventListener('keydown', this.keyEvent);
+        input.addEventListener('input', () => this.updateCommand());
+        const button = template.querySelector('button');
+        button?.addEventListener('click', function () {
+            input.value = '';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        this.value_element = input;
+        this.error_message = template.querySelector('p');
+        this.block = template.firstElementChild;
+    }
+    keyEvent = (event) => {
+        if (onShortcutKeyboardEvent(event)) {
+            this.value_element.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    };
+    getValue() {
+        return this.value_element.value;
+    }
+    setValue(value) {
+        this.value_element.value = `${value}`;
+        this.updateCommand();
+    }
+    async updateCommand() {
+        try {
+            await browser.commands.update({ name: this.command.name ?? '', shortcut: this.value_element.value });
+            this.error_message?.classList.add('hide');
+        }
+        catch (error) {
+            console.log(error);
+            this.error_message?.classList.remove('hide');
+        }
+    }
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class CommandsForm {
+    form = {};
+    constructor() { }
+    getValues() {
+        const values = {};
+        for (const [name, command] of Object.entries(this.form)) {
+            values[name] = command.getValue();
+        }
+        return values;
+    }
+    setValues(values) {
+        for (const [name, value] of Object.entries(values)) {
+            this.form[name]?.setValue(value);
+        }
+    }
+    setDefault() {
+        const commands = browser.runtime.getManifest().commands ?? {};
+        for (const [name, command] of Object.entries(commands)) {
+            this.form[name]?.setValue(command.suggested_key?.default ?? '');
+        }
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -545,6 +620,7 @@ class SavedTable {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const G_options_form = new OptionsForm();
+const G_commands_form = new CommandsForm();
 const G_saved_table = new SavedTable();
 const G_undo_bar = new UndoBar();
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -622,7 +698,7 @@ document.querySelectorAll('[data-tab]').forEach((tab) => {
 //---------------------------------------------------------------------------------------------------------------------
 async function setupOptionsSections() {
     const stored_options = await getOptionsStorage(SITES_AND_GLOBAL);
-    G_options_form.setFormValues(stored_options, true);
+    G_options_form.setValues(stored_options, true);
     const global_section = document.querySelector('#globals-list');
     const sites_section = document.querySelector('#sites-list');
     const sites_toggles = document.querySelector('#sites-toggles');
@@ -651,62 +727,12 @@ async function setupOptionsSections() {
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class CommandInput {
-    command;
-    block;
-    value_element;
-    error_message;
-    constructor(command) {
-        this.command = command;
-        const template = cloneTemplate('#command-template');
-        const id = `command-${command.name}`;
-        const label = template.querySelector('label');
-        label?.append(command.description ?? '');
-        label?.setAttribute('for', id);
-        const input = selectOrError(template, 'input');
-        input.id = id;
-        input.value = command.shortcut ?? '';
-        input.addEventListener('keyup', this.keyEvent);
-        input.addEventListener('keydown', this.keyEvent);
-        input.addEventListener('input', () => this.updateCommand());
-        const button = template.querySelector('button');
-        button?.addEventListener('click', function () {
-            input.value = '';
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-        });
-        this.value_element = input;
-        this.error_message = template.querySelector('p');
-        this.block = template.firstElementChild;
-    }
-    keyEvent = (event) => {
-        if (onShortcutKeyboardEvent(event)) {
-            this.value_element.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-    };
-    getValue() {
-        return this.value_element.value;
-    }
-    setValue(value) {
-        this.value_element.value = `${value}`;
-        this.updateCommand();
-    }
-    async updateCommand() {
-        try {
-            await browser.commands.update({ name: this.command.name ?? '', shortcut: this.value_element.value });
-            this.error_message?.classList.add('hide');
-        }
-        catch (error) {
-            console.log(error);
-            this.error_message?.classList.remove('hide');
-        }
-    }
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function setupCommandsSection() {
     const section = document.querySelector('#commands-list');
     const commands = await browser.commands.getAll();
     for (const command of commands) {
         const input = new CommandInput(command);
+        G_commands_form.form[`${command.name}`] = input;
         section?.append(input.block);
     }
 }
@@ -747,7 +773,7 @@ form?.addEventListener('input', () => saveOptions());
 // form getting and setting
 //---------------------------------------------------------------------------------------------------------------------
 function saveOptions() {
-    setOptionsStorage(G_options_form.getFormValues());
+    setOptionsStorage(G_options_form.getValues());
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const input_file = document.querySelector('#import-options');
@@ -755,7 +781,8 @@ input_file?.addEventListener('input', async function () {
     const file = this.files?.item(0);
     if (file) {
         const json_file = await getJSON(file);
-        G_options_form.setFormValues(json_file);
+        G_options_form.setValues(json_file);
+        G_commands_form.setValues(json_file.commands ?? {});
     }
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -764,7 +791,13 @@ document.querySelector('#click-import')?.addEventListener('click', () => {
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 document.querySelector('#export-options')?.addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(G_options_form.getFormValues(), null, '\t')], {
+    const options = G_options_form.getValues();
+    const commands = G_commands_form.getValues();
+    const values = {
+        commands,
+        ...options,
+    };
+    const blob = new Blob([JSON.stringify(values, null, '\t')], {
         type: 'application/json',
     });
     browser.downloads.download({
@@ -776,7 +809,8 @@ document.querySelector('#export-options')?.addEventListener('click', () => {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 document.querySelector('#reset-options')?.addEventListener('click', () => {
     G_undo_bar.primeUndoOptions('Options have been reset to default');
-    G_options_form.setFormDefault();
+    G_options_form.setDefault();
+    G_commands_form.setDefault();
     G_undo_bar.show();
 });
 //---------------------------------------------------------------------------------------------------------------------

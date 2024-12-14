@@ -118,19 +118,19 @@ function checkInkbunnyPage(page_user) {
 function checkInkbunnyThumbnail(element, page_user) {
     const link = element.querySelector('a');
     if (!link) {
-        asLog('debug', 'Link not found for', element);
+        G_check_log.log('Link not found for', element);
         return;
     }
     const submission_id = /\/(\d+)$/.exec(link.href)?.[1];
     if (!submission_id) {
-        asLog('debug', 'Submission not found for', element);
+        G_check_log.log('Submission not found for', element);
         return;
     }
     const submission = parseInt(submission_id, 10);
     const img_alt = element.querySelector('img')?.alt ?? '';
     const user = /\sby\s(\w+)(?:$|(?:\s-\s))/.exec(img_alt)?.[1]?.toLowerCase() ?? page_user;
     if (!user) {
-        asLog('debug', 'User not found for', element);
+        G_check_log.log('User not found for', element);
         return;
     }
     // links are inline and don't match size of thumbnail
@@ -182,7 +182,7 @@ var startDownloading = async function (submission, progress) {
     const response = await fetchOk(`https://inkbunny.net/s/${submission}`, init);
     const dom = await parseDOM(response);
     const { info, meta } = getInkbunnySubmissionData(submission, dom);
-    const file_datas = await getInkbunnyFileDatas(dom, meta, options, progress);
+    const file_datas = await getInkbunnyFileDatas(dom, meta, progress);
     const downloads = createInkbunnyDownloads(meta, file_datas, options);
     const download_ids = await handleDownloads(downloads, init, progress);
     progress.say('Updating');
@@ -230,7 +230,7 @@ function getInkbunnySubmissionData(submission, dom) {
     return { info, meta };
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getInkbunnyFileDatas(dom, submission_meta, options, progress) {
+async function getInkbunnyFileDatas(dom, submission_meta, progress) {
     const files_count = dom.querySelector('#files_area span')?.textContent?.split(' ')[2];
     const pages = files_count ? parseInt(files_count, 10) : 1;
     const init = {

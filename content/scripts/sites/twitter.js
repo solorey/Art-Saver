@@ -110,47 +110,47 @@ var startChecking = async function () {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function checkTwitter() {
     const page = await getPageInfo();
-    checkTwitterPage(page.user);
+    checkTwitterPage();
+    checkTwitterMediaGrid();
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function checkTwitterPage(page_user) {
+function checkTwitterPage() {
     for (const tweet of document.querySelectorAll('[data-testid="tweet"]')) {
         const media = tweet.querySelector(':scope [aria-labelledby] > div > div');
         const tweet_photo = media?.querySelector('[data-testid="tweetPhoto"]');
         if (tweet_photo) {
-            checkTwitterThumbnail(tweet, page_user);
+            checkTwitterThumbnail(tweet);
         }
         const quote = tweet.querySelector(':scope [aria-labelledby] > div > [tabindex="0"][role="link"]');
         const quote_photo = quote?.querySelector('[data-testid="tweetPhoto"]');
         if (quote && quote_photo) {
-            checkTwitterThumbnail(quote, page_user);
+            checkTwitterThumbnail(quote);
         }
     }
-    checkTwitterMediaGrid();
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function checkTwitterThumbnail(element, page_user) {
+function checkTwitterThumbnail(element) {
     const is_quote = element.matches('[tabindex="0"][role="link"]');
     const media_box = element.querySelector(is_quote ? ':scope > div > div:nth-of-type(3)' : ':scope [aria-labelledby] > div > div > div');
     if (!media_box) {
-        asLog('debug', 'Tweet media not found for', element);
+        G_check_log.log('Tweet media not found for', element);
         return;
     }
     // using status url does not guarantee correct user ID
     const user = element.querySelector('[tabindex="-1"] > [dir] > span')?.textContent?.slice(1);
     if (!user) {
-        asLog('debug', 'User not found for', element);
+        G_check_log.log('User not found for', element);
         return;
     }
     // include user to avoid 'From' credit status conflict
     const link = element.querySelector(`a[href*="${user}/status/"]`);
     if (!link) {
-        asLog('debug', 'Link not found for', element);
+        G_check_log.log('Link not found for', element);
         return;
     }
     const regex_result = /\/status\/(\d+)/.exec(link.href);
     if (!regex_result) {
-        asLog('debug', 'Link does not match RegExp for', element);
+        G_check_log.log('Link does not match RegExp for', element);
         return;
     }
     const submission = regex_result[1];
@@ -161,12 +161,12 @@ function checkTwitterMediaGrid() {
     for (const element of document.querySelectorAll('[data-testid="cellInnerDiv"] li')) {
         const link = element.querySelector('a[href*="/status/"]');
         if (!link) {
-            asLog('debug', 'Link not found for', element);
+            G_check_log.log('Link not found for', element);
             continue;
         }
         const regex_result = /\/([^\/]+)\/status\/(\d+)/.exec(link.href);
         if (!regex_result) {
-            asLog('debug', 'Link does not match RegExp for', element);
+            G_check_log.log('Link does not match RegExp for', element);
             continue;
         }
         const user = regex_result[1].toLowerCase();
@@ -178,7 +178,6 @@ function checkTwitterMediaGrid() {
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
 var startDownloading = async function (submission, progress) {
-    progress.say('Getting submission');
     const options = await getOptionsStorage(twitter_info.site);
     const params = new URLSearchParams({
         variables: JSON.stringify({
@@ -215,7 +214,7 @@ var startDownloading = async function (submission, progress) {
     const obj = await parseJSON(response);
     const tweet = extractTweet(submission, obj);
     const { info, meta } = getTwitterSubmissionData(submission, tweet);
-    const file_datas = await getTwitterFileDatas(tweet, meta, options, progress);
+    const file_datas = await getTwitterFileDatas(tweet);
     const downloads = createTwitterDownloads(meta, file_datas, options);
     const download_ids = await handleDownloads(downloads, init, progress);
     progress.say('Updating');
@@ -265,7 +264,7 @@ function getTwitterSubmissionData(submission, obj) {
     return { info, meta };
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getTwitterFileDatas(obj, submission_meta, options, progress) {
+async function getTwitterFileDatas(obj) {
     const medias = obj.legacy.extended_entities.media;
     const files = medias.map((media) => getTwitterFileData(media));
     return files;

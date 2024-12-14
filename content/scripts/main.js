@@ -9,6 +9,7 @@ let G_info_bar;
 const G_themed_elements = [];
 const G_ui = document.createElement('art-saver-ui');
 const G_style = document.createElement('style');
+const G_check_log = new CheckLogCache();
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function main() {
     G_options = await getOptionsStorage('global');
@@ -201,8 +202,8 @@ function createIconsStyle() {
     return `:host {${icons} ${flat_16} ${flat_12}}`;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function pathComponents() {
-    return window.location.pathname.split('/').slice(1);
+function pathComponents(url) {
+    return (url ? new URL(url) : window.location).pathname.split('/').slice(1);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function wrapElement(element) {
