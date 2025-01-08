@@ -47,7 +47,7 @@ var getUserInfo = async function (user) {
     const icon_blob = await fetchWorkerOk(icon_url, init);
     const icon = await browser.runtime.sendMessage({
         action: 'background_create_object_url',
-        object: icon_blob,
+        blob: icon_blob,
     });
     const stats = new Map();
     stats.set('Submissions', home_data.body.work_sets.all.total);
@@ -141,7 +141,8 @@ function checkPixivThumbnail(element, page_user) {
         return;
     }
     const parent = navigateUpSmaller(link);
-    return createButton(pixiv_info.site, user, submission, parent, true);
+    const info = { site: pixiv_info.site, user, submission };
+    return createButton(info, parent, true);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkPixivSubmissionPage(url, user) {
@@ -153,14 +154,17 @@ function checkPixivSubmissionPage(url, user) {
     if (!submission_id) {
         return;
     }
-    const submission = parseInt(submission_id, 10);
-    createButton(pixiv_info.site, user, submission, figure, false);
+    const info = {
+        site: pixiv_info.site,
+        user,
+        submission: parseInt(submission_id, 10),
+    };
+    createButton(info, figure, false);
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
 var startDownloading = async function (submission, progress) {
-    progress.say('Getting submission');
     const options = await getOptionsStorage(pixiv_info.site);
     const init = {
         credentials: 'include',
@@ -171,16 +175,7 @@ var startDownloading = async function (submission, progress) {
     const { info, meta } = getPixivSubmissionData(submission, obj);
     const file_datas = await getPixivFileDatas(obj, meta, options, progress);
     const downloads = createPixivDownloads(meta, file_datas, options);
-    const download_ids = await handleDownloads(downloads, init, progress);
-    progress.say('Updating');
-    await sendAddSubmission(info.site, info.user, info.submission);
-    const files = downloads.map((download, i) => ({ path: download.path, id: download_ids[i] }));
-    const result = {
-        user: info.user,
-        title: meta.title,
-        files,
-    };
-    return result;
+    return await downloadSubmission(info, downloads, init, progress, meta.title);
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getPixivSubmissionData(submission, obj) {
@@ -215,7 +210,7 @@ async function getPixivFileDatas(obj, submission_meta, options, progress) {
     let pages = obj.body.pageCount;
     const is_ugoira = obj.body.illustType === 2;
     if (is_ugoira) {
-        progress.say('Getting ugoira meta');
+        progress.message('Getting ugoira meta');
         const init = {
             credentials: 'include',
             referrer: window.location.href,
@@ -297,14 +292,14 @@ async function getUgoira(type, frames, width, height, delays, progress) {
     const fetch_worker = new FetchWorker();
     for (const [i, frame] of enumerate(frames)) {
         const blob = await fetch_worker.fetchOk(frame, init, (loaded, blob_total) => {
-            progress.blobProgress(i, total, bytes, loaded, blob_total);
+            progress.blobMessage(i, total, bytes, loaded, blob_total);
         });
         bytes += blob.size;
         blobs.push(blob);
     }
     fetch_worker.terminate();
     progress.width(100);
-    progress.say(`Creating ${type.toUpperCase()}`);
+    progress.message(`Creating ${type.toUpperCase()}`);
     const ugoira_worker = new Worker(browser.runtime.getURL('/workers/ugoira_worker.js'));
     const ugoira_promise = new Promise((resolve, reject) => {
         ugoira_worker.onmessage = (message) => {

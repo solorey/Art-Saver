@@ -83,7 +83,7 @@ var getUserInfo = async function (user) {
     fetch_worker.terminate();
     const icon = await browser.runtime.sendMessage({
         action: 'background_create_object_url',
-        object: icon_blob,
+        blob: icon_blob,
     });
     const stats = new Map();
     stats.set('Posts', obj.postsCount);
@@ -192,8 +192,12 @@ function checkBlueskyThumbnail(element) {
         G_check_log.log('User DID not found for', element);
         return;
     }
-    const submission = `${regex_result[1]}+${did}`;
-    return createButton(bluesky_info.site, user.toLowerCase(), submission, media_box, true);
+    const info = {
+        site: bluesky_info.site,
+        user: user.toLowerCase(),
+        submission: `${regex_result[1]}+${did}`,
+    };
+    return createButton(info, media_box, true);
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
@@ -216,15 +220,7 @@ var startDownloading = async function (submission, progress) {
     const { info, meta } = getBlueskySubmissionData(submission, obj);
     const file_datas = getBlueskyFileDatas(obj);
     const downloads = createBlueskyDownloads(meta, file_datas, options);
-    const download_ids = await handleDownloads(downloads, init, progress);
-    progress.say('Updating');
-    await sendAddSubmission(info.site, info.user, info.submission);
-    const files = downloads.map((download, i) => ({ path: download.path, id: download_ids[i] }));
-    const result = {
-        user: info.user,
-        files,
-    };
-    return result;
+    return await downloadSubmission(info, downloads, init, progress);
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getBlueskySubmissionData(submission, obj) {

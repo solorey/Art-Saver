@@ -74,7 +74,7 @@ var getUserInfo = async function (user) {
     fetch_worker.terminate();
     const icon = await browser.runtime.sendMessage({
         action: 'background_create_object_url',
-        object: icon_blob,
+        blob: icon_blob,
     });
     const stats = new Map();
     stats.set('Media', user_data.media_count);
@@ -109,7 +109,6 @@ var startChecking = async function () {
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function checkTwitter() {
-    const page = await getPageInfo();
     checkTwitterPage();
     checkTwitterMediaGrid();
 }
@@ -154,7 +153,8 @@ function checkTwitterThumbnail(element) {
         return;
     }
     const submission = regex_result[1];
-    return createButton(twitter_info.site, user.toLowerCase(), submission, media_box, true);
+    const info = { site: twitter_info.site, user: user.toLowerCase(), submission };
+    return createButton(info, media_box, true);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkTwitterMediaGrid() {
@@ -169,9 +169,12 @@ function checkTwitterMediaGrid() {
             G_check_log.log('Link does not match RegExp for', element);
             continue;
         }
-        const user = regex_result[1].toLowerCase();
-        const submission = regex_result[2];
-        createButton(twitter_info.site, user, submission, element, true);
+        const info = {
+            site: twitter_info.site,
+            user: regex_result[1].toLowerCase(),
+            submission: regex_result[2],
+        };
+        createButton(info, element, true);
     }
 }
 //---------------------------------------------------------------------------------------------------------------------
@@ -216,15 +219,7 @@ var startDownloading = async function (submission, progress) {
     const { info, meta } = getTwitterSubmissionData(submission, tweet);
     const file_datas = await getTwitterFileDatas(tweet);
     const downloads = createTwitterDownloads(meta, file_datas, options);
-    const download_ids = await handleDownloads(downloads, init, progress);
-    progress.say('Updating');
-    await sendAddSubmission(info.site, info.user, info.submission);
-    const files = downloads.map((download, i) => ({ path: download.path, id: download_ids[i] }));
-    const result = {
-        user: info.user,
-        files,
-    };
-    return result;
+    return await downloadSubmission(info, downloads, init, progress);
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function extractTweet(submission, obj) {

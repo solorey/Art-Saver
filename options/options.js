@@ -58,17 +58,17 @@ class UndoBar {
     async primeUndoSaved(label) {
         this.type = 'saved';
         this.label?.replaceChildren(label);
-        this.old_saved = await getSavedStorage(SITES);
+        this.old_saved = await browser.runtime.sendMessage({ action: 'background_get_db_json' });
     }
     undo() {
         if (this.type === 'options' && this.old_options) {
             G_options_form.setValues(this.old_options);
         }
         else if (this.type === 'saved' && this.old_saved) {
-            setSavedStorage(this.old_saved);
-            const sites = keysSet(this.old_saved);
-            const blank_sites = SITES.filter((site) => !sites.has(site));
-            removeSavedStorage(blank_sites);
+            browser.runtime.sendMessage({
+                action: 'background_set_db_json',
+                saved_json: this.old_saved,
+            });
         }
         this.hide();
     }
@@ -97,7 +97,9 @@ const METAS = {
     url: 'Source URL.',
     urlId: 'ID in the URL. Available when the submission ID is not the source ID.',
 };
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//---------------------------------------------------------------------------------------------------------------------
+// option type creation
+//---------------------------------------------------------------------------------------------------------------------
 class OptionSelect {
     id;
     block;
@@ -581,12 +583,11 @@ class TableDetails {
         lists.forEach((l) => resize.observe(l));
         this.row = row;
     }
-    setValues(values) {
+    setValues(users, submissions) {
         const compare_users = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true }).compare;
-        const users = Object.keys(values).sort(compare_users);
+        users.sort(compare_users);
         this.users_list?.updateValues(users);
         this.users_stat?.replaceChildren(`${users.length}`);
-        const submissions = Object.values(values).flat();
         const compare_submissions = typeof submissions[0] === 'string'
             ? new Intl.Collator(undefined, { numeric: true }).compare
             : typeof submissions[0] === 'number'
@@ -596,6 +597,13 @@ class TableDetails {
         this.submissions_list?.updateValues(submissions);
         this.submissions_stat?.replaceChildren(`${submissions.length}`);
         this.saved_details?.classList.toggle('hide', submissions.length === 0);
+    }
+    async getValues() {
+        const values = await browser.runtime.sendMessage({
+            action: 'background_get_db_site_values',
+            site: this.site,
+        });
+        this.setValues(values.users, values.submissions);
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -611,10 +619,9 @@ class SavedTable {
         }
         this.table_details = table_details;
     }
-    async setTableValues() {
-        const stored = await getSavedStorage(SITES);
+    getValues() {
         for (const site of SITES) {
-            this.table_details[site].setValues(stored[site] ?? {});
+            this.table_details[site].getValues();
         }
     }
 }
@@ -629,11 +636,23 @@ const G_undo_bar = new UndoBar();
     openOptionsTab(settings_state.tab);
     await setupOptionsSections();
     await setupCommandsSection();
-    await G_saved_table.setTableValues();
+    G_saved_table.getValues();
     const edit_enabled = document.querySelector('#saved-info-edit-switch input')?.checked ?? false;
     const saved_table = document.querySelector('#saved-table');
     saved_table?.classList.toggle('editable', edit_enabled);
 })();
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+browser.runtime.onMessage.addListener((message) => {
+    return optionsMessageActions(message);
+});
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function optionsMessageActions(message) {
+    switch (message.action) {
+        case 'options_db_update':
+            G_saved_table.table_details[message.site].getValues();
+            break;
+    }
+}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 getOptionsStorage('global').then((global_options) => {
     document.body.setAttribute('data-theme', global_options.theme);
@@ -644,13 +663,13 @@ browser.storage.local.onChanged.addListener((changes) => {
     if (global_options_values) {
         document.body.setAttribute('data-theme', global_options_values.theme);
     }
-    for (const site of SITES) {
-        const changed = changes[savedKey(site)];
-        if (!changed) {
-            continue;
-        }
-        G_saved_table.table_details[site].setValues(changed.newValue ?? {});
-    }
+    // for (const site of SITES) {
+    //     const changed = changes[savedKey(site)];
+    //     if (!changed) {
+    //         continue;
+    //     }
+    //     G_saved_table.table_details[site].setValues(changed.newValue ?? {});
+    // }
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function selectOrError(parent, selectors) {
@@ -854,7 +873,6 @@ function createOptionsSubmissionRow(site, search) {
     strong.append(search.value.substring(search.start, search.end));
     label?.append(search.value.substring(0, search.start), strong, search.value.substring(search.end));
     template.querySelector('[data-submission-link]')?.setAttribute('href', links.submission(search.value));
-    const submission_id = search.value;
     const row_id = `${site}s${search.value}`;
     const delete_button = template.querySelector('[data-delete-button]');
     if (G_delete_queue.has(row_id)) {
@@ -862,12 +880,16 @@ function createOptionsSubmissionRow(site, search) {
     }
     else {
         delete_button?.addEventListener('click', async function () {
+            let submission = search.value;
+            if (SITES_INFO[site].id_type === 'number') {
+                submission = parseInt(submission, 10);
+            }
             G_delete_queue.add(row_id);
             this.classList.add('deleting');
             await browser.runtime.sendMessage({
                 action: 'background_remove_submission',
-                site: site,
-                submission: submission_id,
+                site,
+                submission,
             });
             G_delete_queue.delete(row_id);
         }, { once: true });
@@ -875,7 +897,7 @@ function createOptionsSubmissionRow(site, search) {
     return template.firstElementChild;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-document.querySelector('#table-refresh')?.addEventListener('click', () => G_saved_table.setTableValues());
+document.querySelector('#table-refresh')?.addEventListener('click', () => G_saved_table.getValues());
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 document.querySelector('#table-open-all')?.addEventListener('click', () => {
     document.querySelectorAll('[data-saved-details]').forEach((details) => details.toggleAttribute('open', true));
@@ -886,7 +908,7 @@ document.querySelector('#table-close-all')?.addEventListener('click', () => {
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 document.querySelector('#export-list')?.addEventListener('click', async () => {
-    const json_info = await getSavedStorage(SITES);
+    const json_info = await browser.runtime.sendMessage({ action: 'background_get_db_json' });
     const blob = new Blob([JSON.stringify(json_info, null, '\t')], { type: 'application/json' });
     browser.downloads.download({
         url: URL.createObjectURL(blob),
@@ -897,7 +919,7 @@ document.querySelector('#export-list')?.addEventListener('click', async () => {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 document.querySelector('#reset-list')?.addEventListener('click', async () => {
     await G_undo_bar.primeUndoSaved('Saved data has been reset');
-    await removeSavedStorage(SITES);
+    await browser.runtime.sendMessage({ action: 'background_set_db_json', saved_json: {} });
     G_undo_bar.show();
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -910,22 +932,12 @@ document.querySelector('#saved-info')?.addEventListener('input', async function 
     file_label?.replaceChildren(file.name);
     await G_undo_bar.primeUndoSaved('Saved data has been overwritten');
     const json_file = await getJSON(file);
-    await removeSavedStorage(SITES);
-    await setSavedStorage(cleanSavedInfo(json_file));
+    await browser.runtime.sendMessage({
+        action: 'background_set_db_json',
+        saved_json: cleanSavedInfo(json_file),
+    });
     G_undo_bar.show();
 });
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function union(setA, setB) {
-    const un = new Set(setA);
-    for (const elem of setB) {
-        un.add(elem);
-    }
-    return un;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function keysSet(obj) {
-    return new Set(Object.keys(obj));
-}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function cleanSavedInfo(saved_info) {
     const cleaned_info = {};
@@ -964,30 +976,12 @@ document.querySelector('#add-info')?.addEventListener('input', async function ()
     file_label?.replaceChildren(file.name);
     await G_undo_bar.primeUndoSaved('Saved data has been appended');
     const json_file = await getJSON(file);
-    const current_info = await getSavedStorage(SITES);
-    await setSavedStorage(combineInfo(current_info, cleanSavedInfo(json_file)));
+    await browser.runtime.sendMessage({
+        action: 'background_add_db_json',
+        saved_json: cleanSavedInfo(json_file),
+    });
     G_undo_bar.show();
 });
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function combineInfo(info1, info2) {
-    const combined_info = {};
-    for (const site of SITES) {
-        const users = {};
-        const users1 = info1[site] ?? {};
-        const users2 = info2[site] ?? {};
-        const all_users = union(keysSet(users1), keysSet(users2));
-        for (const user of all_users) {
-            const submissions = union(new Set(users1[user]), new Set(users2[user]));
-            if (submissions.size > 0) {
-                users[user] = [...submissions];
-            }
-        }
-        if (Object.keys(users).length > 0) {
-            combined_info[site] = users;
-        }
-    }
-    return combined_info;
-}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 document.querySelector('#saved-info-edit-switch')?.addEventListener('input', function () {
     const saved_table = document.querySelector('#saved-table');

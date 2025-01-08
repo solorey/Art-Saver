@@ -65,18 +65,26 @@ class PopupUserTab {
         this.stats_list?.replaceChildren(...stat_blocks);
         this.folder_path = user.folder;
     }
-    setUserSaved(values) {
-        const compare_submissions = typeof values[0] === 'string'
+    setUserValues(submissions) {
+        const compare_submissions = typeof submissions[0] === 'string'
             ? new Intl.Collator(undefined, { numeric: true }).compare
-            : typeof values[0] === 'number'
+            : typeof submissions[0] === 'number'
                 ? (a, b) => a - b
                 : undefined;
-        const submissions = values.sort(compare_submissions);
+        submissions.sort(compare_submissions);
         this.saved_stat?.replaceChildren(`${submissions.length}`);
         this.search_list?.updateValues(submissions);
-        const has_submissions = values.length > 0;
+        const has_submissions = submissions.length > 0;
         this.saved_details?.classList.toggle('hide', !has_submissions);
         this.user_folder?.classList.toggle('hide', !has_submissions);
+    }
+    async getUserValues(site, user) {
+        const values = await browser.runtime.sendMessage({
+            action: 'background_get_db_user_values',
+            site,
+            user,
+        });
+        this.setUserValues([...values.submissions]);
     }
     showPage(page) {
         const pages = {
@@ -124,11 +132,11 @@ class PopupSiteTab {
         this.error_message = document.querySelector('#site-error-message');
         this.page_info = document.querySelector('#site-info');
         const refresh_button = document.querySelector('#refresh');
-        refresh_button?.addEventListener('click', () => this.sendMessage('main_refresh'));
+        refresh_button?.addEventListener('click', () => this.sendMessage('content_refresh'));
         this.refresh_button = refresh_button;
         this.saved_stat = document.querySelector('#saved-stat');
         const download_all_button = document.querySelector('#download-all');
-        download_all_button?.addEventListener('click', () => this.sendMessage('main_download_all'));
+        download_all_button?.addEventListener('click', () => this.sendMessage('content_download_all'));
         this.download_all_button = download_all_button;
         this.downloads_stat = document.querySelector('#downloads-stat');
         this.site_name = document.querySelector('#stats-site');
@@ -154,12 +162,11 @@ class PopupSiteTab {
         this.saved_stat?.replaceChildren(`${stats.checks}`);
         this.downloads_stat?.replaceChildren(`${stats.downloads}`);
     }
-    setSiteSaved(values) {
+    setSiteValues(users, submissions) {
         const compare_users = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true }).compare;
-        const users = Object.keys(values).sort(compare_users);
+        users.sort(compare_users);
         this.users_list?.updateValues(users);
         this.users_stat?.replaceChildren(`${users.length}`);
-        const submissions = Object.values(values).flat();
         const compare_submissions = typeof submissions[0] === 'string'
             ? new Intl.Collator(undefined, { numeric: true }).compare
             : typeof submissions[0] === 'number'
@@ -168,6 +175,13 @@ class PopupSiteTab {
         submissions.sort(compare_submissions);
         this.submissions_list?.updateValues(submissions);
         this.submissions_stat?.replaceChildren(`${submissions.length}`);
+    }
+    async getSiteValues(site) {
+        const values = await browser.runtime.sendMessage({
+            action: 'background_get_db_site_values',
+            site,
+        });
+        this.setSiteValues(values.users, values.submissions);
     }
     showPage(page) {
         const pages = {
@@ -225,7 +239,7 @@ const G_popup_site_tab = new PopupSiteTab();
     let tab_data;
     try {
         tab_data = await browser.tabs.sendMessage(tab_id, {
-            action: 'main_page_info',
+            action: 'content_page_info',
         });
     }
     catch (error) {
@@ -235,8 +249,7 @@ const G_popup_site_tab = new PopupSiteTab();
     }
     G_popup_site = tab_data.info.site;
     G_popup_site_tab.setSiteInfo(tab_id, tab_data.info, tab_data.stats);
-    const site_saved = await getSavedStorage(tab_data.info.site);
-    G_popup_site_tab.setSiteSaved(site_saved);
+    await G_popup_site_tab.getSiteValues(G_popup_site);
     G_popup_site_tab.showPage('info');
     if (!tab_data.info.user) {
         return;
@@ -250,7 +263,7 @@ const G_popup_site_tab = new PopupSiteTab();
     let user;
     try {
         user = await browser.tabs.sendMessage(tab_id, {
-            action: 'main_user_info',
+            action: 'content_user_info',
             user: tab_data.info.user,
         });
     }
@@ -260,7 +273,7 @@ const G_popup_site_tab = new PopupSiteTab();
         return;
     }
     G_popup_user_tab.setUserInfo(user);
-    G_popup_user_tab.setUserSaved(site_saved[user.user] ?? []);
+    await G_popup_user_tab.getUserValues(G_popup_site, G_popup_user);
     G_popup_user_tab.showPage('info');
 })();
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -275,24 +288,24 @@ browser.storage.local.onChanged.addListener((changes) => {
     if (global_options_values) {
         document.body.setAttribute('data-theme', global_options_values.theme);
     }
-    if (!G_popup_site) {
-        return;
-    }
-    const site_saved_changed = changes[savedKey(G_popup_site)];
-    if (!site_saved_changed) {
-        return;
-    }
-    const site_saved_values = site_saved_changed.newValue ?? {};
-    G_popup_site_tab.setSiteSaved(site_saved_values);
-    if (!G_popup_user) {
-        return;
-    }
-    const saved_changed = site_saved_values[G_popup_user];
-    if (!saved_changed) {
-        return;
-    }
-    G_popup_user_tab.setUserSaved(saved_changed);
 });
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+browser.runtime.onMessage.addListener((message) => {
+    return popupMessageActions(message);
+});
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function popupMessageActions(message) {
+    switch (message.action) {
+        case 'popup_db_update':
+            if (G_popup_site && message.site === G_popup_site) {
+                G_popup_site_tab.getSiteValues(G_popup_site);
+                if (G_popup_user) {
+                    G_popup_user_tab.getUserValues(G_popup_site, G_popup_user);
+                }
+            }
+            break;
+    }
+}
 //---------------------------------------------------------------------------------------------------------------------
 // tabs
 //---------------------------------------------------------------------------------------------------------------------

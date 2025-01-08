@@ -439,6 +439,7 @@ body {
 
 .checkbox-label {
   cursor: pointer;
+  position: relative;
 }
 
 .checkbox-input {

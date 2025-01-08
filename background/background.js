@@ -1,12 +1,261 @@
 "use strict";
+//---------------------------------------------------------------------------------------------------------------------
+// database functions
+//---------------------------------------------------------------------------------------------------------------------
+let G_db;
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function initializeDB() {
+    const request = indexedDB.open('MainDB');
+    return new Promise((resolve, reject) => {
+        request.onerror = () => {
+            reject('IndexedDB could not be initialized');
+        };
+        request.onsuccess = () => {
+            resolve(request.result);
+        };
+        request.onupgradeneeded = () => {
+            const store = request.result.createObjectStore('submissions', { keyPath: ['site', 'user', 'submission'] });
+            store.createIndex('site', 'site', { unique: false });
+            store.createIndex('user', 'user', { unique: false });
+            store.createIndex('submission', 'submission', { unique: false });
+        };
+    });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// reconnect when the background script closes
+async function getOrReconnectDB() {
+    if (!G_db) {
+        G_db = await initializeDB();
+    }
+    return G_db;
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function findSubmission(info) {
+    const request = (await getOrReconnectDB())
+        .transaction('submissions', 'readonly')
+        .objectStore('submissions')
+        .index('submission')
+        .getAll(info.submission);
+    return await new Promise((resolve, reject) => {
+        request.onerror = () => {
+            reject('Could not get from IndexedDB');
+        };
+        request.onsuccess = () => {
+            const submissions = request.result;
+            const same_site = submissions.filter((item) => item.site === info.site);
+            resolve(same_site.find((item) => item.user === info.user) ?? same_site.shift());
+        };
+    });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function addSubmission(info) {
+    const transaction = (await getOrReconnectDB()).transaction('submissions', 'readwrite');
+    return await new Promise((resolve, reject) => {
+        transaction.oncomplete = () => {
+            sendDBUpdate(info.site);
+            resolve();
+        };
+        transaction.onerror = () => {
+            reject('Could not add to IndexedDB');
+        };
+        transaction.objectStore('submissions').add(info);
+    });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function removeSubmission(site, submission) {
+    const transaction = (await getOrReconnectDB()).transaction('submissions', 'readwrite');
+    return await new Promise((resolve, reject) => {
+        transaction.oncomplete = () => {
+            sendDBUpdate(site);
+            resolve();
+        };
+        transaction.onerror = () => {
+            reject('Could not remove from IndexedDB');
+        };
+        const request = transaction.objectStore('submissions').index('submission').openCursor(submission);
+        request.onsuccess = () => {
+            const cursor = request.result;
+            if (cursor) {
+                if (cursor.value.site === site) {
+                    cursor.delete();
+                }
+                cursor.continue();
+            }
+        };
+    });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function removeUser(site, user) {
+    const transaction = (await getOrReconnectDB()).transaction('submissions', 'readwrite');
+    return await new Promise((resolve, reject) => {
+        transaction.oncomplete = () => {
+            sendDBUpdate(site);
+            resolve();
+        };
+        transaction.onerror = () => {
+            reject('Could not remove from IndexedDB');
+        };
+        const request = transaction.objectStore('submissions').index('user').openCursor(user);
+        request.onsuccess = () => {
+            const cursor = request.result;
+            if (cursor) {
+                if (cursor.value.site === site) {
+                    cursor.delete();
+                }
+                cursor.continue();
+            }
+        };
+    });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function getDBSiteValues(site) {
+    const store = (await getOrReconnectDB()).transaction('submissions', 'readonly').objectStore('submissions');
+    const request = store.index('site').getAll(site);
+    return await new Promise((resolve, reject) => {
+        request.onerror = () => {
+            reject('Could not get from IndexedDB');
+        };
+        request.onsuccess = () => {
+            const values = request.result;
+            const users = new Set();
+            const submissions = new Set();
+            for (const submission of values) {
+                users.add(submission.user);
+                submissions.add(submission.submission);
+            }
+            resolve({ users: [...users], submissions: [...submissions] });
+        };
+    });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function getDBUserValues(site, user) {
+    const store = (await getOrReconnectDB()).transaction('submissions', 'readonly').objectStore('submissions');
+    const request = store.index('user').getAll(user);
+    return await new Promise((resolve, reject) => {
+        request.onerror = () => {
+            reject('Could not get from IndexedDB');
+        };
+        request.onsuccess = () => {
+            const values = request.result;
+            const submissions = new Set();
+            for (const submission of values) {
+                if (submission.site === site) {
+                    submissions.add(submission.submission);
+                }
+            }
+            resolve({ submissions: [...submissions] });
+        };
+    });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function getDBAsJSON(site) {
+    const saved_json = {};
+    const store = (await getOrReconnectDB()).transaction('submissions', 'readonly').objectStore('submissions');
+    let request;
+    if (site) {
+        request = store.index('site').getAll(site);
+    }
+    else {
+        request = store.getAll();
+    }
+    return await new Promise((resolve, reject) => {
+        request.onerror = () => {
+            reject('Could not get from IndexedDB');
+        };
+        request.onsuccess = () => {
+            const submissions = request.result;
+            for (const info of submissions) {
+                const site = saved_json[info.site] ?? {};
+                const user = site[info.user] ?? [];
+                user.push(info.submission);
+                site[info.user] = user;
+                saved_json[info.site] = site;
+            }
+            resolve(saved_json);
+        };
+    });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function setDBFromJSON(saved_json) {
+    const transaction = (await getOrReconnectDB()).transaction('submissions', 'readwrite');
+    return await new Promise((resolve, reject) => {
+        transaction.oncomplete = () => {
+            for (const site of SITES) {
+                sendDBUpdate(site);
+            }
+            resolve();
+        };
+        transaction.onerror = () => {
+            reject('Could not set IndexedDB');
+        };
+        const store = transaction.objectStore('submissions');
+        const request = store.clear();
+        request.onsuccess = () => {
+            for (const [site, info] of Object.entries(saved_json)) {
+                for (const [user, submissions] of Object.entries(info)) {
+                    if (submissions) {
+                        for (const submission of submissions) {
+                            store.add({ site, user, submission }).onerror = (event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            };
+                        }
+                    }
+                }
+            }
+        };
+    });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function addDBFromJSON(saved_json) {
+    const transaction = (await getOrReconnectDB()).transaction('submissions', 'readwrite');
+    return await new Promise((resolve, reject) => {
+        transaction.oncomplete = () => {
+            for (const site of SITES) {
+                if (site in saved_json) {
+                    sendDBUpdate(site);
+                }
+            }
+            resolve();
+        };
+        transaction.onerror = () => {
+            reject('Could not add to IndexedDB');
+        };
+        const store = transaction.objectStore('submissions');
+        for (const [site, info] of Object.entries(saved_json)) {
+            for (const [user, submissions] of Object.entries(info)) {
+                if (submissions) {
+                    for (const submission of submissions) {
+                        store.add({ site, user, submission }).onerror = (event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        };
+                    }
+                }
+            }
+        }
+    });
+}
+//---------------------------------------------------------------------------------------------------------------------
+// startup functions
+//---------------------------------------------------------------------------------------------------------------------
 browser.runtime.onInstalled.addListener((details) => {
     initialBackgroundSetup(details);
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function initialBackgroundSetup(details) {
-    await Promise.all([setupStates(), setupOptionsStorage()]);
+    await Promise.all([setupStates(), setupOptionsStorage(), initializeDB()]);
     if (details.previousVersion && Number(details.previousVersion.split('.')[0]) < 2) {
         await upgradeToVersion2();
+    }
+    // convert old storage to IndexedDB
+    const old_saved_storage = await getSavedStorage(SITES);
+    if (Object.keys(old_saved_storage).length > 0) {
+        await addDBFromJSON(old_saved_storage);
+        console.log('Old storage converted to IndexedDB');
+        // just in case
+        browser.storage.local.set({ old_saved: old_saved_storage });
+        removeSavedStorage(SITES);
     }
     if (details.reason === 'install') {
         browser.runtime.openOptionsPage();
@@ -137,75 +386,73 @@ function backgroundMessageActions(message) {
         case 'background_download_blob':
             return downloadBlob(message.blob, message.path);
         case 'background_create_object_url':
-            return Promise.resolve(URL.createObjectURL(message.object));
+            return Promise.resolve(URL.createObjectURL(message.blob));
         case 'background_revoke_object_url':
             return URL.revokeObjectURL(message.url);
+        case 'background_find_submission':
+            return findSubmission(message.info);
         case 'background_add_submission':
-            return waitAddSubmission(message.site, message.user, message.submission);
+            return addSubmission(message.info);
         case 'background_remove_user':
-            return waitRemoveUser(message.site, message.user);
+            return removeUser(message.site, message.user);
         case 'background_remove_submission':
-            return waitRemoveSubmission(message.site, message.submission);
+            return removeSubmission(message.site, message.submission);
+        case 'background_get_db_site_values':
+            return getDBSiteValues(message.site);
+        case 'background_get_db_user_values':
+            return getDBUserValues(message.site, message.user);
+        case 'background_get_db_json':
+            return getDBAsJSON();
+        case 'background_set_db_json':
+            return setDBFromJSON(message.saved_json);
+        case 'background_add_db_json':
+            return addDBFromJSON(message.saved_json);
         case 'background_open_user_folder':
             return openFolder(message.path);
         case 'background_show_download':
             return browser.downloads.show(message.id);
-        case 'background_open_popup':
-            return browser.action.openPopup();
     }
 }
-//---------------------------------------------------------------------------------------------------------------------
-// update saved info
-//---------------------------------------------------------------------------------------------------------------------
-var G_updating = false;
-// function to prevent the saved info from updating multiple times at once
-// it could cause some downloaded files to not be added to the list
-async function isUpdating() {
-    while (true) {
-        if (!G_updating) {
-            return true;
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function sendDBUpdate(site) {
+    sendContentScriptMessage({
+        action: 'content_db_update',
+        site,
+    });
+    browser.runtime.sendMessage({ action: 'options_db_update', site });
+    browser.runtime.sendMessage({ action: 'popup_db_update', site });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function sendContentScriptMessage(message) {
+    const tabs = await browser.tabs.query({});
+    for (const tab of tabs) {
+        if (tab.id && tab.url) {
+            browser.tabs.sendMessage(tab.id, message).catch(() => { });
         }
-        await new Promise((resolve) => {
-            setTimeout(resolve, 25);
-        });
     }
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function waitRemoveUser(site, user) {
-    G_updating = await isUpdating();
-    const site_saved = await removeUserStorage(site, user);
-    G_updating = false;
-    return site_saved;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function waitAddSubmission(site, user, submission) {
-    G_updating = await isUpdating();
-    const site_saved = await addSubmissionStorage(site, user, submission);
-    G_updating = false;
-    return site_saved;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function waitRemoveSubmission(site, submission) {
-    G_updating = await isUpdating();
-    const site_saved = await removeSubmissionStorage(site, submission);
-    G_updating = false;
-    return site_saved;
 }
 //---------------------------------------------------------------------------------------------------------------------
 // downloading functions
 //---------------------------------------------------------------------------------------------------------------------
-var G_current_downloads = new Map();
 async function downloadBlob(blob, path) {
     const url = URL.createObjectURL(blob);
     const stored_global = await getOptionsStorage('global');
-    const download_id = await browser.downloads.download({
-        url,
-        filename: path,
-        conflictAction: stored_global.conflict,
-        saveAs: stored_global.saveAs,
-    });
-    G_current_downloads.set(download_id, url);
-    return download_id;
+    try {
+        return await browser.downloads.download({
+            url,
+            filename: path,
+            conflictAction: stored_global.conflict,
+            saveAs: stored_global.saveAs,
+        });
+    }
+    catch (error) {
+        // return undefined if the download was canceled by the user
+        if (error.message.includes('canceled')) {
+            URL.revokeObjectURL(url);
+            return;
+        }
+        throw error;
+    }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function onDownloadChanged(delta) {
@@ -222,9 +469,6 @@ function onDownloadChanged(delta) {
         browser.downloads.removeFile(download_id);
         browser.downloads.erase({ id: download_id });
         G_folder_files.delete(download_id);
-    }
-    else if (G_current_downloads.has(download_id)) {
-        G_current_downloads.delete(download_id);
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -86,50 +86,6 @@ async function removeSavedStorage(site) {
     return await browser.storage.local.remove(storage_keys);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function addSubmissionStorage(site, user, submission) {
-    const site_saved = await getSavedStorage(site);
-    const user_saved = site_saved[user] ?? [];
-    user_saved.push(submission);
-    site_saved[user] = user_saved;
-    const new_storage = {};
-    new_storage[site] = site_saved;
-    await setSavedStorage(new_storage);
-    return site_saved;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function removeSubmissionStorage(site, submission) {
-    const site_saved = await getSavedStorage(site);
-    for (const [user, submissions] of Object.entries(site_saved)) {
-        const filtered = submissions?.filter((s) => s !== submission);
-        if (!filtered || filtered.length === 0) {
-            delete site_saved[user];
-            continue;
-        }
-        site_saved[user] = filtered;
-    }
-    if (Object.keys(site_saved).length === 0) {
-        await removeSavedStorage(site);
-        return site_saved;
-    }
-    const new_storage = {};
-    new_storage[site] = site_saved;
-    await setSavedStorage(new_storage);
-    return site_saved;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function removeUserStorage(site, user) {
-    const site_saved = await getSavedStorage(site);
-    delete site_saved[user];
-    if (Object.keys(site_saved).length === 0) {
-        await removeSavedStorage(site);
-        return site_saved;
-    }
-    const new_storage = {};
-    new_storage[site] = site_saved;
-    await setSavedStorage(new_storage);
-    return site_saved;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const stateKey = (ui) => `${ui}_state`;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function storageUIToJson(storage_ui) {

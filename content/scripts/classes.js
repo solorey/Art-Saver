@@ -40,6 +40,7 @@ class FunctionThrottler {
 // tool tip
 //---------------------------------------------------------------------------------------------------------------------
 class ToolTip {
+    container;
     tip;
     user;
     link;
@@ -53,12 +54,12 @@ class ToolTip {
         tip?.style.setProperty('top', '0');
         tip?.style.setProperty('left', '0');
         G_themed_elements.push(tip);
+        this.container = container;
         this.tip = tip;
         this.user = shadow.querySelector('#user');
         this.link = shadow.querySelector('#user-link');
         this.submission = shadow.querySelector('#submission');
         this.error = shadow.querySelector('#error-tip');
-        G_ui.append(container);
     }
     show() {
         this.tip?.classList.add('show');
@@ -100,11 +101,11 @@ class StateManager {
     is_updating = false;
     continue_updating = false;
     constructor() { }
-    addSubmissionButton(site, user, submission, type, parent, options, state) {
-        let submission_group = this.submission_map.get(submission);
+    addSubmissionButton(info, type, parent, options, state) {
+        let submission_group = this.submission_map.get(info.submission);
         if (!submission_group) {
-            submission_group = new SubmissionManager(site, user, submission, type, state);
-            this.submission_map.set(submission, submission_group);
+            submission_group = new SubmissionManager(info, type, state);
+            this.submission_map.set(info.submission, submission_group);
         }
         const button = submission_group.addButton(parent, options);
         return button;
@@ -154,9 +155,9 @@ class StateManager {
         }
         this.runUpdateLoop();
     }
-    updateState(submission, state) {
+    updateState(submission, type, state) {
         const submission_group = this.submission_map.get(submission);
-        if (submission_group) {
+        if (submission_group && submission_group.type === type) {
             submission_group.state = {
                 ...submission_group.state,
                 ...state,
@@ -167,16 +168,12 @@ class StateManager {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class SubmissionManager {
-    site;
-    user;
-    submission;
+    info;
     type;
     state;
     buttons = [];
-    constructor(site, user, submission, type, state) {
-        this.site = site;
-        this.user = user;
-        this.submission = submission;
+    constructor(info, type, state) {
+        this.info = info;
         this.type = type;
         this.state = state ?? {};
     }
@@ -184,19 +181,19 @@ class SubmissionManager {
         let button;
         switch (this.type) {
             case 'check':
-                button = new CheckButton(this.site, this.user, this.submission, parent, options);
+                button = new CheckButton(this.info, parent, options);
                 break;
             case 'download':
-                button = new DownloadButton(this.site, this.user, this.submission, parent, options);
+                button = new DownloadButton(this.info, parent, options);
                 break;
             case 'waiting':
-                button = new WaitingButton(this.site, this.user, this.submission, parent, options);
+                button = new WaitingButton(this.info, parent, options);
                 break;
             case 'downloading':
-                button = new DownloadingButton(this.site, this.user, this.submission, parent, options);
+                button = new DownloadingButton(this.info, parent, options);
                 break;
             case 'error':
-                button = new ErrorButton(this.site, this.user, this.submission, parent, options);
+                button = new ErrorButton(this.info, parent, options);
                 break;
         }
         button.update?.(this.state);
@@ -233,25 +230,21 @@ class SubmissionManager {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class CheckButton {
     type = 'check';
-    site;
-    user;
-    submission;
+    info;
     parent;
     options;
     button;
     container;
     saved_user;
-    constructor(site, user, submission, parent, options) {
-        this.site = site;
-        this.user = user;
-        this.saved_user = user;
-        this.submission = submission;
+    constructor(info, parent, options) {
+        this.info = info;
+        this.saved_user = info.user;
         this.options = options;
         const { container, shadow } = initalButtonContainer();
         const button = document.createElement('button');
         button.setAttribute('class', 'action-button icon-check');
         button.addEventListener('mouseover', () => {
-            G_tool_tip.showSubmission(button, this.saved_user, this.submission);
+            G_tool_tip.showSubmission(button, this.saved_user, this.info.submission);
         });
         button.addEventListener('mouseout', () => {
             G_tool_tip.fade();
@@ -259,7 +252,7 @@ class CheckButton {
         button.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
-            checkButtonAction(this.submission);
+            checkButtonAction(this.info.submission);
         }, { once: true });
         if (options.screen) {
             const screen = document.createElement('div');
@@ -274,11 +267,11 @@ class CheckButton {
         this.setColor();
     }
     setColor() {
-        this.button.setAttribute('data-color', this.user === this.saved_user ? 'green' : 'yellow');
+        this.button.setAttribute('data-color', this.info.user === this.saved_user ? 'green' : 'yellow');
     }
-    update(options) {
-        if (typeof options.saved_user !== 'undefined') {
-            this.saved_user = options.saved_user;
+    update(state) {
+        if (typeof state.saved_user !== 'undefined') {
+            this.saved_user = state.saved_user;
             this.setColor();
         }
     }
@@ -289,30 +282,30 @@ class CheckButton {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkButtonAction(submission) {
     G_state_manager.setType(submission, 'waiting');
-    sendRemoveSubmission(G_site_info.site, submission);
+    browser.runtime.sendMessage({
+        action: 'background_remove_submission',
+        site: G_site_info.site,
+        submission,
+    });
     G_tool_tip.fade();
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class DownloadButton {
-    site;
-    user;
-    submission;
+    info;
     parent;
     options;
     button;
     container;
     type = 'download';
-    constructor(site, user, submission, parent, options) {
-        this.site = site;
-        this.user = user;
-        this.submission = submission;
+    constructor(info, parent, options) {
+        this.info = info;
         this.options = options;
         const { container, shadow } = initalButtonContainer();
         const button = document.createElement('button');
         button.setAttribute('class', 'action-button icon-download');
         button.classList.toggle('invisible', !parent.matches(':hover'));
         button.addEventListener('mouseover', () => {
-            G_tool_tip.showSubmission(button, this.user, this.submission);
+            G_tool_tip.showSubmission(button, this.info.user, this.info.submission);
         });
         button.addEventListener('mouseout', () => {
             G_tool_tip.fade();
@@ -320,7 +313,7 @@ class DownloadButton {
         button.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
-            downloadButtonAction(this.submission);
+            downloadButtonAction(this.info.submission);
         }, { once: true });
         parent.addEventListener('mouseover', this.mouseoverEvent);
         parent.addEventListener('mouseout', this.mouseoutEvent);
@@ -344,26 +337,22 @@ class DownloadButton {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function downloadButtonAction(submission) {
-    G_state_manager.setType(submission, 'downloading', { width: 0 });
+    G_state_manager.setType(submission, 'downloading', { width: 0, message: 'Starting download', is_stoppable: true });
     G_download_queue.addDownload(submission);
     G_tool_tip.fade();
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class DownloadingButton {
     type = 'downloading';
-    site;
-    user;
-    submission;
+    info;
     parent;
     options;
     button;
     container;
     bar;
     label;
-    constructor(site, user, submission, parent, options) {
-        this.site = site;
-        this.user = user;
-        this.submission = submission;
+    constructor(info, parent, options) {
+        this.info = info;
         this.parent = parent;
         this.options = options;
         const { container, shadow } = initalButtonContainer();
@@ -382,7 +371,7 @@ class DownloadingButton {
         button.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
-            downloadingButtonAction(this.submission);
+            downloadingButtonAction(this.info.submission);
         }, { once: true });
         parent.addEventListener('mouseover', this.mouseoverEvent);
         parent.addEventListener('mouseout', this.mouseoutEvent);
@@ -399,15 +388,15 @@ class DownloadingButton {
     mouseoutEvent = () => {
         this.button.classList.add('invisible');
     };
-    update(options) {
-        if (typeof options.text !== 'undefined') {
-            this.label.textContent = options.text;
+    update(state) {
+        if (typeof state.message !== 'undefined') {
+            this.label.textContent = state.message;
         }
-        if (typeof options.width !== 'undefined') {
-            this.bar.style.width = `${options.width}%`;
+        if (typeof state.width !== 'undefined') {
+            this.bar.style.width = `${state.width}%`;
         }
-        if (typeof options.is_stoppable !== 'undefined') {
-            this.button.classList.toggle('hide', !options.is_stoppable);
+        if (typeof state.is_stoppable !== 'undefined') {
+            this.button.classList.toggle('hide', !state.is_stoppable);
         }
     }
     remove() {
@@ -425,17 +414,13 @@ function downloadingButtonAction(submission) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class ErrorButton {
     type = 'error';
-    site;
-    user;
-    submission;
+    info;
     parent;
     options;
     container;
     message;
-    constructor(site, user, submission, parent, options) {
-        this.site = site;
-        this.user = user;
-        this.submission = submission;
+    constructor(info, parent, options) {
+        this.info = info;
         this.parent = parent;
         this.options = options;
         this.message = '';
@@ -451,15 +436,15 @@ class ErrorButton {
         button.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
-            errorButtonAction(this.submission);
+            errorButtonAction(this.info.submission);
         }, { once: true });
         shadow.append(button);
         parent.append(container);
         this.container = container;
     }
-    update(options) {
-        if (typeof options.message !== 'undefined') {
-            this.message = options.message;
+    update(state) {
+        if (typeof state.message !== 'undefined') {
+            this.message = state.message;
         }
     }
     remove() {
@@ -469,22 +454,18 @@ class ErrorButton {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function errorButtonAction(submission) {
     G_state_manager.setType(submission, 'download');
-    G_info_bar?.removeError(submission);
+    G_info_bar.removeError(submission);
     G_tool_tip.fade();
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class WaitingButton {
     type = 'waiting';
-    site;
-    user;
-    submission;
+    info;
     parent;
     options;
     container;
-    constructor(site, user, submission, parent, options) {
-        this.site = site;
-        this.user = user;
-        this.submission = submission;
+    constructor(info, parent, options) {
+        this.info = info;
         this.parent = parent;
         this.options = options;
         const { container, shadow } = initalButtonContainer();
@@ -511,33 +492,33 @@ class ProgressController {
     constructor(submission) {
         this.submission = submission;
     }
-    say(text) {
-        G_state_manager.updateState(this.submission, { text });
+    message(message) {
+        G_state_manager.updateState(this.submission, 'downloading', { message });
     }
     width(width) {
-        G_state_manager.updateState(this.submission, { width });
+        G_state_manager.updateState(this.submission, 'downloading', { width });
     }
-    start(text) {
+    start(message) {
         this.width(0);
-        this.say(text);
+        this.message(message);
     }
     onOf(message, index, total) {
         const multiple = total > 1 ? ` ${index}/${total}` : '';
-        this.say(`${message}${multiple}`);
+        this.message(`${message}${multiple}`);
     }
-    blobProgress(index, total, bytes, loaded, blob_total) {
+    blobMessage(index, total, bytes, loaded, blob_total) {
         const block = (1 / total) * 100;
         const inital_width = (index / total) * 100;
         const on_of = total > 1 ? `${index + 1}/${total} ` : '';
         const size = fileSize(bytes + loaded);
         if (!blob_total) {
             this.width(inital_width + block);
-            this.say(`... ${on_of}${size}`);
+            this.message(`... ${on_of}${size}`);
         }
         else {
             const percent = inital_width + block * (loaded / blob_total);
             this.width(percent);
-            this.say(`${on_of}${size} ${Math.floor(percent)}%`);
+            this.message(`${on_of}${size} ${Math.floor(percent)}%`);
         }
     }
 }
@@ -580,18 +561,23 @@ class DownloadQueue {
         this.in_progress += 1;
         const submission = this.queue.shift();
         if (submission) {
-            G_state_manager.updateState(submission, { is_stoppable: false });
+            G_state_manager.updateState(submission, 'downloading', { is_stoppable: false });
             this.updateDownloadInfo();
             try {
                 const progress = new ProgressController(submission);
-                progress.say('Getting submission');
+                progress.message('Getting submission');
                 const result = await startDownloading(submission, progress);
-                G_info_bar?.addSubmission(submission, result.files, result.user, result.title);
+                if (result) {
+                    G_info_bar.addSubmission(submission, result.files, result.user, result.title);
+                }
+                else {
+                    G_state_manager.setType(submission, 'download');
+                }
             }
             catch (error) {
                 asLog('error', error);
                 G_state_manager.setType(submission, 'error', { message: `${error}` });
-                G_info_bar?.addError(submission, `${error}`);
+                G_info_bar.addError(submission, `${error}`);
             }
         }
         this.in_progress -= 1;
@@ -599,9 +585,9 @@ class DownloadQueue {
     }
     updateDownloadInfo() {
         this.queue.forEach((submission, i) => {
-            G_state_manager.updateState(submission, { text: `Queued: ${i + 1}` });
+            G_state_manager.updateState(submission, 'downloading', { message: `Queued: ${i + 1}` });
         });
-        G_info_bar?.setProgress(this.downloading, this.in_progress, this.queue.length);
+        G_info_bar.setProgress(this.downloading, this.in_progress, this.queue.length);
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -680,10 +666,14 @@ class ZipWorker {
 // info bar
 //---------------------------------------------------------------------------------------------------------------------
 class InfoBar {
+    container;
     stay_down = false;
     e;
     constructor(nodes) {
         const { container, shadow } = createCustomElement('info-bar');
+        if (!G_options.infoBar) {
+            container.style.display = 'none';
+        }
         shadow.append(G_styles.common.cloneNode(true), G_styles.info_bar.cloneNode(true), ...nodes);
         shadow.querySelectorAll('#info-bar, #show-area').forEach((element) => {
             element.setAttribute('data-theme', G_options.theme);
@@ -717,7 +707,7 @@ class InfoBar {
             const checked = this.e.folder_switch?.checked;
             this.e.list_files?.classList.toggle('show-folders', checked);
         });
-        G_ui.append(container);
+        this.container = container;
         // this.test()
     }
     show() {

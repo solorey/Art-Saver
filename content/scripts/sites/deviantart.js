@@ -155,7 +155,12 @@ function checkDeviantartThumbnail(element, page_user) {
         return;
     }
     const parent = navigateUpSmaller(link);
-    return createButton(deviantart_info.site, user, submission, parent, true);
+    const info = {
+        site: deviantart_info.site,
+        user,
+        submission,
+    };
+    return createButton(info, parent, true);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkDeviantartThumbnails(page_user) {
@@ -179,14 +184,18 @@ function checkDeviantartSubmissionPage(url, user) {
     if (!submission_id) {
         return;
     }
-    const submission = parseInt(submission_id, 10);
+    const info = {
+        site: deviantart_info.site,
+        user,
+        submission: parseInt(submission_id, 10),
+    };
     // img, video, pdf
     const content = stage.querySelector('img, [data-hook=react-playable], object[type="application/pdf"]');
     if (content) {
         let parent = content.parentElement;
         if (parent) {
             parent = navigateUpSmaller(parent);
-            createButton(deviantart_info.site, user, submission, parent, false);
+            createButton(info, parent, false);
         }
         return;
     }
@@ -196,7 +205,7 @@ function checkDeviantartSubmissionPage(url, user) {
         const frame = wrapElement(title);
         frame.style.margin = '0';
         frame.style.textAlign = 'initial';
-        createButton(deviantart_info.site, user, submission, frame, false);
+        createButton(info, frame, false);
     }
 }
 //---------------------------------------------------------------------------------------------------------------------
@@ -206,7 +215,6 @@ function checkDeviantartSubmissionPage(url, user) {
 // user       - https://www.deviantart.com/_puppy/dauserprofile/init/about?username=<userName>&csrf_token=
 // gallery    - https://www.deviantart.com/_puppy/dashared/gallection/contents?username=<userName>&type=gallery&offset=0&limit=60&all_folder=true&csrf_token= // 60 is max
 var startDownloading = async function (submission, progress) {
-    progress.say('Getting submission');
     const options = await getOptionsStorage(deviantart_info.site);
     const init = {
         credentials: 'include',
@@ -261,16 +269,7 @@ var startDownloading = async function (submission, progress) {
         }
     }
     downloads.push(...stash_downloads);
-    const download_ids = await handleDownloads(downloads, init, progress);
-    progress.say('Updating');
-    await sendAddSubmission(info.site, info.user, info.submission);
-    const files = downloads.map((download, i) => ({ path: download.path, id: download_ids[i] }));
-    const result = {
-        user: info.user,
-        title: meta.title,
-        files,
-    };
-    return result;
+    return await downloadSubmission(info, downloads, init, progress, meta.title);
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getDeviantartSubmissionData(submission, obj) {
@@ -330,7 +329,7 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
         return { info, meta };
     }
     if (options.larger && /\/v1\/fill\//.test(url)) {
-        progress.say('Comparing images');
+        progress.message('Comparing images');
         info.download = await compareUrls(url); //await compareUrls(url)
     }
     // example download urls
@@ -515,7 +514,7 @@ async function getStashUrls(obj, init, progress) {
     const matches = description.matchAll(/(https?:\/\/(?:sta\.sh|www\.deviantart\.com\/stash)\/.+?)[\s'"]/g);
     const urls = [...new Set([...matches].map((m) => m[1]))];
     if (urls.length > 0) {
-        progress.say('Found stash links');
+        progress.message('Found stash links');
     }
     const stashes = [];
     let stacks = [];
@@ -635,7 +634,7 @@ function deviantartFileName(title, user_id, submission_id) {
 // literature conversion
 //---------------------------------------------------------------------------------------------------------------------
 async function getLiterature(type, obj, meta, options, progress) {
-    progress.say('Getting literature');
+    progress.message('Getting literature');
     const url = obj.deviation.url;
     const response = await fetchOk(url, { credentials: 'include' });
     const dom = await parseDOM(response);

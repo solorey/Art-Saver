@@ -1,32 +1,33 @@
 "use strict";
 let G_options;
-let G_saved;
 let G_styles;
 let G_tool_tip;
-let G_state_manager;
-let G_download_queue;
 let G_info_bar;
+const G_state_manager = new StateManager();
+const G_download_queue = new DownloadQueue();
 const G_themed_elements = [];
-const G_ui = document.createElement('art-saver-ui');
 const G_style = document.createElement('style');
 const G_check_log = new CheckLogCache();
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function main() {
-    G_options = await getOptionsStorage('global');
-    G_saved = await getSavedStorage(G_site_info.site);
-    G_ui.setAttribute('data-art-saver', 'ui');
-    document.body.after(G_ui);
+    let tool_tip_nodes;
+    let info_bar_nodes;
+    [G_options, G_styles, tool_tip_nodes, info_bar_nodes] = await Promise.all([
+        getOptionsStorage('global'),
+        createUIStyles(),
+        getUI('tool_tip'),
+        getUI('info_bar'),
+    ]);
     G_style.setAttribute('data-art-saver', 'style');
     updateGlobalStyle();
     document.head.append(G_style);
     document.body.style.isolation = 'isolate';
-    G_styles = await createUIStyles();
-    G_tool_tip = new ToolTip(await getUI('tool_tip'));
-    G_state_manager = new StateManager();
-    G_download_queue = new DownloadQueue();
-    if (G_options.infoBar) {
-        G_info_bar = new InfoBar(await getUI('info_bar'));
-    }
+    G_tool_tip = new ToolTip(tool_tip_nodes);
+    G_info_bar = new InfoBar(info_bar_nodes);
+    const ui_root = document.createElement('art-saver-ui');
+    ui_root.setAttribute('data-art-saver', 'ui');
+    ui_root.append(G_tool_tip.container, G_info_bar.container);
+    document.body.after(ui_root);
     document.addEventListener('keydown', onDocumentKeyEvent);
     asLog('info', `Checking ${G_site_info.label}`);
     await startChecking();
@@ -67,7 +68,7 @@ function submissionLink(submission) {
 function onDocumentKeyEvent(event) {
     const event_shortcut = getShortcutFromEvent(event);
     if (G_options.infoBar && shortcutsMatch(event_shortcut, G_options.shortcutInfoBar)) {
-        G_info_bar?.toggle();
+        G_info_bar.toggle();
     }
     else if (shortcutsMatch(event_shortcut, G_options.shortcutDownloadAll)) {
         downloadAll();
@@ -157,8 +158,8 @@ async function createCommonStyleElement() {
 function updateGlobalStyle() {
     const icons_size = `--as-icon-size: ${G_options.iconSize}px;`;
     const screen_display = `--as-screen-display: ${G_options.addScreen ? 'flex' : 'none'};`;
-    const screen_opaticy = `--as-screen-opacity: ${G_options.screenOpacity}%;`;
-    G_style.textContent = `:root {${icons_size} ${screen_display} ${screen_opaticy}}`;
+    const screen_opacity = `--as-screen-opacity: ${G_options.screenOpacity}%;`;
+    G_style.textContent = `:root {${icons_size} ${screen_display} ${screen_opacity}}`;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function createFlatIconVars(size, icons) {
@@ -276,23 +277,18 @@ async function parseJSON(response) {
     return obj;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function checkUserForSubmission(user, submission) {
-    if (G_saved[user]?.includes(submission)) {
-        return user;
-    }
-    else {
-        for (const [other_user, submissions] of Object.entries(G_saved)) {
-            if (other_user !== user && submissions?.includes(submission)) {
-                return other_user;
-            }
-        }
-    }
+async function checkUserForSubmission(info) {
+    const found = await browser.runtime.sendMessage({
+        action: 'background_find_submission',
+        info,
+    });
+    return found?.user;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function hasButton(parent, submission) {
     const action_container = parent.querySelector('art-saver-submission');
     if (!action_container) {
-        return;
+        return false;
     }
     // ensure container is last child
     const last_child = action_container.parentElement?.lastElementChild;
@@ -302,80 +298,66 @@ function hasButton(parent, submission) {
     for (const group of G_state_manager.submission_map.values()) {
         for (const button of group.buttons) {
             if (button.container === action_container) {
-                if (button.submission === submission) {
-                    return button;
+                if (button.info.submission === submission) {
+                    return true;
                 }
                 button.remove();
                 group.cleanButtons();
-                return;
+                return false;
             }
         }
     }
+    return false;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function createButton(site, user, submission, parent, screen) {
-    const existing_button = hasButton(parent, submission);
-    if (existing_button) {
-        return existing_button;
-    }
-    const saved_user = checkUserForSubmission(user, submission);
-    const options = { screen };
-    const type = saved_user ? 'check' : 'download';
-    const state = {};
-    if (saved_user) {
-        state.saved_user = saved_user;
+async function createButton(info, parent, screen) {
+    if (hasButton(parent, info.submission)) {
+        return;
     }
     parent.style.position = 'relative';
     parent.style.isolation = 'isolate';
-    return G_state_manager.addSubmissionButton(site, user, submission, type, parent, options, state);
+    const options = { screen };
+    const saved_user = await checkUserForSubmission(info);
+    if (saved_user) {
+        G_state_manager.addSubmissionButton(info, 'check', parent, options, { saved_user });
+    }
+    else {
+        G_state_manager.addSubmissionButton(info, 'download', parent, options);
+    }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function sendAddSubmission(site, user, submission) {
-    return browser.runtime.sendMessage({
-        action: 'background_add_submission',
-        site,
-        user,
-        submission,
-    });
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function sendRemoveSubmission(site, submission) {
-    return browser.runtime.sendMessage({
-        action: 'background_remove_submission',
-        site,
-        submission,
-    });
+async function recheckSubmission(submission_manager) {
+    const submission = submission_manager.info.submission;
+    const saved_user = await checkUserForSubmission(submission_manager.info);
+    const type = submission_manager.type;
+    if (saved_user && type !== 'check') {
+        G_state_manager.setType(submission, 'check', {
+            saved_user,
+        });
+        if (type === 'error') {
+            G_info_bar.removeError(submission);
+        }
+    }
+    else if (!saved_user && ['waiting', 'check'].includes(type)) {
+        G_state_manager.setType(submission, 'download');
+    }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function updateButtons() {
-    for (const [submission, submission_manager] of G_state_manager.submission_map) {
-        const user = submission_manager.user;
-        const saved_user = checkUserForSubmission(user, submission);
-        const type = submission_manager.type;
-        if (saved_user && type !== 'check') {
-            G_state_manager.setType(submission, 'check', {
-                saved_user,
-            });
-        }
-        else if (!saved_user && ['waiting', 'check'].includes(type)) {
-            G_state_manager.setType(submission, 'download');
-        }
+    for (const submission_manager of G_state_manager.submission_map.values()) {
+        recheckSubmission(submission_manager);
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 browser.storage.local.onChanged.addListener((changes) => {
-    const saved_changed = changes[savedKey(G_site_info.site)];
-    if (saved_changed) {
-        G_saved = saved_changed.newValue ?? {};
-        updateButtons();
-    }
     const global_changed_values = changes[optionsKey('global')]?.newValue;
     if (global_changed_values) {
         G_options = global_changed_values;
         updateGlobalStyle();
         for (const element of G_themed_elements) {
-            element?.setAttribute('data-theme', global_changed_values.theme);
+            element?.setAttribute('data-theme', G_options.theme);
         }
+        G_info_bar.container.style.display = G_options.infoBar ? '' : 'none';
     }
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -428,38 +410,58 @@ function enumerate(array) {
     return array.map((e, i) => [i, e]);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function sendDownloadBlob(blob, path) {
-    return await browser.runtime.sendMessage({
-        action: 'background_download_blob',
-        blob,
-        path,
+async function downloadSubmission(info, downloads, init, progress, title) {
+    const download_ids = await handleDownloads(downloads, init, progress);
+    const files = [];
+    for (const [i, id] of enumerate(download_ids)) {
+        if (typeof id !== 'undefined') {
+            files.push({ path: downloads[i].path, id });
+        }
+    }
+    if (files.length === 0) {
+        return;
+    }
+    progress?.message('Updating');
+    await browser.runtime.sendMessage({
+        action: 'background_add_submission',
+        info,
     });
+    const result = {
+        user: info.user,
+        title,
+        files,
+    };
+    return result;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function handleDownloads(downloads, init, progress) {
     progress?.start('Starting download');
     let bytes = 0;
     const total = downloads.length;
-    const results = [];
+    const download_ids = [];
     const fetch_worker = new FetchWorker();
     for (const [i, info] of enumerate(downloads)) {
         const download = info.download;
         let blob;
         if (typeof download === 'string') {
             blob = await fetch_worker.fetchOk(download, init, (loaded, blob_total) => {
-                progress?.blobProgress(i, total, bytes, loaded, blob_total);
+                progress?.blobMessage(i, total, bytes, loaded, blob_total);
             });
         }
         else {
             blob = download;
-            progress?.blobProgress(i, total, bytes, blob.size, blob.size);
+            progress?.blobMessage(i, total, bytes, blob.size, blob.size);
         }
         bytes += blob.size;
-        const result = await sendDownloadBlob(blob, info.path);
-        results.push(result);
+        const download_id = await browser.runtime.sendMessage({
+            action: 'background_download_blob',
+            blob,
+            path: info.path,
+        });
+        download_ids.push(download_id);
     }
     fetch_worker.terminate();
-    return results;
+    return download_ids;
 }
 //---------------------------------------------------------------------------------------------------------------------
 // filename creation
@@ -582,19 +584,24 @@ function renderPath(template, ...metas) {
 // message listener functions
 //---------------------------------------------------------------------------------------------------------------------
 browser.runtime.onMessage.addListener((message) => {
-    return mainMessageActions(message);
+    return contentMessageActions(message);
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function mainMessageActions(message) {
+function contentMessageActions(message) {
     switch (message.action) {
-        case 'main_page_info':
+        case 'content_db_update':
+            if (message.site === G_site_info.site) {
+                updateButtons();
+            }
+            break;
+        case 'content_page_info':
             return getPageData();
-        case 'main_user_info':
+        case 'content_user_info':
             return getUserInfo(message.user);
-        case 'main_download_all':
+        case 'content_download_all':
             downloadAll();
             break;
-        case 'main_refresh':
+        case 'content_refresh':
             refreshButtons();
             break;
     }

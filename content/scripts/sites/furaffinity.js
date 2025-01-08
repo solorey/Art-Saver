@@ -151,7 +151,12 @@ function checkFuraffinityThumbnail(element, page_user) {
         return;
     }
     const parent = navigateUpSmaller(link);
-    return createButton(furaffinity_info.site, user, submission, parent, true);
+    const info = {
+        site: furaffinity_info.site,
+        user,
+        submission,
+    };
+    return createButton(info, parent, true);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkFuraffinityUserFavorites() {
@@ -171,7 +176,12 @@ function checkFuraffinityUserFavorites() {
         if (!parent) {
             continue;
         }
-        createButton(furaffinity_info.site, user, submission, parent, true);
+        const info = {
+            site: furaffinity_info.site,
+            user,
+            submission,
+        };
+        createButton(info, parent, true);
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -194,8 +204,12 @@ function checkFuraffinitySubmissionPage(url, user) {
         submission_img.style.maxWidth = '100%';
         submission_img.style.boxSizing = 'border-box';
     }
-    const submission = parseInt(url.split('/')[4], 10);
-    createButton(furaffinity_info.site, user, submission, wrapper, false);
+    const info = {
+        site: furaffinity_info.site,
+        user,
+        submission: parseInt(url.split('/')[4], 10),
+    };
+    createButton(info, wrapper, false);
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
@@ -211,16 +225,7 @@ var startDownloading = async function (submission, progress) {
     const { info, meta } = getFuraffinitySubmissionData(submission, dom);
     const file_data = getFuraffinityFileData(dom);
     const downloads = [createFuraffinityDownload(meta, file_data, options)];
-    const download_ids = await handleDownloads(downloads, init, progress);
-    progress.say('Updating');
-    await sendAddSubmission(info.site, info.user, info.submission);
-    const files = downloads.map((download, i) => ({ path: download.path, id: download_ids[i] }));
-    const result = {
-        user: info.user,
-        title: meta.title,
-        files,
-    };
-    return result;
+    return await downloadSubmission(info, downloads, init, progress, meta.title);
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getFuraffinitySubmissionData(submission, dom) {

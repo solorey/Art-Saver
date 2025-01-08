@@ -140,7 +140,8 @@ function checkInkbunnyThumbnail(element, page_user) {
         return;
     }
     parent = navigateUpSmaller(parent);
-    return createButton(inkbunny_info.site, user, submission, parent, true);
+    const info = { site: inkbunny_info.site, user, submission };
+    return createButton(info, parent, true);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkInkbunnySubmissionPage(url, user) {
@@ -167,13 +168,13 @@ function checkInkbunnySubmissionPage(url, user) {
     if (parent.matches('a')) {
         parent.style.display = 'inline-block';
     }
-    createButton(inkbunny_info.site, user, submission, parent, false);
+    const info = { site: inkbunny_info.site, user, submission };
+    createButton(info, parent, false);
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
 //---------------------------------------------------------------------------------------------------------------------
 var startDownloading = async function (submission, progress) {
-    progress.say('Getting submission');
     const options = await getOptionsStorage(inkbunny_info.site);
     const init = {
         credentials: 'include',
@@ -184,16 +185,7 @@ var startDownloading = async function (submission, progress) {
     const { info, meta } = getInkbunnySubmissionData(submission, dom);
     const file_datas = await getInkbunnyFileDatas(dom, meta, progress);
     const downloads = createInkbunnyDownloads(meta, file_datas, options);
-    const download_ids = await handleDownloads(downloads, init, progress);
-    progress.say('Updating');
-    await sendAddSubmission(info.site, info.user, info.submission);
-    const files = downloads.map((download, i) => ({ path: download.path, id: download_ids[i] }));
-    const result = {
-        user: info.user,
-        title: meta.title,
-        files,
-    };
-    return result;
+    return await downloadSubmission(info, downloads, init, progress, meta.title);
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getInkbunnySubmissionData(submission, dom) {
