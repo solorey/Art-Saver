@@ -156,7 +156,7 @@ function checkFuraffinityThumbnail(element, page_user) {
         user,
         submission,
     };
-    return createButton(info, parent, true);
+    return createButton(info, parent);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkFuraffinityUserFavorites() {
@@ -181,7 +181,7 @@ function checkFuraffinityUserFavorites() {
             user,
             submission,
         };
-        createButton(info, parent, true);
+        createButton(info, parent);
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -209,7 +209,7 @@ function checkFuraffinitySubmissionPage(url, user) {
         user,
         submission: parseInt(url.split('/')[4], 10),
     };
-    createButton(info, wrapper, false);
+    createButton(info, wrapper, { screen: false });
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function

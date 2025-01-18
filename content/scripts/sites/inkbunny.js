@@ -141,7 +141,7 @@ function checkInkbunnyThumbnail(element, page_user) {
     }
     parent = navigateUpSmaller(parent);
     const info = { site: inkbunny_info.site, user, submission };
-    return createButton(info, parent, true);
+    return createButton(info, parent);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkInkbunnySubmissionPage(url, user) {
@@ -169,7 +169,7 @@ function checkInkbunnySubmissionPage(url, user) {
         parent.style.display = 'inline-block';
     }
     const info = { site: inkbunny_info.site, user, submission };
-    createButton(info, parent, false);
+    createButton(info, parent, { screen: false });
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function

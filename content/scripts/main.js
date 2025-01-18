@@ -310,13 +310,13 @@ function hasButton(parent, submission) {
     return false;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function createButton(info, parent, screen) {
+async function createButton(info, parent, options) {
     if (hasButton(parent, info.submission)) {
         return;
     }
     parent.style.position = 'relative';
     parent.style.isolation = 'isolate';
-    const options = { screen };
+    options ??= { screen: true };
     const saved_user = await checkUserForSubmission(info);
     if (saved_user) {
         G_state_manager.addSubmissionButton(info, 'check', parent, options, { saved_user });

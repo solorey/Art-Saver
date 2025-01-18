@@ -160,7 +160,7 @@ function checkDeviantartThumbnail(element, page_user) {
         user,
         submission,
     };
-    return createButton(info, parent, true);
+    return createButton(info, parent);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkDeviantartThumbnails(page_user) {
@@ -195,7 +195,7 @@ function checkDeviantartSubmissionPage(url, user) {
         let parent = content.parentElement;
         if (parent) {
             parent = navigateUpSmaller(parent);
-            createButton(info, parent, false);
+            createButton(info, parent, { screen: false });
         }
         return;
     }
@@ -205,7 +205,7 @@ function checkDeviantartSubmissionPage(url, user) {
         const frame = wrapElement(title);
         frame.style.margin = '0';
         frame.style.textAlign = 'initial';
-        createButton(info, frame, false);
+        createButton(info, frame, { screen: false });
     }
 }
 //---------------------------------------------------------------------------------------------------------------------

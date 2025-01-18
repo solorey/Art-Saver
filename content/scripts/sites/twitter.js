@@ -154,7 +154,7 @@ function checkTwitterThumbnail(element) {
     }
     const submission = regex_result[1];
     const info = { site: twitter_info.site, user: user.toLowerCase(), submission };
-    return createButton(info, media_box, true);
+    return createButton(info, media_box);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkTwitterMediaGrid() {
@@ -174,7 +174,7 @@ function checkTwitterMediaGrid() {
             user: regex_result[1].toLowerCase(),
             submission: regex_result[2],
         };
-        createButton(info, element, true);
+        createButton(info, element);
     }
 }
 //---------------------------------------------------------------------------------------------------------------------

@@ -39,9 +39,11 @@ var getUserInfo = async function (user) {
         fetchOk(`https://www.pixiv.net/touch/ajax/user/home?id=${user}`, init),
         fetchOk(`https://www.pixiv.net/ajax/user/${user}/illusts/bookmarks?tag=&offset=0&limit=1&rest=show`, init),
     ]);
-    const user_data = await parseJSON(responses[0]);
-    const home_data = await parseJSON(responses[1]);
-    const bookmarks_data = await parseJSON(responses[2]);
+    const [user_data, home_data, bookmarks_data] = await Promise.all([
+        parseJSON(responses[0]),
+        parseJSON(responses[1]),
+        parseJSON(responses[2]),
+    ]);
     const name = user_data.body.name;
     const icon_url = user_data.body.imageBig;
     const icon_blob = await fetchWorkerOk(icon_url, init);
@@ -142,7 +144,7 @@ function checkPixivThumbnail(element, page_user) {
     }
     const parent = navigateUpSmaller(link);
     const info = { site: pixiv_info.site, user, submission };
-    return createButton(info, parent, true);
+    return createButton(info, parent);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkPixivSubmissionPage(url, user) {
@@ -159,7 +161,7 @@ function checkPixivSubmissionPage(url, user) {
         user,
         submission: parseInt(submission_id, 10),
     };
-    createButton(info, figure, false);
+    createButton(info, figure);
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function

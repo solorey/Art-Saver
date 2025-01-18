@@ -197,7 +197,7 @@ function checkBlueskyThumbnail(element) {
         user: user.toLowerCase(),
         submission: `${regex_result[1]}+${did}`,
     };
-    return createButton(info, media_box, true);
+    return createButton(info, media_box);
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
