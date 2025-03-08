@@ -44,6 +44,9 @@ function reloadCleanUp() {
 (async function () {
     try {
         reloadCleanUp();
+        if (!(await getOptionsStorage(G_site_info.site)).enabled) {
+            return;
+        }
         // wake up background script ?
         browser.runtime.sendMessage({ action: '' });
         await main();
@@ -253,28 +256,14 @@ async function fetchOk(info, init) {
     if (!response.ok) {
         throw new Error(`Received ${response.status}: ${response.url}`);
     }
-    return response;
+    return new OkResponse(response.url, await response.blob());
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function fetchWorkerOk(info, init) {
     const fetch_worker = new FetchWorker();
-    const blob = await fetch_worker.fetchOk(info, init);
+    const response = await fetch_worker.fetchOk(info, init);
     fetch_worker.terminate();
-    return blob;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function parseDOM(response) {
-    const html = await response.text();
-    const parser = new DOMParser();
-    return parser.parseFromString(html, 'text/html');
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function parseJSON(response) {
-    const obj = await response.json();
-    if (typeof obj !== 'object' || !obj) {
-        throw new Error('JSON data does not exist');
-    }
-    return obj;
+    return response;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function checkUserForSubmission(info) {
@@ -364,7 +353,7 @@ browser.storage.local.onChanged.addListener((changes) => {
 async function getUI(ui) {
     const ui_url = browser.runtime.getURL(`/content/ui/${ui}.html`);
     const response = await fetchOk(ui_url);
-    const dom = await parseDOM(response);
+    const dom = await response.dom();
     return dom.body.childNodes;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -444,9 +433,10 @@ async function handleDownloads(downloads, init, progress) {
         const download = info.download;
         let blob;
         if (typeof download === 'string') {
-            blob = await fetch_worker.fetchOk(download, init, (loaded, blob_total) => {
+            const response = await fetch_worker.fetchOk(download, init, (loaded, blob_total) => {
                 progress?.blobMessage(i, total, bytes, loaded, blob_total);
             });
+            blob = response.body;
         }
         else {
             blob = download;

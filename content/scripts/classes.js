@@ -81,6 +81,7 @@ class ToolTip {
         this.tip?.querySelector(`[data-tip="${type}"]`)?.classList.remove('hide');
     }
     showSubmission(x, user, submission) {
+        user = user || '(unknown)';
         this.user?.replaceChildren(user);
         this.submission?.replaceChildren(`${submission}`);
         this.link?.setAttribute('href', userGalleryLink(user));
@@ -606,6 +607,29 @@ function initalButtonContainer() {
     return custom;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class OkResponse {
+    url;
+    body;
+    constructor(url, body) {
+        this.url = url;
+        this.body = body;
+    }
+    async text() {
+        return await this.body.text();
+    }
+    async json() {
+        const obj = JSON.parse(await this.text());
+        if (typeof obj !== 'object' || !obj) {
+            throw new Error('JSON data does not exist');
+        }
+        return obj;
+    }
+    async dom() {
+        const parser = new DOMParser();
+        return parser.parseFromString(await this.text(), 'text/html');
+    }
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class FetchWorker {
     worker;
     constructor() {
@@ -621,7 +645,8 @@ class FetchWorker {
                         }
                         break;
                     case 'result':
-                        resolve(message.data.result);
+                        const { url, body } = message.data.result;
+                        resolve(new OkResponse(url, body));
                         break;
                     case 'error':
                         reject(message.data.error);

@@ -36,6 +36,11 @@ class InkbunnyMultiple extends InkbunnyFile {
     page = '';
 }
 const inkbunny_form = {
+    enabled: {
+        type: 'checkbox',
+        label: 'Enabled',
+        default: true,
+    },
     userFolder: {
         type: 'textarea',
         label: 'User folder',

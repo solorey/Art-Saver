@@ -222,13 +222,11 @@ const G_popup_site_tab = new PopupSiteTab();
         currentWindow: true,
     });
     const tab_id = tabs[0].id;
-    const tab_url = tabs[0].url;
-    if (typeof tab_id === 'undefined' || !tab_url || !/^https?:\/\//.test(tab_url)) {
+    const site = findSupportedSite(tabs[0].url);
+    if (typeof tab_id === 'undefined' || !site) {
         return;
     }
-    const art_sites_urls = Object.values(SITES_INFO).map((info) => info.links.main);
-    art_sites_urls.push('https://x.com');
-    if (!art_sites_urls.some((site) => tab_url.startsWith(site))) {
+    if (!(await getOptionsStorage(site)).enabled) {
         return;
     }
     G_popup_site_tab.showPage('loading');
@@ -364,6 +362,20 @@ function createPopupSubmissionRow(search) {
     label?.append(search.value.substring(0, search.start), strong, search.value.substring(search.end));
     template?.querySelector('[data-submission-link]')?.setAttribute('href', links.submission(search.value));
     return template.querySelector('[data-row]') ?? fallback;
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function findSupportedSite(url) {
+    if (!url || !/^https?:\/\//.test(url)) {
+        return;
+    }
+    const url_domain = url.split('/')[2];
+    for (const info of Object.values(SITES_INFO)) {
+        const site_short_domian = info.links.main.split('/')[2].split('.').slice(-2).join('.');
+        if (url_domain.endsWith(site_short_domian)) {
+            return info.site;
+        }
+    }
+    return;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 document.querySelector('#version-number')?.append(`v${browser.runtime.getManifest().version}`);

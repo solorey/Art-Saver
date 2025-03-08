@@ -6,7 +6,7 @@ const furaffinity_info = {
     site: 'furaffinity',
     label: 'Fur Affinity',
     links: {
-        main: 'https://www.furaffinity.net/',
+        main: 'https://www.furaffinity.net',
         user: (u) => `https://www.furaffinity.net/user/${u}`,
         gallery: (u) => `https://www.furaffinity.net/gallery/${u}`,
         favorites: (u) => `https://www.furaffinity.net/favorites/${u}`,
@@ -33,6 +33,11 @@ class FuraffinityFile extends FuraffinityUserFolder {
     ss = '';
 }
 const furaffinity_form = {
+    enabled: {
+        type: 'checkbox',
+        label: 'Enabled',
+        default: true,
+    },
     userFolder: {
         type: 'textarea',
         label: 'User folder',

@@ -40,16 +40,16 @@ var getUserInfo = async function (user) {
         fetchOk(`https://www.pixiv.net/ajax/user/${user}/illusts/bookmarks?tag=&offset=0&limit=1&rest=show`, init),
     ]);
     const [user_data, home_data, bookmarks_data] = await Promise.all([
-        parseJSON(responses[0]),
-        parseJSON(responses[1]),
-        parseJSON(responses[2]),
+        responses[0].json(),
+        responses[1].json(),
+        responses[2].json(),
     ]);
     const name = user_data.body.name;
     const icon_url = user_data.body.imageBig;
-    const icon_blob = await fetchWorkerOk(icon_url, init);
+    const icon_response = await fetchWorkerOk(icon_url, init);
     const icon = await browser.runtime.sendMessage({
         action: 'background_create_object_url',
-        blob: icon_blob,
+        blob: icon_response.body,
     });
     const stats = new Map();
     stats.set('Submissions', home_data.body.work_sets.all.total);
@@ -173,7 +173,7 @@ var startDownloading = async function (submission, progress) {
         referrer: window.location.href,
     };
     const response = await fetchOk(`https://www.pixiv.net/ajax/illust/${submission}`, init);
-    const obj = await parseJSON(response);
+    const obj = await response.json();
     const { info, meta } = getPixivSubmissionData(submission, obj);
     const file_datas = await getPixivFileDatas(obj, meta, options, progress);
     const downloads = createPixivDownloads(meta, file_datas, options);
@@ -218,7 +218,7 @@ async function getPixivFileDatas(obj, submission_meta, options, progress) {
             referrer: window.location.href,
         };
         const response = await fetchOk(`https://www.pixiv.net/ajax/illust/${submission_meta.submissionId}/ugoira_meta`, init);
-        const ugoira_obj = await parseJSON(response);
+        const ugoira_obj = await response.json();
         pages = ugoira_obj.body.frames.length;
         if (options.ugoira !== 'multiple') {
             const frames = [];
@@ -293,11 +293,11 @@ async function getUgoira(type, frames, width, height, delays, progress) {
     };
     const fetch_worker = new FetchWorker();
     for (const [i, frame] of enumerate(frames)) {
-        const blob = await fetch_worker.fetchOk(frame, init, (loaded, blob_total) => {
+        const response = await fetch_worker.fetchOk(frame, init, (loaded, blob_total) => {
             progress.blobMessage(i, total, bytes, loaded, blob_total);
         });
-        bytes += blob.size;
-        blobs.push(blob);
+        bytes += response.body.size;
+        blobs.push(response.body);
     }
     fetch_worker.terminate();
     progress.width(100);

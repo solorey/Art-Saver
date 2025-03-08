@@ -47,6 +47,11 @@ class StashLiterature extends DeviantartLiterature {
     urlId = '';
 }
 const deviantart_form = {
+    enabled: {
+        type: 'checkbox',
+        label: 'Enabled',
+        default: true,
+    },
     userFolder: {
         type: 'textarea',
         label: 'User folder',

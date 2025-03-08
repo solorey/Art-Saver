@@ -96,6 +96,7 @@ const METAS = {
     description: 'Description from the submission page.',
     url: 'Source URL.',
     urlId: 'ID in the URL. Available when the submission ID is not the source ID.',
+    slug: 'URL slug.',
 };
 //---------------------------------------------------------------------------------------------------------------------
 // option type creation
@@ -126,6 +127,7 @@ class OptionSelect {
     }
     setValue(value) {
         this.value_element.value = `${value}`;
+        this.value_element.dispatchEvent(new Event('change', { bubbles: true }));
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -161,6 +163,7 @@ class OptionNumber {
     }
     setValue(value) {
         this.value_element.value = `${value}`;
+        this.value_element.dispatchEvent(new Event('change', { bubbles: true }));
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -210,6 +213,7 @@ class OptionSlider {
     setValue(value) {
         this.value_element.value = `${value}`;
         this.range_input.value = `${value}`;
+        this.value_element.dispatchEvent(new Event('change', { bubbles: true }));
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -254,6 +258,7 @@ class OptionCheckbox {
     }
     setValue(value) {
         this.value_element.checked = Boolean(value);
+        this.value_element.dispatchEvent(new Event('change', { bubbles: true }));
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -295,6 +300,7 @@ class OptionTextarea {
     setValue(value) {
         this.value_element.value = `${value}`;
         textareaResize(this.value_element);
+        this.value_element.dispatchEvent(new Event('change', { bubbles: true }));
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -344,6 +350,7 @@ class OptionShortcut {
     }
     setValue(value) {
         this.value_element.value = `${value}`;
+        this.value_element.dispatchEvent(new Event('change', { bubbles: true }));
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -413,16 +420,21 @@ class OptionsForm {
             const site_form = SITES_AND_GLOBAL_FORMS[site];
             for (const key in site_form) {
                 const option_class = options_form[site]?.[key];
-                const related = site_form[key].related;
-                if (!related || !option_class) {
+                if (!option_class) {
                     continue;
                 }
-                for (const r of related) {
-                    options_form[site]?.[r.option]?.value_element?.addEventListener('change', () => {
-                        this.showRelated(site, related, option_class);
-                    });
+                const related = site_form[key].related ?? [];
+                if (SITES.includes(site) && key !== 'enabled') {
+                    related.push({ option: 'enabled', value: true });
                 }
-                this.showRelated(site, related, option_class);
+                if (related.length > 0) {
+                    for (const r of related) {
+                        options_form[site]?.[r.option]?.value_element?.addEventListener('change', () => {
+                            this.showRelated(site, related, option_class);
+                        });
+                    }
+                    this.showRelated(site, related, option_class);
+                }
             }
         }
     }
@@ -438,7 +450,6 @@ class OptionsForm {
         return form_options;
     }
     setValues(all_options, initialize_default = false) {
-        const related = [];
         for (const site of SITES_AND_GLOBAL) {
             const site_form = SITES_AND_GLOBAL_FORMS[site];
             for (const [key, option] of Object.entries(site_form)) {
@@ -449,14 +460,9 @@ class OptionsForm {
                 else if (typeof value === 'undefined') {
                     continue;
                 }
-                const option_class = this.form[site][key];
-                if (option.related) {
-                    related.push([site, option.related, option_class]);
-                }
-                option_class.setValue(value);
+                this.form[site][key].setValue(value);
             }
         }
-        related.forEach((r) => this.showRelated(...r));
         saveOptions();
     }
     setDefault() {
@@ -663,13 +669,6 @@ browser.storage.local.onChanged.addListener((changes) => {
     if (global_options_values) {
         document.body.setAttribute('data-theme', global_options_values.theme);
     }
-    // for (const site of SITES) {
-    //     const changed = changes[savedKey(site)];
-    //     if (!changed) {
-    //         continue;
-    //     }
-    //     G_saved_table.table_details[site].setValues(changed.newValue ?? {});
-    // }
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function selectOrError(parent, selectors) {
@@ -784,6 +783,20 @@ function createSiteToggle(parent, site, info, options_section) {
     });
     parent?.append(template);
 }
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+document.querySelector('#sites-enable-all')?.addEventListener('click', () => {
+    for (const site of SITES) {
+        G_options_form.form[site].enabled.setValue(true);
+    }
+    saveOptions();
+});
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+document.querySelector('#sites-disable-all')?.addEventListener('click', () => {
+    for (const site of SITES) {
+        G_options_form.form[site].enabled.setValue(false);
+    }
+    saveOptions();
+});
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const form = document.querySelector('form');
 form?.addEventListener('submit', (s) => s.preventDefault());

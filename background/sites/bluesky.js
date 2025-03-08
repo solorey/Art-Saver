@@ -40,6 +40,11 @@ class BlueskyMultiple extends BlueskyFile {
     page = '';
 }
 const bluesky_form = {
+    enabled: {
+        type: 'checkbox',
+        label: 'Enabled',
+        default: true,
+    },
     userFolder: {
         type: 'textarea',
         label: 'User folder',

@@ -64,17 +64,17 @@ var getUserInfo = async function (user) {
         headers,
     };
     const response = await fetchOk(`https://${window.location.hostname}/i/api/graphql/7mjxD3-C6BxitPMVQ6w0-Q/UserByScreenName?${params}`, init);
-    const obj = await parseJSON(response);
+    const obj = await response.json();
     const user_data = obj.data.user.result.legacy;
     const name = user_data.name;
     const user_id = user_data.screen_name;
     const icon_url = user_data.profile_image_url_https.replace('_normal', '_200x200');
     const fetch_worker = new FetchWorker();
-    const icon_blob = await fetch_worker.fetchOk(icon_url, init);
+    const icon_response = await fetch_worker.fetchOk(icon_url, init);
     fetch_worker.terminate();
     const icon = await browser.runtime.sendMessage({
         action: 'background_create_object_url',
-        blob: icon_blob,
+        blob: icon_response.body,
     });
     const stats = new Map();
     stats.set('Media', user_data.media_count);
@@ -214,7 +214,7 @@ var startDownloading = async function (submission, progress) {
         headers,
     };
     const response = await fetchOk(`https://${window.location.hostname}/i/api/graphql/N_Am58sJXW8WRV7-cJLWvg/TweetDetail?${params}`, init);
-    const obj = await parseJSON(response);
+    const obj = await response.json();
     const tweet = extractTweet(submission, obj);
     const { info, meta } = getTwitterSubmissionData(submission, tweet);
     const file_datas = await getTwitterFileDatas(tweet);

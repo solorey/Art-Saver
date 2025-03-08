@@ -65,7 +65,7 @@ var getUserInfo = async function (user) {
         csrf_token: window.wrappedJSObject?.__CSRF_TOKEN__,
     });
     const response = await fetchOk(`https://www.deviantart.com/_puppy/dauserprofile/init/about?${params}`);
-    const data = await parseJSON(response);
+    const data = await response.json();
     const name = data.owner.username;
     const icon = data.owner.usericon;
     const stats = new Map();
@@ -166,6 +166,7 @@ function checkDeviantartThumbnail(element, page_user) {
 function checkDeviantartThumbnails(page_user) {
     for (const link of document.querySelectorAll('a[href*="/art/"]')) {
         if (link.parentElement?.querySelector('[data-testid="thumb"]') ||
+            link.matches('figure[data-deviation] > *') || // thumbnails in description
             link.matches('section + a[aria-label$=", literature"]') || // literature gallery thumbnails
             link.querySelector('section > h2') || // literature side thumbnails
             (link.matches('.draft-thumb') && link.querySelector('img')) // thumbnails in literature
@@ -238,13 +239,13 @@ var startDownloading = async function (submission, progress) {
         csrf_token,
     });
     const response = await fetchOk(`https://www.deviantart.com/_puppy/dadeviation/init?${params}`, init);
-    let obj = await parseJSON(response);
+    let obj = await response.json();
     const { info, meta } = getDeviantartSubmissionData(submission, obj);
     const stash_downloads = [];
     if (options.stash) {
         const start_time = Date.now();
-        const stashes = await getStashUrls(obj, init, progress);
-        const stash_datas = await getStashDatas(stashes.urls, init, options, progress);
+        const stashes = await getStashIds(obj, init, csrf_token, progress);
+        const stash_datas = await getStashDatas(stashes.stash_ids, init, csrf_token, options, progress);
         for (const stash of stash_datas) {
             const download = createStashDownload(meta, stash.submission.meta, stash.file, options);
             if (stash.submission.meta.submissionId in stashes.blobs) {
@@ -255,7 +256,7 @@ var startDownloading = async function (submission, progress) {
         // re-get the submission data after 5 minutes for a new download token
         if (Date.now() - start_time > 300_000) {
             const response = await fetchOk(`https://www.deviantart.com/_puppy/dadeviation/init?${params}`, init);
-            obj = await parseJSON(response);
+            obj = await response.json();
         }
     }
     const file_data = await getDeviantartFileData(obj, meta, options, progress);
@@ -427,27 +428,22 @@ function createDeviantartDownloads(submission_meta, file_datas, options) {
     return downloads;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getStashDatas(urls, init, options, progress) {
+async function getStashDatas(stash_ids, init, csrf_token, options, progress) {
     const fetch_worker = new FetchWorker();
     const datas = [];
-    for (const [i, url] of enumerate(urls)) {
-        progress.onOf('Getting stash', i + 1, urls.length);
+    const stash_url = 'https://www.deviantart.com/_puppy/dadeviation/stash/init';
+    for (const [i, stash_id] of enumerate(stash_ids)) {
+        progress.onOf('Getting stash', i + 1, stash_ids.length);
         await timer(G_options.queueWait);
+        const params = new URLSearchParams({
+            deviationid: `${stash_id}`,
+            include_session: 'false',
+            csrf_token,
+        });
         let obj;
         try {
-            const blob = await fetch_worker.fetchOk(url, init);
-            const text = await blob.text();
-            const regex_result = /window\.__INITIAL_STATE__\s=\sJSON\.parse\((".+")\);/.exec(text);
-            if (!regex_result) {
-                throw new Error('Stash data not found in RegExp');
-            }
-            const data_string = regex_result[1].replaceAll("\\'", "'");
-            const state_obj = JSON.parse(JSON.parse(data_string))['@@entities'];
-            obj = {
-                deviation: Object.values(state_obj.deviation)[0],
-                user: Object.values(state_obj.user)[0],
-            };
-            obj.deviation.extended = Object.values(state_obj.deviationExtended)[0];
+            const response = await fetch_worker.fetchOk(`${stash_url}?${params}`, init);
+            obj = await response.json();
         }
         catch (error) {
             asLog('error', error);
@@ -462,7 +458,7 @@ async function getStashDatas(urls, init, options, progress) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getStashSubmissionData(obj) {
-    const url_id = obj.deviation.url.split('/0').pop();
+    const url_id = obj.deviation.stashPrivateid.toString(36);
     if (!url_id) {
         throw new Error('URL ID not found');
     }
@@ -471,7 +467,7 @@ function getStashSubmissionData(obj) {
     }
     const submission_id = `${obj.deviation.deviationId}`;
     const title = obj.deviation.title ?? '';
-    const user_name = obj.user.username;
+    const user_name = obj.deviation.author.username;
     if (!user_name) {
         throw new Error('User name not found');
     }
@@ -502,7 +498,7 @@ function createStashDownload(submission_meta, stash_meta, file_data, options) {
     return download;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getStashUrls(obj, init, progress) {
+async function getStashIds(obj, init, csrf_token, progress) {
     // find stash in description
     let description = obj.deviation.extended.descriptionText?.html?.markup ?? '';
     if (description.startsWith('{"') && description.endsWith('}')) {
@@ -516,25 +512,38 @@ async function getStashUrls(obj, init, progress) {
     if (urls.length > 0) {
         progress.message('Found stash links');
     }
-    const stashes = [];
-    let stacks = [];
+    const stash_ids = [];
+    const folder_urls = [];
+    const stash_regex = /\/(0|2)([0-9a-z]+)/;
     for (const url of urls) {
-        if (/\/2/.test(url)) {
-            stacks.push(url);
-        }
-        else {
-            stashes.push(url);
+        const regex_result = stash_regex.exec(url);
+        if (regex_result) {
+            if (regex_result[1] === '0') {
+                stash_ids.push(parseInt(regex_result[2], 36));
+            }
+            else {
+                folder_urls.push(url);
+            }
         }
     }
     const fetch_worker = new FetchWorker();
+    // some stash folder urls are redirects
+    let folder_ids = [];
+    for (const folder of folder_urls) {
+        const response = await fetch_worker.fetchOk(folder, { method: 'HEAD', ...init });
+        const folder_id = stash_regex.exec(response.url)?.[2];
+        if (folder_id) {
+            folder_ids.push(parseInt(folder_id, 36));
+        }
+    }
     const stash_blobs = {};
-    if (stacks.length > 0) {
+    if (folder_ids.length > 0) {
         const zip_worker = new ZipWorker();
-        for (const [i, stack] of enumerate(stacks)) {
-            const zip_url = `https://sta.sh/zip/${stack.split('/').pop()}`;
-            progress.onOf('Getting stash folder', i + 1, stacks.length);
-            const blob = await fetch_worker.fetchOk(zip_url, init);
-            const zip_object = await zip_worker.parseZip(blob);
+        for (const [i, folder_id] of enumerate(folder_ids)) {
+            const zip_url = `https://sta.sh/zip/2${folder_id.toString(36)}`;
+            progress.onOf('Getting stash folder', i + 1, folder_ids.length);
+            const response = await fetch_worker.fetchOk(zip_url, init);
+            const zip_object = await zip_worker.parseZip(response.body);
             for (const [file, data] of Object.entries(zip_object)) {
                 const submission_id_36 = /d(\w+?)-/.exec(file.split('/').pop() ?? '')?.[1];
                 if (!submission_id_36) {
@@ -546,38 +555,40 @@ async function getStashUrls(obj, init, progress) {
         }
         zip_worker.terminate();
     }
-    const parser = new DOMParser();
-    while (stacks.length > 0) {
-        const new_stacks = [];
-        for (const stack of stacks) {
-            const blob = await fetch_worker.fetchOk(stack, init);
-            const text = await blob.text();
-            const dom = parser.parseFromString(text, 'text/html');
-            const thumbs = dom.querySelectorAll('[gmi-stashid]');
-            for (const thumb of thumbs) {
-                const link = thumb.querySelector('a[href]');
-                if (link) {
-                    stashes.push(link.href);
-                    continue;
-                }
-                const stash_id = thumb.getAttribute('gmi-stashid');
-                if (stash_id) {
-                    const url_id = parseInt(stash_id, 10).toString(36);
-                    new_stacks.push(`https://sta.sh/2${url_id}`);
-                }
-            }
-            // stacks are paginated per 120
-            const next = dom.querySelector('.next [data-offset]')?.getAttribute('data-offset');
-            if (next) {
-                new_stacks.push(`${stack.split('?')[0]}?offset=${next}`);
+    const stash_folder_url = 'https://www.deviantart.com/_puppy/v1/studio/pages/stash';
+    while (folder_ids.length > 0) {
+        const new_folder_ids = [];
+        for (const folder_id of folder_ids) {
+            const params = new URLSearchParams({
+                init: 'false',
+                folderid: `${folder_id}`,
+                csrf_token,
+            });
+            const response = await fetch_worker.fetchOk(`${stash_folder_url}?${params}`, init);
+            let obj = await response.json();
+            new_folder_ids.push(...obj.subfolders.results.map((f) => f.folderId));
+            stash_ids.push(...obj.deviations.studioResults.map((s) => s.deviation.stashPrivateid));
+            const per_page = 50;
+            let offset = 0;
+            while (obj.deviations.hasMore) {
+                offset += per_page;
+                const params = new URLSearchParams({
+                    init: 'false',
+                    folderid: `${folder_id}`,
+                    deviations_offset: `${offset}`,
+                    csrf_token,
+                });
+                const response = await fetch_worker.fetchOk(`${stash_folder_url}?${params}`, init);
+                obj = await response.json();
+                stash_ids.push(...obj.deviations.studioResults.deviation.map((f) => f.stashPrivateid));
             }
         }
-        stacks = new_stacks;
+        folder_ids = new_folder_ids;
     }
     fetch_worker.terminate();
     return {
         blobs: stash_blobs,
-        urls: [...new Set(stashes)].sort(),
+        stash_ids: [...new Set(stash_ids)].sort(),
     };
 }
 //---------------------------------------------------------------------------------------------------------------------
@@ -637,7 +648,7 @@ async function getLiterature(type, obj, meta, options, progress) {
     progress.message('Getting literature');
     const url = obj.deviation.url;
     const response = await fetchOk(url, { credentials: 'include' });
-    const dom = await parseDOM(response);
+    const dom = await response.dom();
     const story_element = dom.querySelector('section .da-editor-journal > div > div > div, section > div > .legacy-journal, section > span + div > div[data-editor-viewer]');
     if (!story_element) {
         throw new Error('Story element not found');
@@ -690,8 +701,8 @@ async function getImageIcon(url) {
         url,
         format: 'json',
     });
-    const blob = await fetchWorkerOk(`https://backend.deviantart.com/oembed?${params}`);
-    const oembed = JSON.parse(await blob.text());
+    const response = await fetchWorkerOk(`https://backend.deviantart.com/oembed?${params}`);
+    const oembed = await response.json();
     return oembed.fullsize_url;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -839,13 +850,13 @@ async function upgradeContentImages(content, embed) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function urlToDataUrl(url) {
-    const blob = await fetchWorkerOk(url);
+    const response = await fetchWorkerOk(url);
     return await new Promise((resolve) => {
         const reader = new FileReader();
         reader.addEventListener('load', function (data) {
             resolve(data.target?.result);
         });
-        reader.readAsDataURL(blob);
+        reader.readAsDataURL(response.body);
     });
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

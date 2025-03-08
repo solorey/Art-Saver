@@ -1,5 +1,5 @@
 "use strict";
-const SITES = ['deviantart', 'twitter', 'bluesky', 'pixiv', 'furaffinity', 'inkbunny'];
+const SITES = ['deviantart', 'newgrounds', 'twitter', 'bluesky', 'pixiv', 'furaffinity', 'inkbunny'];
 const SITES_AND_GLOBAL = ['global', ...SITES];
 const UIS = ['popup', 'infobar', 'settings'];
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

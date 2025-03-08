@@ -476,7 +476,7 @@ browser.downloads.onChanged.addListener(onDownloadChanged);
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const G_folder_files = new Map();
 async function openFolder(path) {
-    const url = URL.createObjectURL(new Blob(['']));
+    const url = URL.createObjectURL(new Blob());
     const download_id = await browser.downloads.download({ url, filename: path, saveAs: false });
     G_folder_files.set(download_id, url);
     browser.downloads.show(download_id);

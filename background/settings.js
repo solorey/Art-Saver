@@ -136,6 +136,7 @@ const global_form = {
 //---------------------------------------------------------------------------------------------------------------------
 const SITES_INFO = {
     deviantart: deviantart_info,
+    newgrounds: newgrounds_info,
     twitter: twitter_info,
     bluesky: bluesky_info,
     pixiv: pixiv_info,
@@ -144,6 +145,7 @@ const SITES_INFO = {
 };
 const SITES_FORMS = {
     deviantart: deviantart_form,
+    newgrounds: newgrounds_form,
     twitter: twitter_form,
     bluesky: bluesky_form,
     pixiv: pixiv_form,

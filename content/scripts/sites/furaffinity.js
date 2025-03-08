@@ -36,7 +36,7 @@ var getUserInfo = async function (user) {
         referrer: window.location.href,
     };
     const response = await fetchOk(`https://www.furaffinity.net/user/${user}/`, init);
-    const dom = await parseDOM(response);
+    const dom = await response.dom();
     const is_modern_layout = isFuraffinityModernLayout(dom);
     const title = dom.querySelector('title')?.textContent ?? '';
     const title_regex_result = /of\s(.+?)\s--\sFur\s/.exec(title);
@@ -160,10 +160,12 @@ function checkFuraffinityThumbnail(element, page_user) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkFuraffinityUserFavorites() {
-    const favorite_data = window.wrappedJSObject.submission_data;
-    if (!favorite_data) {
+    const script_text = document.querySelector('#page-userpage + script')?.textContent ?? '';
+    const submission_data = /\s+submission_data\s*=\s*({.+?});/.exec(script_text)?.[1];
+    if (!submission_data) {
         return;
     }
+    const favorite_data = JSON.parse(submission_data);
     const user_favorite_thumbnails = document.querySelectorAll('#gallery-latest-favorites > [id^="sid"]');
     for (const favorite of user_favorite_thumbnails) {
         const submission_regex_result = /(\d+)/.exec(favorite.id);
@@ -221,7 +223,7 @@ var startDownloading = async function (submission, progress) {
         referrer: window.location.href,
     };
     const response = await fetchOk(`https://www.furaffinity.net/view/${submission}`, init);
-    const dom = await parseDOM(response);
+    const dom = await response.dom();
     const { info, meta } = getFuraffinitySubmissionData(submission, dom);
     const file_data = getFuraffinityFileData(dom);
     const downloads = [createFuraffinityDownload(meta, file_data, options)];

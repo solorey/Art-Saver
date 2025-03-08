@@ -13,6 +13,19 @@ var getPageInfo = async function () {
     if (['profile'].includes(page)) {
         has_user = true;
         user = path_components[1];
+        if (user.startsWith('did:plc:')) {
+            const params = new URLSearchParams({
+                actor: user,
+            });
+            const init = {
+                headers: {
+                    authorization: `Bearer ${accessJwt()}`,
+                },
+            };
+            const response = await fetchOk(`${pdsUrl()}xrpc/app.bsky.actor.getProfile?${params}`, init);
+            const obj = await response.json();
+            user = obj.handle;
+        }
     }
     if (has_user && typeof user === 'undefined') {
         throw new Error(`User not found for page '${page}'`);
@@ -47,25 +60,9 @@ function accessJwt() {
     return jwt;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getHandleDid(user) {
-    const params = new URLSearchParams({
-        handle: user,
-    });
-    const headers = {
-        authorization: `Bearer ${accessJwt()}`,
-    };
-    const init = {
-        headers,
-    };
-    const response = await fetchOk(`${pdsUrl()}xrpc/com.atproto.identity.resolveHandle?${params}`, init);
-    const obj = await parseJSON(response);
-    return obj.did;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var getUserInfo = async function (user) {
-    const did = await getHandleDid(user);
     const params = new URLSearchParams({
-        actor: did,
+        actor: user,
     });
     const headers = {
         authorization: `Bearer ${accessJwt()}`,
@@ -74,23 +71,23 @@ var getUserInfo = async function (user) {
         headers,
     };
     const response = await fetchOk(`${pdsUrl()}xrpc/app.bsky.actor.getProfile?${params}`, init);
-    const obj = await parseJSON(response);
+    const obj = await response.json();
     const name = obj.displayName;
-    const user_id = obj.handle;
+    const did = obj.did;
     const icon_url = obj.avatar;
     const fetch_worker = new FetchWorker();
-    const icon_blob = await fetch_worker.fetchOk(icon_url, init);
+    const icon_response = await fetch_worker.fetchOk(icon_url, init);
     fetch_worker.terminate();
     const icon = await browser.runtime.sendMessage({
         action: 'background_create_object_url',
-        blob: icon_blob,
+        blob: icon_response.body,
     });
     const stats = new Map();
     stats.set('Posts', obj.postsCount);
     stats.set('Followers', obj.followersCount);
     const folder_meta = {
         site: bluesky_info.site,
-        userId: user_id,
+        userId: user,
         userName: name,
         userDid: did,
     };
@@ -147,7 +144,9 @@ function checkBlueskyThumbnail(element) {
         // quote video
         element.querySelector(':scope > div:not([style]) > div[style*="width: 100%;"][style*="margin-top: 4px;"]') ??
         // media with quote
-        element.querySelector(':scope div:not([style]) > div:not([style]) > div[style*="margin-top: 8px;"]');
+        element.querySelector(':scope div:not([style]) > div:not([style]) > div[style*="margin-top: 8px;"]') ??
+        // hidden media
+        element.querySelector(':scope div[style*="overflow: hidden;"] > button + div:not([style]) > div[style*="margin-top: 8px;"]');
     if (!media_box) {
         G_check_log.log('Post media not found for', element);
         return;
@@ -216,7 +215,7 @@ var startDownloading = async function (submission, progress) {
         headers,
     };
     const response = await fetchOk(`${pdsUrl()}xrpc/app.bsky.feed.getPostThread?${params}`, init);
-    const obj = await parseJSON(response);
+    const obj = await response.json();
     const { info, meta } = getBlueskySubmissionData(submission, obj);
     const file_datas = getBlueskyFileDatas(obj);
     const downloads = createBlueskyDownloads(meta, file_datas, options);

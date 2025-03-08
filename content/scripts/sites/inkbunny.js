@@ -55,7 +55,7 @@ var getUserInfo = async function (user) {
         referrer: window.location.href,
     };
     const response = await fetchOk(`https://inkbunny.net/${user}`, init);
-    const dom = await parseDOM(response);
+    const dom = await response.dom();
     const name = dom.title.split(' ')[0];
     const user_id = dom.querySelector('a[href*="user_id="]')?.href.split('=').pop();
     if (!user_id) {
@@ -64,7 +64,7 @@ var getUserInfo = async function (user) {
     const icon = dom.querySelector(`img[alt="${name}"]`)?.src;
     const stats_values = [...dom.querySelectorAll('.elephant_babdb6 .content > div > span strong')].map((stat) => stat.textContent?.replaceAll(',', '') ?? '');
     const favorites_response = await fetchOk(`https://inkbunny.net/userfavorites_process.php?favs_user_id=${user_id}`);
-    const favorites_dom = await parseDOM(favorites_response);
+    const favorites_dom = await favorites_response.dom();
     const favorites = favorites_dom
         .querySelector('.elephant_555753 .content > div:first-child')
         ?.textContent?.split(' ')[0]
@@ -181,7 +181,7 @@ var startDownloading = async function (submission, progress) {
         referrer: window.location.href,
     };
     const response = await fetchOk(`https://inkbunny.net/s/${submission}`, init);
-    const dom = await parseDOM(response);
+    const dom = await response.dom();
     const { info, meta } = getInkbunnySubmissionData(submission, dom);
     const file_datas = await getInkbunnyFileDatas(dom, meta, progress);
     const downloads = createInkbunnyDownloads(meta, file_datas, options);
@@ -247,7 +247,7 @@ async function getInkbunnyFileDatas(dom, submission_meta, progress) {
                     await timer(4);
                 }
             }
-            page_dom = await parseDOM(response);
+            page_dom = await response.dom();
         }
         files.push(getInkbunnyFileData(page_dom));
     }

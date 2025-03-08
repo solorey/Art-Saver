@@ -17,6 +17,7 @@
         "scripts": [
             "scripts/storage.js",
             "background/sites/deviantart.js",
+            "background/sites/newgrounds.js",
             "background/sites/twitter.js",
             "background/sites/bluesky.js",
             "background/sites/pixiv.js",
@@ -46,6 +47,7 @@
             "resources": ["icons/*", "content/ui/*", "content/styles/*", "styles/*", "workers/*"],
             "matches": [
                 "*://*.deviantart.com/*",
+                "*://*.newgrounds.com/*",
                 "*://*.twitter.com/*",
                 "*://*.x.com/*",
                 "*://*.bsky.app/*",
@@ -63,6 +65,10 @@
                 "background/sites/deviantart.js",
                 "content/scripts/sites/deviantart.js"
             ]
+        },
+        {
+            "matches": ["*://*.newgrounds.com/*"],
+            "js": ["background/sites/newgrounds.js", "content/scripts/sites/newgrounds.js"]
         },
         {
             "matches": ["*://*.twitter.com/*", "*://*.x.com/*"],
@@ -87,6 +93,7 @@
         {
             "matches": [
                 "*://*.deviantart.com/*",
+                "*://*.newgrounds.com/*",
                 "*://*.twitter.com/*",
                 "*://*.x.com/*",
                 "*://*.bsky.app/*",

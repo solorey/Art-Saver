@@ -35,6 +35,11 @@ class PixivMultiple extends PixivFile {
     page = '';
 }
 const pixiv_form = {
+    enabled: {
+        type: 'checkbox',
+        label: 'Enabled',
+        default: true,
+    },
     userFolder: {
         type: 'textarea',
         label: 'User folder',
