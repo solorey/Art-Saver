@@ -216,7 +216,7 @@ class SubmissionManager {
         }
     }
     cleanButtons() {
-        // clean diconnected nodes
+        // clean disconnected nodes
         const buttons = [];
         for (const button of this.buttons) {
             if (!button.container.isConnected) {
@@ -656,6 +656,15 @@ class FetchWorker {
         });
         this.worker.postMessage({ url, init });
         return await result;
+    }
+    async testOk(url) {
+        try {
+            await this.fetchOk(url, { method: 'HEAD' });
+            return true;
+        }
+        catch (error) {
+            return false;
+        }
     }
     terminate() {
         this.worker.terminate();

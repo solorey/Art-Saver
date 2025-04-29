@@ -260,7 +260,7 @@ var startDownloading = async function (submission, progress) {
         }
     }
     const file_data = await getDeviantartFileData(obj, meta, options, progress);
-    const file_datas = [file_data, ...getDeviantartAdditionalFileDatas(obj)];
+    const file_datas = [file_data, ...(await getDeviantartAdditionalFileDatas(obj))];
     const downloads = createDeviantartDownloads(meta, file_datas, options);
     if (options.moveFile && stash_downloads.length > 0) {
         const stash_folder = /.*\//.exec(stash_downloads[0].path)?.[0] ?? '';
@@ -344,10 +344,11 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
     return { info, meta };
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function getDeviantartAdditionalFileDatas(obj) {
+async function getDeviantartAdditionalFileDatas(obj) {
     const file_datas = [];
     const additional_media = obj.deviation?.extended?.additionalMedia;
     if (additional_media) {
+        const fetch_worker = new FetchWorker();
         for (const item of additional_media) {
             const file_name_ext = item.filename;
             const file_regex_result = /(.+)\.(\w+)$/.exec(file_name_ext);
@@ -358,12 +359,23 @@ function getDeviantartAdditionalFileDatas(obj) {
                 fileName: file_regex_result[1],
                 ext: file_regex_result[2],
             };
-            const info = {
-                download: item.media.baseUri,
-                size: item.fileSize,
-            };
-            file_datas.push({ info, meta });
+            const test_urls = [
+                item.media.baseUri,
+                ...item.media.token.map((token) => `${item.media.baseUri}?token=${token}`),
+                buildMediaUrl(item.media),
+            ];
+            for (const url of test_urls) {
+                if (await fetch_worker.testOk(url)) {
+                    const info = {
+                        download: url,
+                        size: item.fileSize,
+                    };
+                    file_datas.push({ info, meta });
+                    break;
+                }
+            }
         }
+        fetch_worker.terminate();
     }
     return file_datas;
 }

@@ -42,6 +42,17 @@ function reloadCleanUp() {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async function () {
+    while (true) {
+        try {
+            // G_site_info is definied in site script
+            // site script should load before main script but not always
+            G_site_info;
+            break;
+        }
+        catch (e) {
+            await timer(0.1);
+        }
+    }
     try {
         reloadCleanUp();
         if (!(await getOptionsStorage(G_site_info.site)).enabled) {

@@ -160,12 +160,11 @@ function checkFuraffinityThumbnail(element, page_user) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkFuraffinityUserFavorites() {
-    const script_text = document.querySelector('#page-userpage + script')?.textContent ?? '';
-    const submission_data = /\s+submission_data\s*=\s*({.+?});/.exec(script_text)?.[1];
-    if (!submission_data) {
+    const script_text = document.querySelector('#js-submissionData')?.textContent ?? '';
+    if (!script_text) {
         return;
     }
-    const favorite_data = JSON.parse(submission_data);
+    const favorite_data = JSON.parse(script_text);
     const user_favorite_thumbnails = document.querySelectorAll('#gallery-latest-favorites > [id^="sid"]');
     for (const favorite of user_favorite_thumbnails) {
         const submission_regex_result = /(\d+)/.exec(favorite.id);

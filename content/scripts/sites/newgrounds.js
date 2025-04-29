@@ -322,7 +322,7 @@ async function getNewgroundsArtFileDatas(dom) {
         if (data.meta.ext === 'webp') {
             for (const format of formats) {
                 const url = data.info.download.replace('.webp', `.${format}`);
-                if (await testOk(fetch_worker, url)) {
+                if (await fetch_worker.testOk(url)) {
                     data.meta.ext = format;
                     data.info.download = url;
                     break;
@@ -368,7 +368,7 @@ async function getNewgroundsMovieFileData(dom, submission_meta) {
     const fetch_worker = new FetchWorker();
     for (const format of formats) {
         const url = `${base_src}.${format}`;
-        if (await testOk(fetch_worker, url)) {
+        if (await fetch_worker.testOk(url)) {
             fetch_worker.terminate();
             return urlFileData(url);
         }
@@ -402,16 +402,6 @@ function getNewgroundsGameData(dom, url) {
         },
     });
     return game_datas;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function testOk(worker, url) {
-    try {
-        await worker.fetchOk(url, { method: 'HEAD' });
-        return true;
-    }
-    catch (error) {
-        return false;
-    }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function urlFileData(url) {
