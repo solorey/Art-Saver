@@ -4,6 +4,97 @@
 //---------------------------------------------------------------------------------------------------------------------
 var G_site_info = twitter_info;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// https://antibot.blog/posts/1741552092462
+// https://github.com/iSarabjitDhiman/XClientTransaction
+class XClient {
+    client_values;
+    async getClientValues() {
+        if (this.client_values) {
+            return this.client_values;
+        }
+        const response = await fetchOk('https://x.com');
+        const dom = await response.dom();
+        const key = dom.querySelector('[name="twitter-site-verification"]')?.getAttribute('content');
+        if (!key) {
+            throw new Error('Verification key not found');
+        }
+        const key_bytes = new Uint8Array(atob(key)
+            .split('')
+            .map((n) => n.charCodeAt(0)));
+        const on_demand_file_result = /(['"])ondemand\.s\1:\s*(['"])([\w]*)\2/.exec(dom.documentElement.outerHTML);
+        if (!on_demand_file_result) {
+            throw new Error('On demand file not found');
+        }
+        const on_demand_file_url = `https://abs.twimg.com/responsive-web/client-web/ondemand.s.${on_demand_file_result[3]}a.js`;
+        const on_demand_file_response = await fetchOk(on_demand_file_url);
+        const response_text = await on_demand_file_response.text();
+        const indices_matches = [...response_text.matchAll(/\(\w\[(\d{1,2})\],\s*16\)/g)];
+        const indices = indices_matches.map((match) => parseInt(match[1], 10));
+        const path_index = key_bytes[indices[0]] % 16;
+        const frame_time = indices.slice(1).reduce((n, i) => {
+            return n * (key_bytes[i] % 16);
+        }, 1);
+        const path_node = dom.querySelectorAll('[id^="loading-x"]')[key_bytes[5] % 4].childNodes[0]
+            .childNodes[1];
+        const path_string = path_node.getAttribute('d');
+        if (!path_string) {
+            throw new Error('Path not found');
+        }
+        const path_numbers = path_string
+            .substring(9)
+            .split('C')[path_index].replace(/[^\d]+/g, ' ')
+            .trim()
+            .split(/\s+/)
+            .map((s) => parseInt(s, 10));
+        const div = document.createElement('div');
+        document.body.append(div);
+        function solve(n, min_value, max_value) {
+            const result = (n * (max_value - min_value)) / 255 + min_value;
+            return result.toFixed(2);
+        }
+        function toHex(n) {
+            return n.toString(16).padStart(2, '0');
+        }
+        const start_color = `#${path_numbers.slice(0, 3).map(toHex).join('')}`;
+        const end_color = `#${path_numbers.slice(3, 6).map(toHex).join('')}`;
+        const rotation = solve(path_numbers[6], 60, 360);
+        const coords = path_numbers.slice(7).map((n, i) => solve(n, i % 2 ? -1 : 0, 1));
+        const animation = div.animate({
+            color: [start_color, end_color],
+            transform: ['rotate(0deg)', `rotate(${rotation}deg)`],
+            easing: `cubic-bezier(${coords.join()})`,
+        }, 4096);
+        animation.pause();
+        animation.currentTime = Math.round(frame_time / 10) * 10;
+        const style = getComputedStyle(div);
+        const animation_string = [...`${style.color}${style.transform}`.matchAll(/([\d.-]+)/g)]
+            .map((n) => Number(Number(n[0]).toFixed(2)).toString(16))
+            .join('')
+            .replace(/[.-]/g, '');
+        div.parentNode?.removeChild(div);
+        this.client_values = {
+            key_bytes,
+            animation_string,
+        };
+        return this.client_values;
+    }
+    async getTransactionId(method, path) {
+        const time = Math.floor((Date.now() - 1682924400 * 1e3) / 1e3);
+        const time_buffer = new Uint8Array(new Uint32Array([time]).buffer);
+        const { key_bytes, animation_string } = await this.getClientValues();
+        const data = `${method}!${path}!${time}obfiowerehiring${animation_string}`;
+        const encoder = new TextEncoder();
+        const hash_buffer = await crypto.subtle.digest('sha-256', encoder.encode(data));
+        const hash_bytes = [...new Uint8Array(hash_buffer)];
+        const byte_array = [...key_bytes, ...time_buffer, ...hash_bytes.slice(0, 16), 3];
+        const random_num = Math.floor(Math.random() * 256);
+        const final_bytes = new Uint8Array([random_num, ...byte_array.map((n) => n ^ random_num)]);
+        const id = btoa([...final_bytes].map((n) => String.fromCharCode(n)).join('')).replace(/=/g, '');
+        return id;
+    }
+}
+const x_client = new XClient();
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var getPageInfo = async function () {
     const url = window.location.href;
     let page = twitter_info.site;
@@ -30,40 +121,40 @@ var getPageInfo = async function () {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var getUserInfo = async function (user) {
     const params = new URLSearchParams({
-        variables: JSON.stringify({
-            screen_name: user,
-            withSafetyModeUserFields: false,
-            withSuperFollowsUserFields: false,
-        }),
+        variables: JSON.stringify({ screen_name: user }),
         features: JSON.stringify({
-            hidden_profile_subscriptions_enabled: true,
-            rweb_tipjar_consumption_enabled: true,
-            responsive_web_graphql_exclude_directive_enabled: true,
+            hidden_profile_subscriptions_enabled: false,
+            profile_label_improvements_pcf_label_in_post_enabled: false,
+            rweb_tipjar_consumption_enabled: false,
             verified_phone_label_enabled: false,
-            subscriptions_verification_info_is_identity_verified_enabled: true,
-            subscriptions_verification_info_verified_since_enabled: true,
-            highlights_tweets_tab_ui_enabled: true,
-            responsive_web_twitter_article_notes_tab_enabled: true,
+            subscriptions_verification_info_is_identity_verified_enabled: false,
+            subscriptions_verification_info_verified_since_enabled: false,
+            highlights_tweets_tab_ui_enabled: false,
+            responsive_web_twitter_article_notes_tab_enabled: false,
             subscriptions_feature_can_gift_premium: false,
-            creator_subscriptions_tweet_preview_api_enabled: true,
+            creator_subscriptions_tweet_preview_api_enabled: false,
             responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
-            responsive_web_graphql_timeline_navigation_enabled: true,
+            responsive_web_graphql_timeline_navigation_enabled: false,
         }),
+        fieldToggles: JSON.stringify({ withAuxiliaryUserLabels: false }),
     });
     const csrf_token = /ct0=([0-9a-f]+)/.exec(document.cookie)?.[1];
     if (!csrf_token) {
         throw new Error('Unable to find CSRF token');
     }
+    const path = '/i/api/graphql/1VOOyvKkiI3FMmkeDNxM9A/UserByScreenName';
     const headers = {
         authorization: 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
         'x-csrf-token': csrf_token,
+        'x-twitter-active-user': 'yes',
+        'x-client-transaction-id': await x_client.getTransactionId('GET', path),
     };
     const init = {
         credentials: 'include',
         referrer: window.location.href,
         headers,
     };
-    const response = await fetchOk(`https://${window.location.hostname}/i/api/graphql/7mjxD3-C6BxitPMVQ6w0-Q/UserByScreenName?${params}`, init);
+    const response = await fetchOk(`https://x.com${path}?${params}`, init);
     const obj = await response.json();
     const user_data = obj.data.user.result.legacy;
     const name = user_data.name;
@@ -185,35 +276,70 @@ var startDownloading = async function (submission, progress) {
     const params = new URLSearchParams({
         variables: JSON.stringify({
             focalTweetId: submission,
-            with_rux_injections: false,
+            rankingMode: 'Relevance',
             includePromotedContent: false,
             withCommunity: false,
             withQuickPromoteEligibilityTweetFields: false,
-            withTweetQuoteCount: false,
             withBirdwatchNotes: false,
-            withSuperFollowsUserFields: false,
-            withUserResults: false,
-            withBirdwatchPivots: false,
-            withReactionsMetadata: false,
-            withReactionsPerspective: false,
-            withSuperFollowsTweetFields: false,
             withVoice: false,
+        }),
+        features: JSON.stringify({
+            rweb_video_screen_enabled: false,
+            profile_label_improvements_pcf_label_in_post_enabled: false,
+            rweb_tipjar_consumption_enabled: false,
+            verified_phone_label_enabled: false,
+            creator_subscriptions_tweet_preview_api_enabled: false,
+            responsive_web_graphql_timeline_navigation_enabled: false,
+            responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
+            premium_content_api_read_enabled: false,
+            communities_web_enable_tweet_community_results_fetch: false,
+            c9s_tweet_anatomy_moderator_badge_enabled: false,
+            responsive_web_grok_analyze_button_fetch_trends_enabled: false,
+            responsive_web_grok_analyze_post_followups_enabled: false,
+            responsive_web_jetfuel_frame: false,
+            responsive_web_grok_share_attachment_enabled: false,
+            articles_preview_enabled: false,
+            responsive_web_edit_tweet_api_enabled: false,
+            graphql_is_translatable_rweb_tweet_is_translatable_enabled: false,
+            view_counts_everywhere_api_enabled: false,
+            longform_notetweets_consumption_enabled: false,
+            responsive_web_twitter_article_tweet_consumption_enabled: false,
+            tweet_awards_web_tipping_enabled: false,
+            responsive_web_grok_show_grok_translated_post: false,
+            responsive_web_grok_analysis_button_from_backend: false,
+            creator_subscriptions_quote_tweet_preview_enabled: false,
+            freedom_of_speech_not_reach_fetch_enabled: false,
+            standardized_nudges_misinfo: false,
+            tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: false,
+            longform_notetweets_rich_text_read_enabled: false,
+            longform_notetweets_inline_media_enabled: false,
+            responsive_web_grok_image_annotation_enabled: false,
+            responsive_web_enhance_cards_enabled: false,
+        }),
+        fieldToggles: JSON.stringify({
+            withArticleRichContentState: false,
+            withArticlePlainText: false,
+            withGrokAnalyze: false,
+            withDisallowedReplyControls: false,
         }),
     });
     const csrf_token = /ct0=([0-9a-f]+)/.exec(document.cookie)?.[1];
     if (!csrf_token) {
         throw new Error('Unable to find CSRF token');
     }
+    const path = '/i/api/graphql/_8aYOgEDz35BrBcBal1-_w/TweetDetail';
     const headers = {
         authorization: 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
         'x-csrf-token': csrf_token,
+        'x-twitter-active-user': 'yes',
+        'x-client-transaction-id': await x_client.getTransactionId('GET', path),
     };
     const init = {
         credentials: 'include',
         referrer: window.location.href,
         headers,
     };
-    const response = await fetchOk(`https://${window.location.hostname}/i/api/graphql/N_Am58sJXW8WRV7-cJLWvg/TweetDetail?${params}`, init);
+    const response = await fetchOk(`https://x.com${path}?${params}`, init);
     const obj = await response.json();
     const tweet = extractTweet(submission, obj);
     const { info, meta } = getTwitterSubmissionData(submission, tweet);
@@ -224,7 +350,7 @@ var startDownloading = async function (submission, progress) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function extractTweet(submission, obj) {
     let tweet;
-    for (const entrie of obj.data.threaded_conversation_with_injections.instructions[0].entries) {
+    for (const entrie of obj.data.threaded_conversation_with_injections_v2.instructions[0].entries) {
         let tweet_data = entrie.content?.itemContent?.tweet_results?.result;
         if (tweet_data && 'tweet' in tweet_data) {
             tweet_data = tweet_data.tweet;
@@ -241,8 +367,8 @@ function extractTweet(submission, obj) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getTwitterSubmissionData(submission, obj) {
-    const user_name = obj.core.user.legacy.name;
-    const user_id = obj.core.user.legacy.screen_name;
+    const user_name = obj.core.user_results.result.legacy.name;
+    const user_id = obj.core.user_results.result.legacy.screen_name;
     const date_time = timeParse(obj.legacy.created_at);
     const meta = {
         site: twitter_info.site,
