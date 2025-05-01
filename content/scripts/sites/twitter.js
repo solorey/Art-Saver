@@ -344,8 +344,14 @@ var startDownloading = async function (submission, progress) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function extractTweet(submission, obj) {
     let tweet;
-    for (const entrie of obj.data.threaded_conversation_with_injections_v2.instructions[0].entries) {
-        let tweet_data = entrie.content?.itemContent?.tweet_results?.result;
+    const thread = obj.data?.threaded_conversation_with_injections_v2?.instructions?.[0] ??
+        obj.data?.threaded_conversation_with_injections?.instructions?.[0];
+    if (!thread) {
+        asLog('error', 'Unexpected api response. Received:', obj);
+        throw new Error('Unable to find thread data');
+    }
+    for (const entry of thread.entries) {
+        let tweet_data = entry.content?.itemContent?.tweet_results?.result;
         if (tweet_data && 'tweet' in tweet_data) {
             tweet_data = tweet_data.tweet;
         }
@@ -361,8 +367,12 @@ function extractTweet(submission, obj) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getTwitterSubmissionData(submission, obj) {
-    const user_name = obj.core.user_results.result.legacy.name;
-    const user_id = obj.core.user_results.result.legacy.screen_name;
+    const user = obj.core?.user_results?.result?.legacy ?? obj.core?.user?.legacy;
+    if (!user) {
+        throw new Error('Unable to find user data');
+    }
+    const user_name = user.name;
+    const user_id = user.screen_name;
     const date_time = timeParse(obj.legacy.created_at);
     const meta = {
         site: twitter_info.site,
