@@ -633,7 +633,14 @@ class OkResponse {
 class FetchWorker {
     worker;
     constructor() {
-        this.worker = new Worker(browser.runtime.getURL('/workers/fetch_worker.js'));
+        if (G_site_info.site === 'twitter') {
+            // workaround for media urls being blocked with strict tracking
+            // when using a web worker with an extension scope
+            this.worker = new Worker(URL.createObjectURL(new Blob([`importScripts('${browser.runtime.getURL('/workers/fetch_worker.js')}')`])));
+        }
+        else {
+            this.worker = new Worker(browser.runtime.getURL('/workers/fetch_worker.js'));
+        }
     }
     async fetchOk(url, init, progressfn) {
         const result = new Promise((resolve, reject) => {

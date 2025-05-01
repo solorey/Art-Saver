@@ -48,20 +48,16 @@ class XClient {
             .map((s) => parseInt(s, 10));
         const div = document.createElement('div');
         document.body.append(div);
-        function solve(n, min_value, max_value) {
-            const result = (n * (max_value - min_value)) / 255 + min_value;
-            return result.toFixed(2);
+        function interpolateU8ToRange(n, min_value, max_value) {
+            return (n * (max_value - min_value)) / 255 + min_value;
         }
-        function toHex(n) {
-            return n.toString(16).padStart(2, '0');
-        }
-        const start_color = `#${path_numbers.slice(0, 3).map(toHex).join('')}`;
-        const end_color = `#${path_numbers.slice(3, 6).map(toHex).join('')}`;
-        const rotation = solve(path_numbers[6], 60, 360);
-        const coords = path_numbers.slice(7).map((n, i) => solve(n, i % 2 ? -1 : 0, 1));
+        const start_color = `rgb(${path_numbers.slice(0, 3).join()})`;
+        const end_color = `rgb(${path_numbers.slice(3, 6).join()})`;
+        const degrees = Math.floor(interpolateU8ToRange(path_numbers[6], 60, 360));
+        const coords = path_numbers.slice(7).map((n, i) => interpolateU8ToRange(n, i % 2 ? -1 : 0, 1).toFixed(2));
         const animation = div.animate({
             color: [start_color, end_color],
-            transform: ['rotate(0deg)', `rotate(${rotation}deg)`],
+            transform: ['rotate(0deg)', `rotate(${degrees}deg)`],
             easing: `cubic-bezier(${coords.join()})`,
         }, 4096);
         animation.pause();
@@ -160,9 +156,7 @@ var getUserInfo = async function (user) {
     const name = user_data.name;
     const user_id = user_data.screen_name;
     const icon_url = user_data.profile_image_url_https.replace('_normal', '_200x200');
-    const fetch_worker = new FetchWorker();
-    const icon_response = await fetch_worker.fetchOk(icon_url, init);
-    fetch_worker.terminate();
+    const icon_response = await fetchWorkerOk(icon_url);
     const icon = await browser.runtime.sendMessage({
         action: 'background_create_object_url',
         blob: icon_response.body,
@@ -345,7 +339,7 @@ var startDownloading = async function (submission, progress) {
     const { info, meta } = getTwitterSubmissionData(submission, tweet);
     const file_datas = await getTwitterFileDatas(tweet);
     const downloads = createTwitterDownloads(meta, file_datas, options);
-    return await downloadSubmission(info, downloads, init, progress);
+    return await downloadSubmission(info, downloads, undefined, progress);
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function extractTweet(submission, obj) {
