@@ -38,19 +38,14 @@ var getUserInfo = async function (user) {
     const response = await fetchOk(`https://www.furaffinity.net/user/${user}/`, init);
     const dom = await response.dom();
     const is_modern_layout = isFuraffinityModernLayout(dom);
-    const title = dom.querySelector('title')?.textContent ?? '';
-    const title_regex_result = /of\s(.+?)\s--\sFur\s/.exec(title);
-    let name;
-    if (!title_regex_result) {
+    let name = dom.querySelector(is_modern_layout ? '.top-bar .js-displayName' : '.cat .js-displayName')?.textContent ?? '';
+    if (!name) {
         const redirect = dom.querySelector('.redirect-message')?.textContent ?? '';
         const redirect_regex_result = /User\s"(.+?)"\s/.exec(redirect);
         if (!redirect_regex_result) {
             throw new Error(`User page for '${user}' unavailable`);
         }
         name = redirect_regex_result[1];
-    }
-    else {
-        name = title_regex_result[1];
     }
     const icon_element = dom.querySelector(`img[alt="${user}"]`);
     const icon = icon_element?.src;
@@ -234,7 +229,7 @@ function getFuraffinitySubmissionData(submission, dom) {
     if (!user_id) {
         throw new Error('User ID not found');
     }
-    const user_name = /([^\s]+)(?:\s--\s)/.exec(dom.querySelector('title')?.textContent ?? '')?.[1];
+    const user_name = dom.querySelector('.c-usernameBlockSimple__displayName')?.textContent;
     if (!user_name) {
         throw new Error('User name not found');
     }
