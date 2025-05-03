@@ -229,7 +229,10 @@ function getFuraffinitySubmissionData(submission, dom) {
     if (!user_id) {
         throw new Error('User ID not found');
     }
-    const user_name = dom.querySelector('.c-usernameBlockSimple__displayName')?.textContent;
+    const is_modern_layout = isFuraffinityModernLayout(dom);
+    const user_name = dom.querySelector(is_modern_layout
+        ? '.submission-id-sub-container .c-usernameBlockSimple__displayName'
+        : '.information .c-usernameBlockSimple__displayName')?.textContent;
     if (!user_name) {
         throw new Error('User name not found');
     }
@@ -244,7 +247,6 @@ function getFuraffinitySubmissionData(submission, dom) {
     }
     const file_id = regex_result[4] || regex_result[5] || regex_result[2];
     const date_time = timeParse(parseInt(`${file_id}000`, 10));
-    const is_modern_layout = isFuraffinityModernLayout(dom);
     const title_element = dom.querySelector(is_modern_layout ? '.submission-title p' : 'div.classic-submission-title > h2');
     if (!title_element) {
         throw new Error('Title element not found');
