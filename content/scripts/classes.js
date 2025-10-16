@@ -42,13 +42,14 @@ class FunctionThrottler {
 class ToolTip {
     container;
     tip;
+    user_row;
     user;
     link;
     submission;
     error;
     constructor(nodes) {
         const { container, shadow } = createCustomElement('tool-tip');
-        shadow.append(G_styles.common.cloneNode(true), G_styles.tool_tip.cloneNode(true), ...nodes);
+        shadow.append(G_ui_styles.common.cloneNode(true), G_ui_styles.tool_tip.cloneNode(true), ...nodes);
         const tip = shadow.querySelector('.tool-tip');
         tip?.setAttribute('data-theme', G_options.theme);
         tip?.style.setProperty('top', '0');
@@ -56,6 +57,7 @@ class ToolTip {
         G_themed_elements.push(tip);
         this.container = container;
         this.tip = tip;
+        this.user_row = shadow.querySelector('#user-row');
         this.user = shadow.querySelector('#user');
         this.link = shadow.querySelector('#user-link');
         this.submission = shadow.querySelector('#submission');
@@ -81,8 +83,14 @@ class ToolTip {
         this.tip?.querySelector(`[data-tip="${type}"]`)?.classList.remove('hide');
     }
     showSubmission(x, user, submission) {
-        user = user || '(unknown)';
-        this.user?.replaceChildren(user);
+        if (user) {
+            this.user_row?.classList.remove('hide');
+            this.user?.replaceChildren(user);
+        }
+        else {
+            this.user_row?.classList.add('hide');
+            this.user?.replaceChildren();
+        }
         this.submission?.replaceChildren(`${submission}`);
         this.link?.setAttribute('href', userGalleryLink(user));
         this.showTip('submission');
@@ -603,15 +611,17 @@ function createCustomElement(name, mode) {
 function initalButtonContainer() {
     const custom = createCustomElement('submission');
     custom.container.style.display = 'contents';
-    custom.shadow.append(G_styles.common.cloneNode(true), G_styles.submission.cloneNode(true));
+    custom.shadow.append(G_ui_styles.common.cloneNode(true), G_ui_styles.submission.cloneNode(true));
     return custom;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class OkResponse {
     url;
+    headers;
     body;
-    constructor(url, body) {
+    constructor(url, headers, body) {
         this.url = url;
+        this.headers = headers;
         this.body = body;
     }
     async text() {
@@ -652,8 +662,8 @@ class FetchWorker {
                         }
                         break;
                     case 'result':
-                        const { url, body } = message.data.result;
-                        resolve(new OkResponse(url, body));
+                        const { url, headers, body } = message.data.result;
+                        resolve(new OkResponse(url, new Headers(headers), body));
                         break;
                     case 'error':
                         reject(message.data.error);
@@ -715,7 +725,7 @@ class InfoBar {
         if (!G_options.infoBar) {
             container.style.display = 'none';
         }
-        shadow.append(G_styles.common.cloneNode(true), G_styles.info_bar.cloneNode(true), ...nodes);
+        shadow.append(G_ui_styles.common.cloneNode(true), G_ui_styles.info_bar.cloneNode(true), ...nodes);
         shadow.querySelectorAll('#info-bar, #show-area').forEach((element) => {
             element.setAttribute('data-theme', G_options.theme);
             G_themed_elements.push(element);

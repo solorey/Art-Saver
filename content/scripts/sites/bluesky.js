@@ -6,7 +6,7 @@ var G_site_info = bluesky_info;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var getPageInfo = async function () {
     const url = window.location.href;
-    const path_components = pathComponents();
+    const path_components = pathComponents(url);
     const page = path_components[0] ?? bluesky_info.site;
     let has_user = false;
     let user;
@@ -120,7 +120,7 @@ async function checkBluesky() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkBlueskyPage() {
     const media_selector = '[data-expoimage], [aria-label="Embedded video player"], video[src^="https://t.gifs.bsky.app/"]';
-    for (const item of document.querySelectorAll('[data-testid^="feedItem"], [data-testid^="postThreadItem"]')) {
+    for (const item of document.querySelectorAll('div[role="link"][tabindex="0"], [data-testid^="postThreadItem"]')) {
         const media = item.querySelector(media_selector);
         if (media && !media.matches('[aria-label^="Post by"] div')) {
             checkBlueskyThumbnail(item);
@@ -136,24 +136,21 @@ function checkBlueskyPage() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkBlueskyThumbnail(element) {
     const media_box = 
-    // image
-    element.querySelector(':scope div[style*="padding-bottom: 4px;"] > div:not([style]) > div[style]') ??
-        element.querySelector(':scope > div > div > div[style] > div:not([style]) > div[style]') ??
+    // single image and video
+    element.querySelector(':scope div[style^="width: 100%;"]') ??
+        // media grid
+        element.querySelector('div[style*="margin-top: 8px;"] > div:not([style]) > div[style*="gap: 4px;"]') ??
         // gif
-        element.querySelector(':scope > div:not([style]) > div[style*="margin-top: 8px;"]') ??
-        // quote video
-        element.querySelector(':scope > div:not([style]) > div[style*="width: 100%;"][style*="margin-top: 4px;"]') ??
-        // media with quote
-        element.querySelector(':scope div:not([style]) > div:not([style]) > div[style*="margin-top: 8px;"]') ??
-        // hidden media
-        element.querySelector(':scope div[style*="overflow: hidden;"] > button + div:not([style]) > div[style*="margin-top: 8px;"]');
+        element.querySelector(':scope div:not([style]) > div[style*="margin-top: 8px;"] > div[style*="width: 100%;"]');
     if (!media_box) {
         G_check_log.log('Post media not found for', element);
         return;
     }
     const user = element.getAttribute('data-testid')?.split('-by-', 2)[1] ??
         // quote post
-        element.getAttribute('aria-label')?.split(' by ', 2)[1];
+        element.getAttribute('aria-label')?.split(' by ', 2)[1] ??
+        // saved layout
+        element.querySelector('a[href^="/profile/"]')?.href?.split('/').pop();
     if (!user) {
         G_check_log.log('User not found for', element);
         return;

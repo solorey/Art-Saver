@@ -20,7 +20,11 @@
   background-color: var(--color-scheme-3);
   text-align: center;
 }
-.submission-tip > * {
+
+.row {
+  display: contents;
+}
+.row > * {
   padding-inline: calc(var(--hem) * 0.3333333333);
   padding-block: calc(var(--hem) * 0.0833333333);
 }

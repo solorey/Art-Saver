@@ -15,9 +15,10 @@ async function workerFetch(url, init) {
     if (!response.ok) {
         throw new Error(`Received ${response.status}: ${response.url}`);
     }
+    const headers = Object.fromEntries(response.headers.entries());
     const body = response.body;
     if (!body) {
-        return { url: response.url, body: new Blob() };
+        return { url: response.url, headers, body: new Blob() };
     }
     const chunks = [];
     const content_length = response.headers.get('Content-Length');
@@ -36,7 +37,7 @@ async function workerFetch(url, init) {
         loaded += value.length;
         postMessage({ message: 'progress', loaded, total });
     }
-    return { url: response.url, body: new Blob(chunks) };
+    return { url: response.url, headers, body: new Blob(chunks) };
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function readTimeout(reader, seconds) {

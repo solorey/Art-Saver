@@ -20,6 +20,7 @@
             "background/sites/newgrounds.js",
             "background/sites/twitter.js",
             "background/sites/bluesky.js",
+            "background/sites/itaku.js",
             "background/sites/pixiv.js",
             "background/sites/furaffinity.js",
             "background/sites/inkbunny.js",
@@ -51,6 +52,7 @@
                 "*://*.twitter.com/*",
                 "*://*.x.com/*",
                 "*://*.bsky.app/*",
+                "*://*.itaku.ee/*",
                 "*://*.pixiv.net/*",
                 "*://*.furaffinity.net/*",
                 "*://*.inkbunny.net/*"
@@ -79,6 +81,10 @@
             "js": ["background/sites/bluesky.js", "content/scripts/sites/bluesky.js"]
         },
         {
+            "matches": ["*://*.itaku.ee/*"],
+            "js": ["background/sites/itaku.js", "content/scripts/sites/itaku.js"]
+        },
+        {
             "matches": ["*://*.pixiv.net/*"],
             "js": ["background/sites/pixiv.js", "content/scripts/sites/pixiv.js"]
         },
@@ -97,6 +103,7 @@
                 "*://*.twitter.com/*",
                 "*://*.x.com/*",
                 "*://*.bsky.app/*",
+                "*://*.itaku.ee/*",
                 "*://*.pixiv.net/*",
                 "*://*.furaffinity.net/*",
                 "*://*.inkbunny.net/*"

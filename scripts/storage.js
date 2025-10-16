@@ -1,5 +1,15 @@
 "use strict";
-const SITES = ['deviantart', 'newgrounds', 'twitter', 'bluesky', 'pixiv', 'furaffinity', 'inkbunny'];
+const SITES_KEYS = {
+    deviantart: '',
+    newgrounds: '',
+    twitter: '',
+    bluesky: '',
+    itaku: '',
+    pixiv: '',
+    furaffinity: '',
+    inkbunny: '',
+};
+const SITES = Object.keys(SITES_KEYS);
 const SITES_AND_GLOBAL = ['global', ...SITES];
 const UIS = ['popup', 'infobar', 'settings'];
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

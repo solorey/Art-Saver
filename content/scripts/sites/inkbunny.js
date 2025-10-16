@@ -6,7 +6,7 @@ var G_site_info = inkbunny_info;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var getPageInfo = async function () {
     const url = window.location.href;
-    const path_components = pathComponents();
+    const path_components = pathComponents(url);
     const search = window.location.search;
     let page = inkbunny_info.site;
     let has_user = false;

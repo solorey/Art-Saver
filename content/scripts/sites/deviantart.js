@@ -6,7 +6,7 @@ var G_site_info = deviantart_info;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var getPageInfo = async function () {
     const url = window.location.href;
-    const path_components = pathComponents();
+    const path_components = pathComponents(url);
     let page = deviantart_info.site;
     let has_user = false;
     let user;
@@ -329,9 +329,10 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
         meta.ext = 'pdf';
         return { info, meta };
     }
-    if (options.larger && /\/v1\/fill\//.test(url)) {
+    // https://github.com/r888888888/danbooru/issues/4069
+    if (options.larger && /\/v1\/fill\//.test(url) && Number(submission_meta.submissionId) <= 790677560) {
         progress.message('Comparing images');
-        info.download = await compareUrls(url); //await compareUrls(url)
+        info.download = await compareUrls(url);
     }
     // example download urls
     // https://www.deviantart.com/download/123456789/d21i3v9-3885adbb-f9f1-4fbe-8d2d-98c4578ba244.ext?token=...&ts=1234567890
@@ -405,9 +406,9 @@ function buildMediaUrl(media_obj) {
         media_url = `${media_url}?token=${tokens[0]}`;
     }
     // make sure quailty is 100
-    // replacing .jpg with .png can lead to better quailty
+    // replacing .jpg with .png can lead to better quailty // often now this returns broken images
     if (/\/v1\/fill\//.test(media_url)) {
-        media_url = media_url.replace(/q_\d+/, 'q_100').replace('.jpg?', '.png?');
+        media_url = media_url.replace(/q_\d+/, 'q_100'); //.replace('.jpg?', '.png?');
     }
     return media_url;
 }
@@ -633,8 +634,13 @@ async function getImageInfo(src) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function imgSize(src) {
-    const response = await fetch(src);
-    return response.ok ? parseInt(response.headers.get('content-length') ?? '0', 10) : 0;
+    try {
+        const response = await fetchWorkerOk(src, { method: 'HEAD' });
+        return parseInt(response.headers.get('content-length') ?? '0', 10);
+    }
+    catch (e) {
+        return 0;
+    }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function imgDim(src) {
@@ -850,7 +856,7 @@ async function upgradeContentImages(content, embed) {
         let url = img.src;
         const reg = /.+\w{12}\.\w+/.exec(url);
         if (/token=/.test(url)) {
-            url = url.replace(/q_\d+/, 'q_100').replace('.jpg?', '.png?');
+            url = url.replace(/q_\d+/, 'q_100'); //.replace('.jpg?', '.png?');
         }
         else if (reg) {
             url = reg[0];

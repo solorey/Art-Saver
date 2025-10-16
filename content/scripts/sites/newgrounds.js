@@ -6,7 +6,7 @@ var G_site_info = newgrounds_info;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var getPageInfo = async function () {
     const url = window.location.href;
-    const path_components = pathComponents();
+    const path_components = pathComponents(url);
     let page = path_components[0] ?? newgrounds_info.site;
     let has_user = false;
     let user;
@@ -207,7 +207,7 @@ var startDownloading = async function (submission, progress) {
         referrer: window.location.href,
     };
     const url = newgrounds_info.links.submission(submission);
-    const response = await fetchOk(url, init);
+    const response = await fetchWorkerOk(url, init);
     const dom = await response.dom();
     const { info, meta } = getNewgroundsSubmissionData(submission, dom);
     let downloads;

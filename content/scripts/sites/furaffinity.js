@@ -6,7 +6,7 @@ var G_site_info = furaffinity_info;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var getPageInfo = async function () {
     const url = window.location.href;
-    const path_components = pathComponents();
+    const path_components = pathComponents(url);
     const page = path_components[0] ?? furaffinity_info.site;
     let has_user = false;
     let user;

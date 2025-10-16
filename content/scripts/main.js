@@ -1,26 +1,26 @@
 "use strict";
 let G_options;
-let G_styles;
+let G_ui_styles;
 let G_tool_tip;
 let G_info_bar;
 const G_state_manager = new StateManager();
 const G_download_queue = new DownloadQueue();
 const G_themed_elements = [];
-const G_style = document.createElement('style');
+const G_head_style = document.createElement('style');
 const G_check_log = new CheckLogCache();
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function main() {
     let tool_tip_nodes;
     let info_bar_nodes;
-    [G_options, G_styles, tool_tip_nodes, info_bar_nodes] = await Promise.all([
+    [G_options, G_ui_styles, tool_tip_nodes, info_bar_nodes] = await Promise.all([
         getOptionsStorage('global'),
         createUIStyles(),
         getUI('tool_tip'),
         getUI('info_bar'),
     ]);
-    G_style.setAttribute('data-art-saver', 'style');
+    G_head_style.setAttribute('data-art-saver', 'style');
     updateGlobalStyle();
-    document.head.append(G_style);
+    document.head.append(G_head_style);
     document.body.style.isolation = 'isolate';
     G_tool_tip = new ToolTip(tool_tip_nodes);
     G_info_bar = new InfoBar(info_bar_nodes);
@@ -173,7 +173,7 @@ function updateGlobalStyle() {
     const icons_size = `--as-icon-size: ${G_options.iconSize}px;`;
     const screen_display = `--as-screen-display: ${G_options.addScreen ? 'flex' : 'none'};`;
     const screen_opacity = `--as-screen-opacity: ${G_options.screenOpacity}%;`;
-    G_style.textContent = `:root {${icons_size} ${screen_display} ${screen_opacity}}`;
+    G_head_style.textContent = `:root {${icons_size} ${screen_display} ${screen_opacity}}`;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function createFlatIconVars(size, icons) {
@@ -218,7 +218,7 @@ function createIconsStyle() {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function pathComponents(url) {
-    return (url ? new URL(url) : window.location).pathname.split('/').slice(1);
+    return new URL(url).pathname.split('/').slice(1);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function wrapElement(element) {
@@ -267,7 +267,7 @@ async function fetchOk(info, init) {
     if (!response.ok) {
         throw new Error(`Received ${response.status}: ${response.url}`);
     }
-    return new OkResponse(response.url, await response.blob());
+    return new OkResponse(response.url, response.headers, await response.blob());
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function fetchWorkerOk(info, init) {
