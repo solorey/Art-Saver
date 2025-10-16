@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Art Saver",
-    "version": "2.3.3",
+    "version": "2.4.0",
     "description": "Easily download and track downloads in supported art gallery websites.",
     "browser_specific_settings": {
         "gecko": {
