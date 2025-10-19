@@ -139,7 +139,7 @@ function checkBlueskyThumbnail(element) {
     // single image and video
     element.querySelector(':scope div[style^="width: 100%;"]') ??
         // media grid
-        element.querySelector('div[style*="margin-top: 8px;"] > div:not([style]) > div[style*="gap: 4px;"]') ??
+        element.querySelector(':scope div[style*="margin-top: 8px;"] > div:not([style]) > div[style*="gap: 4px;"]') ??
         // gif
         element.querySelector(':scope div:not([style]) > div[style*="margin-top: 8px;"] > div[style*="width: 100%;"]');
     if (!media_box) {

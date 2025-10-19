@@ -260,7 +260,7 @@ var startDownloading = async function (submission, progress) {
         }
     }
     const file_data = await getDeviantartFileData(obj, meta, options, progress);
-    const file_datas = [file_data, ...(await getDeviantartAdditionalFileDatas(obj))];
+    const file_datas = [file_data, ...(await getDeviantartAdditionalFileDatas(obj, options.larger))];
     const downloads = createDeviantartDownloads(meta, file_datas, options);
     if (options.moveFile && stash_downloads.length > 0) {
         const stash_folder = /.*\//.exec(stash_downloads[0].path)?.[0] ?? '';
@@ -320,6 +320,9 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
     else {
         // the user is uncool; downloading is hard and often full resolution is not available
         url = buildMediaUrl(obj.deviation.media);
+        if (options.larger) {
+            url = upgradeImageUrl(url);
+        }
     }
     const info = {
         download: url,
@@ -330,7 +333,7 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
         return { info, meta };
     }
     // https://github.com/r888888888/danbooru/issues/4069
-    if (options.larger && /\/v1\/fill\//.test(url) && Number(submission_meta.submissionId) <= 790677560) {
+    if (options.larger && /\/v1\/(?:fill|fit)\//.test(url) && Number(submission_meta.submissionId) <= 790677560) {
         progress.message('Comparing images');
         info.download = await compareUrls(url);
     }
@@ -345,7 +348,7 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
     return { info, meta };
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getDeviantartAdditionalFileDatas(obj) {
+async function getDeviantartAdditionalFileDatas(obj, upgrade_url) {
     const file_datas = [];
     const additional_media = obj.deviation?.extended?.additionalMedia;
     if (additional_media) {
@@ -360,10 +363,14 @@ async function getDeviantartAdditionalFileDatas(obj) {
                 fileName: file_regex_result[1],
                 ext: file_regex_result[2],
             };
+            let url = buildMediaUrl(item.media);
+            if (upgrade_url) {
+                url = upgradeImageUrl(url);
+            }
             const test_urls = [
                 item.media.baseUri,
                 ...item.media.token.map((token) => `${item.media.baseUri}?token=${token}`),
-                buildMediaUrl(item.media),
+                url,
             ];
             for (const url of test_urls) {
                 if (await fetch_worker.testOk(url)) {
@@ -405,12 +412,17 @@ function buildMediaUrl(media_obj) {
     if (tokens) {
         media_url = `${media_url}?token=${tokens[0]}`;
     }
-    // make sure quailty is 100
-    // replacing .jpg with .png can lead to better quailty // often now this returns broken images
-    if (/\/v1\/fill\//.test(media_url)) {
-        media_url = media_url.replace(/q_\d+/, 'q_100'); //.replace('.jpg?', '.png?');
-    }
     return media_url;
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function upgradeImageUrl(url) {
+    // make sure quailty is 100
+    // replacing .jpg with .png can lead to better quailty
+    // UPDATE: currently upgrading urls often returns broken images
+    if (/\/v1\/(?:fill|fit)\//.test(url)) {
+        url = url.replace(/q_\d+/, 'q_100'); //.replace('.jpg?', '.png?');
+    }
+    return url;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function createDeviantartDownloads(submission_meta, file_datas, options) {
@@ -692,8 +704,8 @@ async function getLiterature(type, obj, meta, options, progress) {
             }
         }
         // make sure images in the story are all full quality
-        story = await upgradeContentImages(story, options.embedImages);
-        description = await upgradeContentImages(description, options.embedImages);
+        story = await upgradeContentImages(story, options.embedImages, options.larger);
+        description = await upgradeContentImages(description, options.embedImages, options.larger);
         template = options.literatureHTML;
         story_content = story.outerHTML;
         description_content = description.outerHTML;
@@ -851,12 +863,12 @@ function elementClean(element) {
     return element;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function upgradeContentImages(content, embed) {
+async function upgradeContentImages(content, embed, upgrade_url) {
     for (const img of content.querySelectorAll('img')) {
         let url = img.src;
         const reg = /.+\w{12}\.\w+/.exec(url);
-        if (/token=/.test(url)) {
-            url = url.replace(/q_\d+/, 'q_100'); //.replace('.jpg?', '.png?');
+        if (upgrade_url && /token=/.test(url)) {
+            url = upgradeImageUrl(url);
         }
         else if (reg) {
             url = reg[0];
