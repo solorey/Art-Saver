@@ -303,39 +303,49 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
     };
     let url;
     let size;
+    let info;
     const type = obj.deviation.type;
     if (obj.deviation.isDownloadable) {
         // the user is cool; downloading full resolution is easy
         url = obj.deviation.extended.download.url;
         size = obj.deviation.extended.download.filesize;
+        info = {
+            download: url,
+            size,
+        };
     }
     else if (type === 'literature') {
         meta.ext = options.literature;
         const blob = await getLiterature(options.literature, obj, { ...submission_meta, ...meta }, options, progress);
-        const info = {
+        info = {
             download: blob,
         };
         return { info, meta };
     }
     else {
         // the user is uncool; downloading is hard and often full resolution is not available
-        url = buildMediaUrl(obj.deviation.media);
-        if (options.larger) {
-            url = upgradeImageUrl(url);
+        const fetch_worker = new FetchWorker();
+        const download = await getMediaUrl(obj.deviation.media, obj.deviation.extended.originalFile.width, obj.deviation.extended.originalFile.height, options.larger, fetch_worker);
+        fetch_worker.terminate();
+        if (typeof download == 'string') {
+            url = download;
+            // https://github.com/r888888888/danbooru/issues/4069
+            if (options.larger && /\/v1\//.test(url) && Number(submission_meta.submissionId) <= 790677560) {
+                url = await compareUrls(url);
+            }
+            info = {
+                download: url,
+            };
+        }
+        else {
+            meta.ext = 'png';
+            info = { download };
+            return { info, meta };
         }
     }
-    const info = {
-        download: url,
-        size,
-    };
     if (type === 'pdf') {
         meta.ext = 'pdf';
         return { info, meta };
-    }
-    // https://github.com/r888888888/danbooru/issues/4069
-    if (options.larger && /\/v1\/(?:fill|fit)\//.test(url) && Number(submission_meta.submissionId) <= 790677560) {
-        progress.message('Comparing images');
-        info.download = await compareUrls(url);
     }
     // example download urls
     // https://www.deviantart.com/download/123456789/d21i3v9-3885adbb-f9f1-4fbe-8d2d-98c4578ba244.ext?token=...&ts=1234567890
@@ -348,7 +358,7 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
     return { info, meta };
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getDeviantartAdditionalFileDatas(obj, upgrade_url) {
+async function getDeviantartAdditionalFileDatas(obj, get_larger) {
     const file_datas = [];
     const additional_media = obj.deviation?.extended?.additionalMedia;
     if (additional_media) {
@@ -363,29 +373,85 @@ async function getDeviantartAdditionalFileDatas(obj, upgrade_url) {
                 fileName: file_regex_result[1],
                 ext: file_regex_result[2],
             };
-            let url = buildMediaUrl(item.media);
-            if (upgrade_url) {
-                url = upgradeImageUrl(url);
+            const s = item.media.types.find((t) => t.t === '125S').ss[0];
+            const scl = Number(/scl_(\d+(\.\d+)?)/.exec(s.c)?.[1]);
+            const r = item.width / item.height;
+            const min_size = s.w / scl;
+            let full_width;
+            let full_height;
+            if (r < 1) {
+                full_width = min_size;
+                full_height = min_size / r;
             }
-            const test_urls = [
-                item.media.baseUri,
-                ...item.media.token.map((token) => `${item.media.baseUri}?token=${token}`),
-                url,
-            ];
-            for (const url of test_urls) {
-                if (await fetch_worker.testOk(url)) {
-                    const info = {
-                        download: url,
-                        size: item.fileSize,
-                    };
-                    file_datas.push({ info, meta });
-                    break;
-                }
+            else {
+                full_height = min_size;
+                full_width = min_size * r;
             }
+            full_width = Math.round(full_width);
+            full_height = Math.round(full_height);
+            const download = await getMediaUrl(item.media, full_width, full_height, get_larger, fetch_worker);
+            if (!(typeof download === 'string')) {
+                meta.ext = 'png';
+            }
+            const info = {
+                download,
+            };
+            file_datas.push({ info, meta });
         }
         fetch_worker.terminate();
     }
     return file_datas;
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function buildLargerImage(url, full_width, full_height) {
+    const params = new URL(url).searchParams;
+    const tile_width = /w_(\d+)/.exec(url)?.[1];
+    const tile_height = /h_(\d+)/.exec(url)?.[1];
+    const base_url = /.+?\/v1\//.exec(url)?.[0];
+    if (!tile_width || !tile_height || !base_url) {
+        throw new Error('URL does not match expected preview URL');
+    }
+    const tile_worker = new Worker(browser.runtime.getURL('/workers/tile_worker.js'));
+    const result = new Promise((resolve, reject) => {
+        tile_worker.onmessage = (message) => {
+            switch (message.data.message) {
+                case 'result':
+                    resolve(message.data.result);
+                    break;
+                case 'error':
+                    reject(message.data.error);
+                    break;
+            }
+        };
+    });
+    tile_worker.postMessage({
+        width: full_width,
+        height: full_height,
+        tile_width: parseInt(tile_width, 10),
+        tile_height: parseInt(tile_height, 10),
+        url: base_url,
+        token: params.get('token') ?? '',
+    });
+    const blob = await result;
+    tile_worker.terminate();
+    return blob;
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function getMediaUrl(media_obj, width, height, get_larger, fetch_worker) {
+    const url = buildMediaUrl(media_obj);
+    const test_urls = [
+        media_obj.baseUri,
+        ...media_obj.token.map((token) => `${media_obj.baseUri}?token=${token}`),
+    ];
+    for (const url of test_urls) {
+        if (await fetch_worker.testOk(url)) {
+            return url;
+        }
+    }
+    if (get_larger) {
+        return await buildLargerImage(url, width, height);
+    }
+    return url;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function buildMediaUrl(media_obj) {
