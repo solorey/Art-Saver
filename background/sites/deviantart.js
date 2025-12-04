@@ -8,7 +8,7 @@ const deviantart_info = {
     links: {
         main: 'https://www.deviantart.com',
         user: (u) => `https://www.deviantart.com/${u}`,
-        gallery: (u) => `https://www.deviantart.com/${u}/gallery/all`,
+        gallery: (u) => `https://www.deviantart.com/${u}/gallery/all?order=newest`,
         favorites: (u) => `https://www.deviantart.com/${u}/favourites/all`,
         submission: (s) => `https://www.deviantart.com/deviation/${s}`,
     },

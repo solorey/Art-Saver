@@ -137,7 +137,7 @@ function checkBlueskyPage() {
 function checkBlueskyThumbnail(element) {
     const media_box = 
     // single image and video
-    element.querySelector(':scope div[style^="width: 100%;"]') ??
+    element.querySelector(':scope :is(div, button)[style^="width: 100%;"]') ??
         // media grid
         element.querySelector(':scope div[style*="margin-top: 8px;"] > div:not([style]) > div[style*="gap: 4px;"]') ??
         // gif

@@ -511,8 +511,8 @@ class ProgressController {
         this.width(0);
         this.message(message);
     }
-    onOf(message, index, total) {
-        const multiple = total > 1 ? ` ${index}/${total}` : '';
+    onOf(message, item, total) {
+        const multiple = total > 1 ? ` ${item}/${total}` : '';
         this.message(`${message}${multiple}`);
     }
     blobMessage(index, total, bytes, loaded, blob_total) {
