@@ -315,31 +315,23 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
         };
     }
     else if (type === 'literature') {
+        const download = await getLiterature(options.literature, obj, { ...submission_meta, ...meta }, options, progress);
+        info = { download };
         meta.ext = options.literature;
-        const blob = await getLiterature(options.literature, obj, { ...submission_meta, ...meta }, options, progress);
-        info = {
-            download: blob,
-        };
         return { info, meta };
     }
     else {
         // the user is uncool; downloading is hard and often full resolution is not available
         const fetch_worker = new FetchWorker();
-        const download = await getMediaUrl(obj.deviation.media, obj.deviation.extended.originalFile.width, obj.deviation.extended.originalFile.height, options.larger, fetch_worker);
+        const watermarked = obj.deviation.extended?.hasWatermark ?? false;
+        const download = await getMediaUrl(obj.deviation.media, obj.deviation.extended.originalFile.width, obj.deviation.extended.originalFile.height, options.larger, fetch_worker, watermarked);
         fetch_worker.terminate();
+        info = { download };
         if (typeof download == 'string') {
             url = download;
-            // https://github.com/r888888888/danbooru/issues/4069
-            if (options.larger && /\/v1\//.test(url) && Number(submission_meta.submissionId) <= 790677560) {
-                url = await compareUrls(url);
-            }
-            info = {
-                download: url,
-            };
         }
         else {
             meta.ext = 'png';
-            info = { download };
             return { info, meta };
         }
     }
@@ -362,6 +354,9 @@ async function getDeviantartAdditionalFileDatas(obj, get_larger) {
     const file_datas = [];
     const additional_media = obj.deviation?.extended?.additionalMedia;
     if (additional_media) {
+        const orig_w = obj.deviation.extended.originalFile.width;
+        const orig_h = obj.deviation.extended.originalFile.height;
+        const watermarked = obj.deviation.extended?.hasWatermark ?? false;
         const fetch_worker = new FetchWorker();
         for (const item of additional_media) {
             const file_name_ext = item.filename;
@@ -374,22 +369,25 @@ async function getDeviantartAdditionalFileDatas(obj, get_larger) {
                 ext: file_regex_result[2],
             };
             const s = item.media.types.find((t) => t.t === '125S').ss[0];
-            const scl = Number(/scl_(\d+(\.\d+)?)/.exec(s.c)?.[1]);
-            const r = item.width / item.height;
-            const min_size = s.w / scl;
+            const scale = Number(/scl_(\d+(\.\d+)?)/.exec(s.c)?.[1]);
+            const ratio = item.width / item.height;
+            const min_size = Math.round(s.w / scale);
             let full_width;
             let full_height;
-            if (r < 1) {
+            if (ratio < 1) {
                 full_width = min_size;
-                full_height = min_size / r;
+                full_height = Math.round(min_size / ratio);
             }
             else {
                 full_height = min_size;
-                full_width = min_size * r;
+                full_width = Math.round(min_size * ratio);
             }
-            full_width = Math.round(full_width);
-            full_height = Math.round(full_height);
-            const download = await getMediaUrl(item.media, full_width, full_height, get_larger, fetch_worker);
+            // align assuming same size as main file
+            if (Math.abs(orig_w - full_width) < 2 && Math.abs(orig_h - full_height) < 2) {
+                full_width = orig_w;
+                full_height = orig_h;
+            }
+            const download = await getMediaUrl(item.media, full_width, full_height, get_larger, fetch_worker, watermarked);
             if (!(typeof download === 'string')) {
                 meta.ext = 'png';
             }
@@ -403,7 +401,7 @@ async function getDeviantartAdditionalFileDatas(obj, get_larger) {
     return file_datas;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function buildLargerImage(url, full_width, full_height) {
+async function buildLargerImage(url, full_width, full_height, watermarked) {
     const params = new URL(url).searchParams;
     const tile_width = /w_(\d+)/.exec(url)?.[1];
     const tile_height = /h_(\d+)/.exec(url)?.[1];
@@ -431,17 +429,22 @@ async function buildLargerImage(url, full_width, full_height) {
         tile_height: parseInt(tile_height, 10),
         url: base_url,
         token: params.get('token') ?? '',
+        watermarked,
     });
     const blob = await result;
     tile_worker.terminate();
     return blob;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getMediaUrl(media_obj, width, height, get_larger, fetch_worker) {
+async function getMediaUrl(media_obj, width, height, get_larger, fetch_worker, watermarked) {
     const url = buildMediaUrl(media_obj);
+    // is video url
+    if (/\/v\//.test(url)) {
+        return url;
+    }
     const test_urls = [
         media_obj.baseUri,
-        ...media_obj.token.map((token) => `${media_obj.baseUri}?token=${token}`),
+        ...(media_obj.token ?? []).map((token) => `${media_obj.baseUri}?token=${token}`),
     ];
     for (const url of test_urls) {
         if (await fetch_worker.testOk(url)) {
@@ -449,7 +452,7 @@ async function getMediaUrl(media_obj, width, height, get_larger, fetch_worker) {
         }
     }
     if (get_larger) {
-        return await buildLargerImage(url, width, height);
+        return await buildLargerImage(url, width, height, watermarked);
     }
     return url;
 }
@@ -479,16 +482,6 @@ function buildMediaUrl(media_obj) {
         media_url = `${media_url}?token=${tokens[0]}`;
     }
     return media_url;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function upgradeImageUrl(url) {
-    // make sure quailty is 100
-    // replacing .jpg with .png can lead to better quailty
-    // UPDATE: currently upgrading urls often returns broken images
-    if (/\/v1\/(?:fill|fit)\//.test(url)) {
-        url = url.replace(/q_\d+/, 'q_100'); //.replace('.jpg?', '.png?');
-    }
-    return url;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function createDeviantartDownloads(submission_meta, file_datas, options) {
@@ -685,53 +678,6 @@ async function getStashIds(obj, init, csrf_token, progress) {
 //---------------------------------------------------------------------------------------------------------------------
 // download helper functions
 //---------------------------------------------------------------------------------------------------------------------
-async function compareUrls(url) {
-    // old larger url link; no longer works
-    // `https://${u[2]}/intermediary/f/${u[4]}/${u[5]}/v1/fill/w_5100,h_5100,q_100,bl/${u[9].split('?token=')[0]}`
-    // possible new larger link
-    const u = url.split('/');
-    const new_url = `https://${u[2]}/intermediary/f/${u[4]}/${u[5]}`;
-    const new_image = await getImageInfo(new_url);
-    if (new_image.resolution === 0) {
-        return url;
-    }
-    const original_image = await getImageInfo(url);
-    if (original_image.resolution < new_image.resolution) {
-        return new_url;
-    }
-    return url;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getImageInfo(src) {
-    const result = await Promise.all([imgSize(src), imgDim(src)]);
-    return {
-        url: src,
-        file_size: result[0],
-        resolution: result[1],
-    };
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function imgSize(src) {
-    try {
-        const response = await fetchWorkerOk(src, { method: 'HEAD' });
-        return parseInt(response.headers.get('content-length') ?? '0', 10);
-    }
-    catch (e) {
-        return 0;
-    }
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function imgDim(src) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.addEventListener('load', function () {
-            resolve(this.width * this.height);
-        });
-        img.addEventListener('error', () => resolve(0));
-        img.src = src;
-    });
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function deviantartFileName(title, user_id, submission_id) {
     const id36 = parseInt(submission_id, 10).toString(36);
     const title_lower = title.replace(/[\s\W]/g, '_').toLowerCase();
@@ -770,8 +716,8 @@ async function getLiterature(type, obj, meta, options, progress) {
             }
         }
         // make sure images in the story are all full quality
-        story = await upgradeContentImages(story, options.embedImages, options.larger);
-        description = await upgradeContentImages(description, options.embedImages, options.larger);
+        story = await upgradeContentImages(story, options.embedImages);
+        description = await upgradeContentImages(description, options.embedImages);
         template = options.literatureHTML;
         story_content = story.outerHTML;
         description_content = description.outerHTML;
@@ -929,14 +875,11 @@ function elementClean(element) {
     return element;
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function upgradeContentImages(content, embed, upgrade_url) {
+async function upgradeContentImages(content, embed) {
     for (const img of content.querySelectorAll('img')) {
         let url = img.src;
         const reg = /.+\w{12}\.\w+/.exec(url);
-        if (upgrade_url && /token=/.test(url)) {
-            url = upgradeImageUrl(url);
-        }
-        else if (reg) {
+        if (reg) {
             url = reg[0];
         }
         // convert images to data urls
