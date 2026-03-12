@@ -26,7 +26,7 @@ View the [Supported Sites][sites].
 
 ## FAQ
 ### How do I change the root download folder?
-For automatic downloading, the root download folder limited to the browsers default downloads folder. This is set in `Settings > General > Files and Applications > save files to`.
+For automatic downloading, the root download folder is limited to the browsers default downloads folder. This is set in `Settings > General > Files and Applications > save files to`.
 
 ## Download
 
