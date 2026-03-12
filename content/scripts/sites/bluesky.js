@@ -27,7 +27,7 @@ var getPageInfo = async function () {
             user = obj.handle;
         }
     }
-    if (has_user && typeof user === 'undefined') {
+    if (has_user && !user) {
         throw new Error(`User not found for page '${page}'`);
     }
     const info = { site: bluesky_info.site, url, page, user };
@@ -191,7 +191,7 @@ function checkBlueskyThumbnail(element) {
     const info = {
         site: bluesky_info.site,
         user: user.toLowerCase(),
-        submission: `${regex_result[1]}+${did}`,
+        submission: `${regex_result[1]};${did}`,
     };
     return createButton(info, media_box);
 }
@@ -200,7 +200,7 @@ function checkBlueskyThumbnail(element) {
 //---------------------------------------------------------------------------------------------------------------------
 var startDownloading = async function (submission, progress) {
     const options = await getOptionsStorage(bluesky_info.site);
-    const split = `${submission}`.split('+');
+    const split = `${submission}`.split(';');
     const params = new URLSearchParams({
         uri: `at://${split[1]}/app.bsky.feed.post/${split[0]}`,
         depth: '0',
@@ -220,7 +220,7 @@ var startDownloading = async function (submission, progress) {
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getBlueskySubmissionData(submission, obj) {
-    const split = `${submission}`.split('+', 2);
+    const split = `${submission}`.split(';', 2);
     const user_name = obj.thread.post.author.displayName;
     const user_id = obj.thread.post.author.handle;
     const date_time = timeParse(obj.thread.post.record.createdAt);

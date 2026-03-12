@@ -24,7 +24,7 @@
         <script defer src="popup.js"></script>
     </head>
 
-    <body class="themed color-scheme-base" data-theme="preferred">
+    <body class="themed colors-base" data-theme="preferred">
         <template id="user-row-template">
             <div class="list-row" data-row>
                 <div class="row-label" data-label></div>
@@ -105,13 +105,13 @@
                     <img src="/icons/loading.svg" class="loading-icon" width="16" height="16" />
                     Getting user information...
                 </div>
-                <div id="user-error" class="content-error color-scheme-warning hide">
+                <div id="user-error" class="content-error colors-warning hide">
                     Unable to get user information.
                     <hr class="line-break" />
                     <span id="user-error-message"></span>
                 </div>
-                <div id="user-info" class="content-info border-grid hide">
-                    <div class="user-profile border-grid">
+                <div id="user-info" class="content-info hide">
+                    <div class="user-profile">
                         <div id="profile-cover" class="profile-cover">
                             <img id="profile-image" class="profile-image" alt="Profile picture" />
                             <h2 id="user-name" class="user-name"></h2>
@@ -148,9 +148,9 @@
                                 ></button>
                             </div>
                         </div>
-                        <div id="user-stats">
+                        <div id="user-stats" class="user-stats">
                             <div class="stat-header">User stats</div>
-                            <div id="user-stats-list" class="user-stats-list border-grid"></div>
+                            <div id="user-stats-list" class="user-stats-list"></div>
                         </div>
                     </div>
                     <details id="user-saved" class="saved-details hide">
@@ -158,38 +158,32 @@
                             Saved
                             <span id="user-saved-stat" class="stat-value">-</span>
                         </summary>
-                        <div id="saved-list" class="info-box border-grid">
-                            <div class="search-box">
-                                <div class="search-controls border-grid">
-                                    <input class="search-input" type="text" placeholder="Search saved" data-search />
-                                    <button class="search-clear" data-flat-icon="12-x" data-clear></button>
-                                    <label
-                                        class="search-flag clickable"
-                                        data-flat-icon="16-match_case"
-                                        title="Match case"
-                                    >
-                                        <input type="checkbox" data-match-case />
-                                    </label>
-                                    <label
-                                        class="search-flag clickable"
-                                        data-flat-icon="16-match_whole"
-                                        title="Match whole word"
-                                    >
-                                        <input type="checkbox" data-match-whole />
-                                    </label>
-                                    <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
-                                        <input type="checkbox" data-use-regex />
-                                    </label>
-                                    <button
-                                        class="search-sort"
-                                        data-flat-icon="16-ascend"
-                                        title="Sorted by ascending"
-                                        data-sort="ascend"
-                                    ></button>
-                                </div>
+                        <search id="saved-list" class="search-box">
+                            <div class="search-controls" data-controls>
+                                <input class="search-input" type="search" placeholder="Search saved" data-search />
+                                <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                                <label class="search-flag clickable" data-flat-icon="16-match_case" title="Match case">
+                                    <input type="checkbox" data-match-case />
+                                </label>
+                                <label
+                                    class="search-flag clickable"
+                                    data-flat-icon="16-match_whole"
+                                    title="Match whole word"
+                                >
+                                    <input type="checkbox" data-match-whole />
+                                </label>
+                                <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                                    <input type="checkbox" data-use-regex />
+                                </label>
+                                <button
+                                    class="search-sort"
+                                    data-flat-icon="16-ascend"
+                                    title="Sorted by ascending"
+                                    data-sort="ascend"
+                                ></button>
                             </div>
-                            <div class="list-box" data-list></div>
-                        </div>
+                            <div class="search-results" data-list></div>
+                        </search>
                     </details>
                 </div>
             </section>
@@ -199,107 +193,94 @@
                     <img src="/icons/loading.svg" class="loading-icon" width="16" height="16" />
                     Getting site information...
                 </div>
-                <div id="site-error" class="content-error color-scheme-warning hide">
+                <div id="site-error" class="content-error colors-warning hide">
                     Unable to get site information.
                     <hr class="line-break" />
                     <span id="site-error-message"></span>
                 </div>
-                <div id="site-info" class="content-info border-grid hide">
+                <div id="site-info" class="content-info hide">
                     <div class="stat-header">On current page</div>
                     <div id="page-stats" class="page-stats">
                         <button id="refresh" class="stat-colored-button green-stat">
-                            <span class="label-1">Saved</span>
-                            <span class="label-2">Refresh</span>
+                            <span>Saved</span>
+                            <span>Refresh</span>
                             <span id="saved-stat" class="stat-value">-</span>
                         </button>
                         <button id="download-all" class="stat-colored-button blue-stat">
-                            <span class="label-1">Downloads</span>
-                            <span class="label-2">Download all</span>
+                            <span>Downloads</span>
+                            <span>Download all</span>
                             <span id="downloads-stat" class="stat-value">-</span>
                         </button>
                     </div>
-                    <div id="stats-site" class="stat-header">-</div>
+                    <div id="stats-site" class="stat-header stats-site">-</div>
                     <details id="users-details" class="saved-details">
-                        <summary id="total-users" class="saved-summary clickable" data-toggle="closed">
+                        <summary id="total-users" class="saved-summary clickable">
                             Users saved
                             <span id="users-stat-value" class="stat-value">-</span>
                         </summary>
-                        <div id="user-list" class="info-box border-grid" data-users-info>
-                            <div class="search-box">
-                                <div class="search-controls border-grid">
-                                    <input class="search-input" type="text" placeholder="Search users" data-search />
-                                    <button class="search-clear" data-flat-icon="12-x" data-clear></button>
-                                    <label
-                                        class="search-flag clickable"
-                                        data-flat-icon="16-match_case"
-                                        title="Match case"
-                                    >
-                                        <input type="checkbox" data-match-case />
-                                    </label>
-                                    <label
-                                        class="search-flag clickable"
-                                        data-flat-icon="16-match_whole"
-                                        title="Match whole word"
-                                    >
-                                        <input type="checkbox" data-match-whole />
-                                    </label>
-                                    <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
-                                        <input type="checkbox" data-use-regex />
-                                    </label>
-                                    <button
-                                        class="search-sort"
-                                        data-flat-icon="16-descend"
-                                        title="Sorted by descending"
-                                        data-sort="descend"
-                                    ></button>
-                                </div>
+                        <search id="user-list" class="search-box" data-users-info>
+                            <div class="search-controls" data-controls>
+                                <input class="search-input" type="search" placeholder="Search users" data-search />
+                                <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                                <label class="search-flag clickable" data-flat-icon="16-match_case" title="Match case">
+                                    <input type="checkbox" data-match-case />
+                                </label>
+                                <label
+                                    class="search-flag clickable"
+                                    data-flat-icon="16-match_whole"
+                                    title="Match whole word"
+                                >
+                                    <input type="checkbox" data-match-whole />
+                                </label>
+                                <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                                    <input type="checkbox" data-use-regex />
+                                </label>
+                                <button
+                                    class="search-sort"
+                                    data-flat-icon="16-descend"
+                                    title="Sorted by descending"
+                                    data-sort="descend"
+                                ></button>
                             </div>
-                            <div class="list-box" data-list></div>
-                        </div>
+                            <div class="search-results" data-list></div>
+                        </search>
                     </details>
-
                     <details id="submissions-details" class="saved-details">
                         <summary id="total-submissions" class="saved-summary clickable">
                             Submissions saved
                             <span id="submissions-stat-value" class="stat-value">-</span>
                         </summary>
-                        <div id="submission-list" class="info-box border-grid" data-submissions-info>
-                            <div class="search-box">
-                                <div class="search-controls border-grid">
-                                    <input
-                                        class="search-input"
-                                        type="text"
-                                        placeholder="Search submissions"
-                                        data-search
-                                    />
-                                    <button class="search-clear" data-flat-icon="12-x" data-clear></button>
-                                    <label
-                                        class="search-flag clickable"
-                                        data-flat-icon="16-match_case"
-                                        title="Match case"
-                                    >
-                                        <input type="checkbox" data-match-case />
-                                    </label>
-                                    <label
-                                        class="search-flag clickable"
-                                        data-flat-icon="16-match_whole"
-                                        title="Match whole word"
-                                    >
-                                        <input type="checkbox" data-match-whole />
-                                    </label>
-                                    <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
-                                        <input type="checkbox" data-use-regex />
-                                    </label>
-                                    <button
-                                        class="search-sort"
-                                        data-flat-icon="16-ascend"
-                                        title="Sorted by ascending"
-                                        data-sort="ascend"
-                                    ></button>
-                                </div>
+                        <search id="submission-list" class="search-box" data-submissions-info>
+                            <div class="search-controls" data-controls>
+                                <input
+                                    class="search-input"
+                                    type="search"
+                                    placeholder="Search submissions"
+                                    data-search
+                                />
+                                <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                                <label class="search-flag clickable" data-flat-icon="16-match_case" title="Match case">
+                                    <input type="checkbox" data-match-case />
+                                </label>
+                                <label
+                                    class="search-flag clickable"
+                                    data-flat-icon="16-match_whole"
+                                    title="Match whole word"
+                                >
+                                    <input type="checkbox" data-match-whole />
+                                </label>
+                                <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                                    <input type="checkbox" data-use-regex />
+                                </label>
+                                <button
+                                    class="search-sort"
+                                    data-flat-icon="16-ascend"
+                                    title="Sorted by ascending"
+                                    data-sort="ascend"
+                                ></button>
                             </div>
-                            <div class="list-box" data-list></div>
-                        </div>
+                            <div class="search-results" data-list></div>
+                        </search>
                     </details>
                 </div>
             </section>
@@ -311,7 +292,13 @@
                         <h2 class="about-title">Art Saver</h2>
                     </header>
                     <div class="about-list">
-                        <p id="version-number"></p>
+                        <p>
+                            <a
+                                id="version-number"
+                                class="about-link about-version"
+                                href="https://github.com/solorey/Art-Saver/releases"
+                            ></a>
+                        </p>
                         <p>
                             <a
                                 class="about-link"

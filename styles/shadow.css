@@ -3,23 +3,23 @@
 }
 
 [data-flat-icon^="12"]::after {
-  width: var(--hem);
+  inline-size: var(--hem);
 }
 
 [data-flat-icon^="16"]::after {
-  width: calc(var(--hem) * 1.3333333333);
+  inline-size: calc(var(--hem) * 1.3333333333);
 }
 
 .progress {
   isolation: isolate;
   position: absolute;
-  top: 0;
-  left: 0;
+  inset-block-start: 0;
+  inset-inline-start: 0;
   border-radius: calc(var(--hem) * 0.25);
   overflow: hidden;
-  width: 100%;
-  height: calc(var(--hem) * 1.3333333333);
-  background-color: var(--color-progress-1);
+  inline-size: 100%;
+  block-size: calc(var(--hem) * 1.3333333333);
+  background-color: var(--color-progress);
 }
 .progress::after {
   content: "";
@@ -43,15 +43,15 @@
   }
 }
 .progress-bar {
-  width: 0;
-  height: 100%;
+  inline-size: 0;
+  block-size: 100%;
   border-radius: calc(var(--hem) * 0.25);
   background-color: var(--color-blue-3);
 }
 
 .progress-label {
-  color: var(--color-progress-text);
-  text-align: right;
+  --color-text: var(--color-progress-text);
+  text-align: end;
   white-space: nowrap;
   padding-inline: calc(var(--hem) * 0.3333333333);
   position: relative;

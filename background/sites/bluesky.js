@@ -10,9 +10,9 @@ const bluesky_info = {
         user: (u) => `https://bsky.app/profile/${u}`,
         gallery: (u) => `https://bsky.app/profile/${u}`,
         favorites: (u) => `https://bsky.app/profile/${u}`,
-        // s = '<submissionId>+<userDid>'
+        // s = '<submissionId>;<userDid>'
         submission: (s) => {
-            const split = `${s}`.split('+');
+            const split = `${s}`.split(';');
             return `https://bsky.app/profile/${split[1]}/post/${split[0]}`;
         },
     },

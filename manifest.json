@@ -6,7 +6,7 @@
     "browser_specific_settings": {
         "gecko": {
             "id": "{d1af7113-37c0-495e-8396-ee18861346c7}",
-            "strict_min_version": "109.0"
+            "strict_min_version": "131.0"
         }
     },
     "options_ui": {
@@ -49,7 +49,6 @@
             "matches": [
                 "*://*.deviantart.com/*",
                 "*://*.newgrounds.com/*",
-                "*://*.twitter.com/*",
                 "*://*.x.com/*",
                 "*://*.bsky.app/*",
                 "*://*.itaku.ee/*",
@@ -73,7 +72,7 @@
             "js": ["background/sites/newgrounds.js", "content/scripts/sites/newgrounds.js"]
         },
         {
-            "matches": ["*://*.twitter.com/*", "*://*.x.com/*"],
+            "matches": ["*://*.x.com/*"],
             "js": ["background/sites/twitter.js", "content/scripts/sites/twitter.js"]
         },
         {
@@ -100,7 +99,6 @@
             "matches": [
                 "*://*.deviantart.com/*",
                 "*://*.newgrounds.com/*",
-                "*://*.twitter.com/*",
                 "*://*.x.com/*",
                 "*://*.bsky.app/*",
                 "*://*.itaku.ee/*",

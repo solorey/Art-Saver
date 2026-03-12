@@ -62,7 +62,8 @@ async function createZIP(blobs, delays, ext) {
         const d = `${delays[i]}`.padStart(delay_pad, '0');
         zip_object[`${n}_${d}ms.${ext}`] = new Uint8Array(await blobs[i].arrayBuffer());
     }
-    return new Blob([UZIP.encode(zip_object)], { type: 'application/zip' });
+    const zip_data = UZIP.encode(zip_object);
+    return new Blob([zip_data], { type: 'application/zip' });
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function createBitmaps(blobs, width, height) {
@@ -88,12 +89,17 @@ async function createWEBM(blobs, delays, width, height) {
     importScripts('/lib/whammy.js');
     const image_bitmaps = await createBitmaps(blobs, width, height);
     const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d');
+    // whammy does not support transparency
+    // TODO: use something else
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) {
         throw new Error('Unable to get offscreen canvas context');
     }
     const webm = new Whammy.Video();
+    // white is the default background color for transparent animations
+    ctx.fillStyle = 'white';
     for (let i = 0; i < image_bitmaps.length; i++) {
+        ctx.fillRect(0, 0, width, height);
         ctx.drawImage(image_bitmaps[i], 0, 0);
         const blob = await canvas.convertToBlob({ type: 'image/webp', quality: 0.95 });
         const data_url = await blobToDataUrl(blob);

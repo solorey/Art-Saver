@@ -14,30 +14,34 @@
   margin: 0;
   padding: 0;
   font: inherit;
-  color: var(--color-scheme-text);
+  color: var(--color-text);
+}
+
+:focus-visible {
+  z-index: 1;
 }
 
 button,
 .clickable {
   cursor: pointer;
-  background-color: var(--color-initial, var(--color-scheme-1));
+  background-color: var(--color-initial, var(--color-1));
 }
 button:hover,
 .clickable:hover {
-  background-color: var(--color-hover, var(--color-scheme-2));
+  background-color: var(--color-hover, var(--color-2));
 }
 button:active,
 .clickable:active {
-  background-color: var(--color-active, var(--color-scheme-3));
+  background-color: var(--color-active, var(--color-3));
 }
 
 .border-grid {
   display: grid;
   gap: 1px;
-  background-color: var(--color-scheme-3);
+  background-color: var(--color-3);
 }
 :where(.border-grid > *) {
-  background-color: var(--color-scheme-1);
+  background-color: var(--color-1);
   border: none;
 }
 

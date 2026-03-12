@@ -1,5 +1,22 @@
 "use strict";
-var G_delete_queue = new Set();
+class FunctionDebouncer {
+    delay;
+    handle;
+    callbackfn;
+    constructor(callbackfn, delay) {
+        this.callbackfn = callbackfn;
+        this.delay = delay ?? 500;
+    }
+    run() {
+        if (this.handle) {
+            clearTimeout(this.handle);
+        }
+        this.handle = setTimeout(() => {
+            this.callbackfn();
+            this.handle = undefined;
+        }, this.delay);
+    }
+}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class UndoBar {
     bar;
@@ -463,7 +480,7 @@ class OptionsForm {
                 this.form[site][key].setValue(value);
             }
         }
-        saveOptions();
+        G_save_options.run();
     }
     setDefault() {
         this.setValues({}, true);
@@ -554,10 +571,10 @@ class CommandsForm {
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class TableDetails {
+class TableSiteData {
     site;
     row;
-    saved_details;
+    details_element;
     users_stat;
     submissions_stat;
     users_list;
@@ -566,7 +583,7 @@ class TableDetails {
         this.site = site;
         const row = cloneTemplate('#stats-row-template');
         row.querySelector('[data-site-label]')?.append(SITES_INFO[site].label);
-        this.saved_details = row.querySelector('[data-saved-details]');
+        this.details_element = row.querySelector('[data-saved-details]');
         this.users_stat = row.querySelector('[data-total-users]');
         this.submissions_stat = row.querySelector('[data-total-submissions]');
         const users_info = row.querySelector('[data-users-info]');
@@ -582,7 +599,9 @@ class TableDetails {
             const target = entries.pop()?.target;
             if (target) {
                 lists.forEach((l) => {
+                    l.style.blockSize = target.style.blockSize;
                     l.style.height = target.style.height;
+                    l.style.width = target.style.width;
                 });
             }
         });
@@ -594,15 +613,19 @@ class TableDetails {
         users.sort(compare_users);
         this.users_list?.updateValues(users);
         this.users_stat?.replaceChildren(`${users.length}`);
-        const compare_submissions = typeof submissions[0] === 'string'
-            ? new Intl.Collator(undefined, { numeric: true }).compare
-            : typeof submissions[0] === 'number'
-                ? (a, b) => a - b
-                : undefined;
+        let compare_submissions = undefined;
+        switch (typeof submissions[0]) {
+            case 'string':
+                compare_submissions = new Intl.Collator(undefined, { numeric: true }).compare;
+                break;
+            case 'number':
+                compare_submissions = (a, b) => a - b;
+                break;
+        }
         submissions.sort(compare_submissions);
         this.submissions_list?.updateValues(submissions);
         this.submissions_stat?.replaceChildren(`${submissions.length}`);
-        this.saved_details?.classList.toggle('hide', submissions.length === 0);
+        this.details_element?.classList.toggle('hide', submissions.length === 0);
     }
     async getValues() {
         const values = await browser.runtime.sendMessage({
@@ -614,28 +637,136 @@ class TableDetails {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class SavedTable {
-    table_details;
+    table_data;
+    search_input;
+    clear_button;
+    case_flag;
+    whole_flag;
+    regex_flag;
+    sort_button;
     constructor() {
-        const table_details = {};
+        const table_data = {};
         const saved_table = document.querySelector('#saved-table');
         for (const site of SITES) {
-            const site_details = new TableDetails(site);
-            saved_table?.append(site_details.row);
-            table_details[site] = site_details;
+            const site_data = new TableSiteData(site);
+            saved_table?.append(site_data.row);
+            table_data[site] = site_data;
         }
-        this.table_details = table_details;
+        this.table_data = table_data;
+        const search_box = document.querySelector('#search-table');
+        const search_input = search_box?.querySelector('[data-search]');
+        search_input?.addEventListener('input', () => {
+            this.showSearchActive();
+            this.setSearch();
+        });
+        this.search_input = search_input;
+        const clear_button = search_box?.querySelector('[data-clear]');
+        clear_button?.addEventListener('click', () => {
+            if (this.search_input) {
+                this.search_input.value = '';
+            }
+            this.showSearchActive();
+            this.setSearch();
+            for (const site_data of Object.values(this.table_data)) {
+                site_data.users_list?.setVirtualList();
+                site_data.submissions_list?.setVirtualList();
+            }
+        });
+        this.clear_button = clear_button;
+        const case_flag = search_box?.querySelector('[data-match-case]');
+        case_flag?.addEventListener('input', () => {
+            if (this.hasSearch()) {
+                this.setSearch();
+            }
+        });
+        this.case_flag = case_flag;
+        const whole_flag = search_box?.querySelector('[data-match-whole]');
+        whole_flag?.addEventListener('input', () => {
+            if (this.hasSearch()) {
+                this.setSearch();
+            }
+        });
+        this.whole_flag = whole_flag;
+        const regex_flag = search_box?.querySelector('[data-use-regex]');
+        regex_flag?.addEventListener('input', () => {
+            if (this.hasSearch()) {
+                this.setSearch();
+            }
+        });
+        this.regex_flag = regex_flag;
+        const sort_button = search_box?.querySelector('[data-sort]');
+        sort_button?.addEventListener('click', () => {
+            toggleListSort(sort_button);
+            if (this.hasSearch()) {
+                this.setSearch();
+            }
+        });
+        this.sort_button = sort_button;
+        this.showSearchActive();
     }
-    getValues() {
-        for (const site of SITES) {
-            this.table_details[site].getValues();
+    hasSearch() {
+        return Boolean(this.search_input?.value);
+    }
+    showSearchActive() {
+        const has_value = this.hasSearch();
+        this.clear_button?.classList.toggle('hide', !has_value);
+        for (const site_data of Object.values(this.table_data)) {
+            for (const search_box of site_data.details_element?.querySelectorAll('[data-controls]') ?? []) {
+                search_box.classList.toggle('hide', has_value);
+            }
         }
+    }
+    setSiteSearch(site) {
+        const search = this.search_input?.value ?? '';
+        const sort = this.sort_button?.getAttribute('data-sort') ?? undefined;
+        const match_case = this.case_flag?.checked ?? false;
+        const match_whole = this.whole_flag?.checked ?? false;
+        const use_regex = this.regex_flag?.checked ?? false;
+        const site_data = this.table_data[site];
+        let max_results = 0;
+        let row_height = 0;
+        let default_height = 0;
+        for (const list of [site_data.users_list, site_data.submissions_list]) {
+            if (list) {
+                const result_values = searchValues(search, list.values, match_case, match_whole, use_regex, sort);
+                max_results = Math.max(max_results, result_values.length);
+                const vlist = list.virtual_list;
+                row_height = Math.max(vlist.row_height, row_height);
+                default_height = Math.max(vlist.default_height, default_height);
+                vlist.updateList(result_values);
+            }
+        }
+        const has_results = max_results > 0;
+        const details = site_data.details_element;
+        if (details) {
+            details.toggleAttribute('open', Boolean(search) && has_results);
+            details.classList.toggle('hide', !has_results);
+            if (has_results) {
+                for (const list_box of details.querySelectorAll('[data-list]')) {
+                    list_box.style.blockSize = `${Math.min((max_results + 1) * row_height, default_height)}px`;
+                }
+            }
+        }
+    }
+    setSearch() {
+        for (const site of SITES) {
+            this.setSiteSearch(site);
+        }
+    }
+    async getSiteValues(site) {
+        await this.table_data[site].getValues();
+    }
+    async getValues() {
+        await Promise.all(SITES.map((s) => this.getSiteValues(s)));
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const G_delete_queue = new Set();
 const G_options_form = new OptionsForm();
 const G_commands_form = new CommandsForm();
 const G_saved_table = new SavedTable();
 const G_undo_bar = new UndoBar();
+const G_save_options = new FunctionDebouncer(saveOptions);
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async function () {
     const settings_state = await getUIStorage('settings');
@@ -655,7 +786,12 @@ browser.runtime.onMessage.addListener((message) => {
 function optionsMessageActions(message) {
     switch (message.action) {
         case 'options_db_update':
-            G_saved_table.table_details[message.site].getValues();
+            const site = message.site;
+            G_saved_table.getSiteValues(site).then(() => {
+                if (G_saved_table.hasSearch()) {
+                    G_saved_table.setSiteSearch(site);
+                }
+            });
             break;
     }
 }
@@ -788,19 +924,19 @@ document.querySelector('#sites-enable-all')?.addEventListener('click', () => {
     for (const site of SITES) {
         G_options_form.form[site].enabled.setValue(true);
     }
-    saveOptions();
+    G_save_options.run();
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 document.querySelector('#sites-disable-all')?.addEventListener('click', () => {
     for (const site of SITES) {
         G_options_form.form[site].enabled.setValue(false);
     }
-    saveOptions();
+    G_save_options.run();
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const form = document.querySelector('form');
 form?.addEventListener('submit', (s) => s.preventDefault());
-form?.addEventListener('input', () => saveOptions());
+form?.addEventListener('input', () => G_save_options.run());
 //---------------------------------------------------------------------------------------------------------------------
 // form getting and setting
 //---------------------------------------------------------------------------------------------------------------------
@@ -851,10 +987,12 @@ document.querySelector('#reset-options')?.addEventListener('click', () => {
 function createOptionsUserRow(site, search) {
     const links = SITES_INFO[site].links;
     const template = cloneTemplate('#user-row-template');
-    const label = template.querySelector('[data-label]');
-    const strong = document.createElement('strong');
-    strong.append(search.value.substring(search.start, search.end));
-    label?.append(search.value.substring(0, search.start), strong, search.value.substring(search.end));
+    const match = document.createElement('span');
+    match.classList.add('row-match');
+    match.append(search.value.substring(search.start, search.end));
+    template
+        .querySelector('[data-label]')
+        ?.append(search.value.substring(0, search.start), match, search.value.substring(search.end));
     template.querySelector('[data-user-link]')?.setAttribute('href', links.user(search.value));
     template.querySelector('[data-gallery-link]')?.setAttribute('href', links.gallery(search.value));
     template.querySelector('[data-favorites-link]')?.setAttribute('href', links.favorites(search.value));
@@ -881,10 +1019,12 @@ function createOptionsUserRow(site, search) {
 function createOptionsSubmissionRow(site, search) {
     const links = SITES_INFO[site].links;
     const template = cloneTemplate('#submission-row-template');
-    const label = template.querySelector('[data-label]');
-    const strong = document.createElement('strong');
-    strong.append(search.value.substring(search.start, search.end));
-    label?.append(search.value.substring(0, search.start), strong, search.value.substring(search.end));
+    const match = document.createElement('span');
+    match.classList.add('row-match');
+    match.append(search.value.substring(search.start, search.end));
+    template
+        .querySelector('[data-label]')
+        ?.append(search.value.substring(0, search.start), match, search.value.substring(search.end));
     template.querySelector('[data-submission-link]')?.setAttribute('href', links.submission(search.value));
     const row_id = `${site}s${search.value}`;
     const delete_button = template.querySelector('[data-delete-button]');

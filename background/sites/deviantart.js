@@ -70,6 +70,11 @@ const deviantart_form = {
         default: 'Saved/{site}/{userName}/{submissionId}/{submissionId}_{title}_{page}_by_{userName}.{ext}',
         metas: Object.keys(new DeviantartMultiple()),
     },
+    freeDownload: {
+        type: 'checkbox',
+        label: 'Use free downloads',
+        default: false,
+    },
     larger: {
         type: 'checkbox',
         label: 'Try to download larger images',

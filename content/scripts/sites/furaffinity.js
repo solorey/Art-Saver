@@ -19,7 +19,7 @@ var getPageInfo = async function () {
         user = document.querySelector('[href*="/gallery/"], [href*="/scraps/"]')?.href.split('/')[4];
     }
     user = user?.toLowerCase();
-    if (has_user && typeof user === 'undefined') {
+    if (has_user && !user) {
         throw new Error(`User not found for page '${page}'`);
     }
     const info = { site: furaffinity_info.site, url, page, user };

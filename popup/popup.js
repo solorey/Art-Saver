@@ -52,7 +52,9 @@ class PopupUserTab {
         this.home_link?.setAttribute('href', links.user(user.user));
         this.gallery_link?.setAttribute('href', links.gallery(user.user));
         this.favorites_link?.setAttribute('href', links.favorites(user.user));
-        const stat_blocks = [...user.stats.entries()].map(([name, value]) => {
+        const stat_blocks = user.stats
+            .entries()
+            .map(([name, value]) => {
             const stat_block = document.createElement('div');
             stat_block.classList.add('stat-block');
             const stat_value = document.createElement('span');
@@ -60,17 +62,22 @@ class PopupUserTab {
             stat_value.textContent = value;
             stat_block.append(name, stat_value);
             return stat_block;
-        });
+        })
+            .toArray();
         this.stats?.classList.toggle('hide', stat_blocks.length === 0);
         this.stats_list?.replaceChildren(...stat_blocks);
         this.folder_path = user.folder;
     }
     setUserValues(submissions) {
-        const compare_submissions = typeof submissions[0] === 'string'
-            ? new Intl.Collator(undefined, { numeric: true }).compare
-            : typeof submissions[0] === 'number'
-                ? (a, b) => a - b
-                : undefined;
+        let compare_submissions = undefined;
+        switch (typeof submissions[0]) {
+            case 'string':
+                compare_submissions = new Intl.Collator(undefined, { numeric: true }).compare;
+                break;
+            case 'number':
+                compare_submissions = (a, b) => a - b;
+                break;
+        }
         submissions.sort(compare_submissions);
         this.saved_stat?.replaceChildren(`${submissions.length}`);
         this.search_list?.updateValues(submissions);
@@ -84,7 +91,7 @@ class PopupUserTab {
             site,
             user,
         });
-        this.setUserValues([...values.submissions]);
+        this.setUserValues(values.submissions);
     }
     showPage(page) {
         const pages = {
@@ -167,11 +174,15 @@ class PopupSiteTab {
         users.sort(compare_users);
         this.users_list?.updateValues(users);
         this.users_stat?.replaceChildren(`${users.length}`);
-        const compare_submissions = typeof submissions[0] === 'string'
-            ? new Intl.Collator(undefined, { numeric: true }).compare
-            : typeof submissions[0] === 'number'
-                ? (a, b) => a - b
-                : undefined;
+        let compare_submissions = undefined;
+        switch (typeof submissions[0]) {
+            case 'string':
+                compare_submissions = new Intl.Collator(undefined, { numeric: true }).compare;
+                break;
+            case 'number':
+                compare_submissions = (a, b) => a - b;
+                break;
+        }
         submissions.sort(compare_submissions);
         this.submissions_list?.updateValues(submissions);
         this.submissions_stat?.replaceChildren(`${submissions.length}`);
@@ -339,10 +350,12 @@ function createPopupUserRow(search) {
     }
     const links = SITES_INFO[G_popup_site].links;
     const template = cloneTemplate('#user-row-template');
-    const label = template?.querySelector('[data-label]');
-    const strong = document.createElement('strong');
-    strong.append(search.value.substring(search.start, search.end));
-    label?.append(search.value.substring(0, search.start), strong, search.value.substring(search.end));
+    const match = document.createElement('span');
+    match.classList.add('row-match');
+    match.append(search.value.substring(search.start, search.end));
+    template
+        .querySelector('[data-label]')
+        ?.append(search.value.substring(0, search.start), match, search.value.substring(search.end));
     template?.querySelector('[data-user-link]')?.setAttribute('href', links.user(search.value));
     template?.querySelector('[data-gallery-link]')?.setAttribute('href', links.gallery(search.value));
     template?.querySelector('[data-favorites-link]')?.setAttribute('href', links.favorites(search.value));
@@ -356,10 +369,12 @@ function createPopupSubmissionRow(search) {
     }
     const links = SITES_INFO[G_popup_site].links;
     const template = cloneTemplate('#submission-row-template');
-    const label = template?.querySelector('[data-label]');
-    const strong = document.createElement('strong');
-    strong.append(search.value.substring(search.start, search.end));
-    label?.append(search.value.substring(0, search.start), strong, search.value.substring(search.end));
+    const match = document.createElement('span');
+    match.classList.add('row-match');
+    match.append(search.value.substring(search.start, search.end));
+    template
+        .querySelector('[data-label]')
+        ?.append(search.value.substring(0, search.start), match, search.value.substring(search.end));
     template?.querySelector('[data-submission-link]')?.setAttribute('href', links.submission(search.value));
     return template.querySelector('[data-row]') ?? fallback;
 }

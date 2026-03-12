@@ -19,7 +19,7 @@ var getPageInfo = async function () {
         has_user = true;
         user = document.querySelector('#user-header .user-link')?.href.split('//')[1].split('.')[0];
     }
-    if (has_user && typeof user === 'undefined') {
+    if (has_user && !user) {
         throw new Error(`User not found for page '${page}'`);
     }
     const info = { site: newgrounds_info.site, url, page, user };

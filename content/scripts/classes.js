@@ -47,10 +47,10 @@ class ToolTip {
     link;
     submission;
     error;
-    constructor(nodes) {
+    constructor(root, nodes) {
         const { container, shadow } = createCustomElement('tool-tip');
         shadow.append(G_ui_styles.common.cloneNode(true), G_ui_styles.tool_tip.cloneNode(true), ...nodes);
-        const tip = shadow.querySelector('.tool-tip');
+        const tip = shadow.querySelector('#tool-tip');
         tip?.setAttribute('data-theme', G_options.theme);
         tip?.style.setProperty('top', '0');
         tip?.style.setProperty('left', '0');
@@ -62,6 +62,7 @@ class ToolTip {
         this.link = shadow.querySelector('#user-link');
         this.submission = shadow.querySelector('#submission');
         this.error = shadow.querySelector('#error-tip');
+        root.append(container);
     }
     show() {
         this.tip?.classList.add('show');
@@ -72,10 +73,10 @@ class ToolTip {
     move(x) {
         const rect = x.getBoundingClientRect();
         const top = rect.top + window.scrollY - (this.tip?.offsetHeight ?? 0) - 1;
-        this.tip?.style.setProperty('top', `${top}px`);
+        this.tip?.style.setProperty('top', `${Math.round(top)}px`);
         // don't let the tooltip cross the document width
         const left = Math.min(rect.left + window.scrollX, document.body.offsetWidth - (this.tip?.offsetWidth ?? 0));
-        this.tip?.style.setProperty('left', `${left}px`);
+        this.tip?.style.setProperty('left', `${Math.round(left)}px`);
         this.show();
     }
     showTip(type) {
@@ -279,7 +280,7 @@ class CheckButton {
         this.button.setAttribute('data-color', this.info.user === this.saved_user ? 'green' : 'yellow');
     }
     update(state) {
-        if (typeof state.saved_user !== 'undefined') {
+        if (state.saved_user != null) {
             this.saved_user = state.saved_user;
             this.setColor();
         }
@@ -398,13 +399,13 @@ class DownloadingButton {
         this.button.classList.add('invisible');
     };
     update(state) {
-        if (typeof state.message !== 'undefined') {
+        if (state.message != null) {
             this.label.textContent = state.message;
         }
-        if (typeof state.width !== 'undefined') {
+        if (state.width != null) {
             this.bar.style.width = `${state.width}%`;
         }
-        if (typeof state.is_stoppable !== 'undefined') {
+        if (state.is_stoppable != null) {
             this.button.classList.toggle('hide', !state.is_stoppable);
         }
     }
@@ -452,7 +453,7 @@ class ErrorButton {
         this.container = container;
     }
     update(state) {
-        if (typeof state.message !== 'undefined') {
+        if (state.message != null) {
             this.message = state.message;
         }
     }
@@ -720,7 +721,7 @@ class InfoBar {
     container;
     stay_down = false;
     e;
-    constructor(nodes) {
+    constructor(root, nodes) {
         const { container, shadow } = createCustomElement('info-bar');
         if (!G_options.infoBar) {
             container.style.display = 'none';
@@ -758,29 +759,20 @@ class InfoBar {
             const checked = this.e.folder_switch?.checked;
             this.e.list_files?.classList.toggle('show-folders', checked);
         });
+        root.append(container);
         this.container = container;
-        // this.test()
     }
     show() {
-        this.e.info_bar?.classList.remove('collapsed');
-        this.e.show_area?.classList.add('hide');
+        this.e.info_bar?.classList.add('show');
     }
     hide() {
-        this.e.info_bar?.addEventListener('transitionend', () => {
-            this.e.show_area?.classList.remove('hide');
-        }, { once: true });
-        this.e.info_bar?.classList.add('collapsed');
+        this.e.info_bar?.classList.remove('show');
     }
     toggle() {
-        if (this.e.info_bar?.classList.contains('collapsed')) {
-            this.show();
-        }
-        else {
-            this.hide();
-        }
+        this.e.info_bar?.classList.toggle('show');
     }
     addSubmission(submission, files, user, title) {
-        const row = this.e.submission_row_template?.content.cloneNode(true);
+        const row = tryCloneTemplate(this.e.submission_row_template);
         if (row) {
             let label = `${submission}`;
             if (files.length > 1) {
@@ -800,7 +792,7 @@ class InfoBar {
         }
     }
     addFile(path, id) {
-        const row = this.e.file_row_template?.content.cloneNode(true);
+        const row = tryCloneTemplate(this.e.file_row_template);
         if (row) {
             const regex_result = /^(.*\/)?(.+)$/.exec(path);
             const folder = document.createElement('span');
@@ -816,11 +808,11 @@ class InfoBar {
     }
     addError(submission, message) {
         this.e.errors_stat?.classList.remove('hide');
-        const row = this.e.error_row_template?.content.cloneNode(true);
+        const row = tryCloneTemplate(this.e.error_row_template);
         if (row) {
             row.firstElementChild?.setAttribute('data-submission-id', `${submission}`);
             row.querySelector('[data-message]')?.replaceChildren(message);
-            row.querySelector('[data-submission]')?.replaceChildren(`${submission}`);
+            row.querySelector('[data-label]')?.replaceChildren(`${submission}`);
             row.querySelector('[data-link]')?.setAttribute('href', submissionLink(submission));
             this.e.list_errors?.append(row);
         }
@@ -853,6 +845,9 @@ class InfoBar {
         this.e.stat_queued?.replaceChildren(`${queued}`);
         this.e.queued_stat?.classList.toggle('hide', queued === 0);
     }
+}
+function tryCloneTemplate(template) {
+    return template?.content?.cloneNode(true);
 }
 //---------------------------------------------------------------------------------------------------------------------
 // check log cache: to avoid repeating the same console log when checking submissions

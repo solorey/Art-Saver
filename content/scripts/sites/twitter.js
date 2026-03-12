@@ -28,8 +28,10 @@ class XClient {
         const on_demand_file_url = `https://abs.twimg.com/responsive-web/client-web/ondemand.s.${on_demand_file_result[3]}a.js`;
         const on_demand_file_response = await fetchOk(on_demand_file_url);
         const response_text = await on_demand_file_response.text();
-        const indices_matches = [...response_text.matchAll(/\(\w\[(\d{1,2})\],\s*16\)/g)];
-        const indices = indices_matches.map((match) => parseInt(match[1], 10));
+        const indices = response_text
+            .matchAll(/\(\w\[(\d{1,2})\],\s*16\)/g)
+            .map((match) => parseInt(match[1], 10))
+            .toArray();
         const path_index = key_bytes[indices[0]] % 16;
         const frame_time = indices.slice(1).reduce((n, i) => {
             return n * (key_bytes[i] % 16);
@@ -63,8 +65,10 @@ class XClient {
         animation.pause();
         animation.currentTime = Math.round(frame_time / 10) * 10;
         const style = getComputedStyle(div);
-        const animation_string = [...`${style.color}${style.transform}`.matchAll(/([\d.-]+)/g)]
+        const animation_string = `${style.color}${style.transform}`
+            .matchAll(/([\d.-]+)/g)
             .map((n) => Number(Number(n[0]).toFixed(2)).toString(16))
+            .toArray()
             .join('')
             .replace(/[.-]/g, '');
         div.parentNode?.removeChild(div);
@@ -85,7 +89,7 @@ class XClient {
         const byte_array = [...key_bytes, ...time_buffer, ...hash_bytes.slice(0, 16), 3];
         const random_num = Math.floor(Math.random() * 256);
         const final_bytes = new Uint8Array([random_num, ...byte_array.map((n) => n ^ random_num)]);
-        const id = btoa([...final_bytes].map((n) => String.fromCharCode(n)).join('')).replace(/=/g, '');
+        const id = btoa(String.fromCharCode(...final_bytes).replace(/=/g, ''));
         return id;
     }
 }
@@ -108,7 +112,7 @@ var getPageInfo = async function () {
         user = canonical;
     }
     user = user?.toLowerCase();
-    if (has_user && typeof user === 'undefined') {
+    if (has_user && !user) {
         throw new Error(`User not found for page '${page}'`);
     }
     const info = { site: twitter_info.site, url, page, user };

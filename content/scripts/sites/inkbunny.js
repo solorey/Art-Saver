@@ -42,7 +42,7 @@ var getPageInfo = async function () {
                     ?.href.split('/')[3];
     }
     user = user?.toLowerCase();
-    if (has_user && typeof user === 'undefined') {
+    if (has_user && !user) {
         throw new Error(`User not found for page '${page}'`);
     }
     const info = { site: inkbunny_info.site, url, page, user };
@@ -62,7 +62,11 @@ var getUserInfo = async function (user) {
         throw new Error('User ID not found');
     }
     const icon = dom.querySelector(`img[alt="${name}"]`)?.src;
-    const stats_values = [...dom.querySelectorAll('.elephant_babdb6 .content > div > span strong')].map((stat) => stat.textContent?.replaceAll(',', '') ?? '');
+    const stats_values = dom
+        .querySelectorAll('.elephant_babdb6 .content > div > span strong')
+        .values()
+        .map((stat) => stat.textContent?.replaceAll(',', '') ?? '')
+        .toArray();
     const favorites_response = await fetchOk(`https://inkbunny.net/userfavorites_process.php?favs_user_id=${user_id}`);
     const favorites_dom = await favorites_response.dom();
     const favorites = favorites_dom

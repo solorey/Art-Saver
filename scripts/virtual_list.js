@@ -7,6 +7,7 @@ class VirtualList {
     viewport_height;
     rows = new Map();
     row_height = 18;
+    default_height = 180;
     wait = false;
     constructor(parent, createRow, values) {
         // firefox max scroll height 17_895_697px ~ 994_205 rows at 18px per row
@@ -18,8 +19,7 @@ class VirtualList {
         const container = document.createElement('div');
         container.classList.add('list');
         parent.append(container);
-        const default_height = 180;
-        parent.style.height = `${default_height}px`;
+        parent.style.blockSize = `${this.default_height}px`;
         parent.addEventListener('scroll', () => {
             if (!this.wait) {
                 this.wait = true;
@@ -30,7 +30,7 @@ class VirtualList {
             }
         });
         const observer = new ResizeObserver((entries) => {
-            this.viewport_height = entries.pop()?.borderBoxSize[0].blockSize ?? 0;
+            this.viewport_height = entries.pop()?.borderBoxSize[0]?.blockSize ?? 0;
             this.renderRows();
         });
         observer.observe(parent);
@@ -39,9 +39,9 @@ class VirtualList {
         this.refreshList();
     }
     refreshList() {
-        this.rows.forEach((r) => r.parentElement?.removeChild(r));
         this.rows.clear();
-        this.container.style.height = `${this.row_height * this.values.length}px`;
+        this.container.replaceChildren();
+        this.container.style.blockSize = `${this.row_height * this.values.length}px`;
         this.renderRows();
     }
     renderRows() {
@@ -61,7 +61,8 @@ class VirtualList {
             }
             const row_elem = this.createRow(this.values[i]);
             row_elem.setAttribute('data-row', `${i}`);
-            row_elem.style.top = `${i * this.row_height}px`;
+            row_elem.style.blockSize = `${this.row_height}px`;
+            row_elem.style.insetBlockStart = `${i * this.row_height}px`;
             this.rows.set(i, row_elem);
             let placed = false;
             for (const child of this.container.children) {
@@ -115,29 +116,40 @@ class SearchList {
         this.clear_button = clear_button;
         const case_flag = parent.querySelector('[data-match-case]');
         case_flag?.addEventListener('input', () => {
-            this.setVirtualList();
+            if (this.hasSearch()) {
+                this.setVirtualList();
+            }
         });
         this.case_flag = case_flag;
         const whole_flag = parent.querySelector('[data-match-whole]');
         whole_flag?.addEventListener('input', () => {
-            this.setVirtualList();
+            if (this.hasSearch()) {
+                this.setVirtualList();
+            }
         });
         this.whole_flag = whole_flag;
         const regex_flag = parent.querySelector('[data-use-regex]');
         regex_flag?.addEventListener('input', () => {
-            this.setVirtualList();
+            if (this.hasSearch()) {
+                this.setVirtualList();
+            }
         });
         this.regex_flag = regex_flag;
         const sort_button = parent.querySelector('[data-sort]');
         sort_button?.addEventListener('click', () => {
             toggleListSort(sort_button);
-            this.setVirtualList();
+            if (this.hasSearch()) {
+                this.setVirtualList();
+            }
         });
         this.sort_button = sort_button;
         this.showClearButton();
     }
+    hasSearch() {
+        return Boolean(this.search_input?.value);
+    }
     showClearButton() {
-        this.clear_button?.classList.toggle('hide', !this.search_input?.value);
+        this.clear_button?.classList.toggle('hide', !this.hasSearch());
     }
     setVirtualList() {
         const sort = this.sort_button?.getAttribute('data-sort') ?? undefined;
@@ -170,7 +182,13 @@ function searchValues(search, values, match_case, match_whole, use_regex, sort) 
     let results = [];
     if (search) {
         if (use_regex) {
-            const search_regex = new RegExp(match_whole ? `^${search}$` : search, match_case ? 'd' : 'id');
+            let search_regex;
+            try {
+                search_regex = new RegExp(match_whole ? `^${search}$` : search, match_case ? 'd' : 'id');
+            }
+            catch (e) {
+                return [];
+            }
             for (const value of values) {
                 const result = search_regex.exec(value);
                 if (result && result.indices) {

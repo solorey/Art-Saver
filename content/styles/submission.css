@@ -8,9 +8,9 @@
 
 .action-button {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: var(--as-icon-size);
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: var(--as-icon-size);
   aspect-ratio: 1;
   background-repeat: no-repeat;
   background-color: transparent;
@@ -55,10 +55,10 @@
 }
 .screen::after {
   content: "";
-  width: 80%;
-  height: 80%;
-  max-width: calc(var(--hem) * 16.6666666667);
-  max-height: calc(var(--hem) * 16.6666666667);
+  inline-size: 80%;
+  block-size: 80%;
+  max-inline-size: calc(var(--hem) * 16.6666666667);
+  max-block-size: calc(var(--hem) * 16.6666666667);
   background-color: dimgray;
   mask-image: var(--icon-16-check);
   mask-size: contain;

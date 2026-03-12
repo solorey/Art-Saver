@@ -52,7 +52,7 @@ var getPageInfo = async function () {
         user = path_components[1];
     }
     user = user?.toLowerCase();
-    if (has_user && typeof user === 'undefined') {
+    if (has_user && !user) {
         throw new Error(`User not found for page '${page}'`);
     }
     const info = { site: deviantart_info.site, url, page, user };
@@ -60,9 +60,14 @@ var getPageInfo = async function () {
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var getUserInfo = async function (user) {
+    // Firefox only - wrappedJSObject
+    let csrf_token = window.wrappedJSObject?.__CSRF_TOKEN__;
+    if (!csrf_token) {
+        throw new Error('Unable to find CSRF token');
+    }
     const params = new URLSearchParams({
         username: user,
-        csrf_token: window.wrappedJSObject?.__CSRF_TOKEN__,
+        csrf_token,
     });
     const response = await fetchOk(`https://www.deviantart.com/_puppy/dauserprofile/init/about?${params}`);
     const data = await response.json();
@@ -191,7 +196,7 @@ function checkDeviantartSubmissionPage(url, user) {
         submission: parseInt(submission_id, 10),
     };
     // img, video, pdf
-    const content = stage.querySelector('img, [data-hook=react-playable], object[type="application/pdf"]');
+    const content = stage.querySelector('img, video, object[type="application/pdf"]');
     if (content) {
         let parent = content.parentElement;
         if (parent) {
@@ -223,6 +228,7 @@ var startDownloading = async function (submission, progress) {
     };
     const page_response = await fetchOk(submissionLink(submission), init);
     const user_name = page_response.url.split('/')[3];
+    // Firefox only - wrappedJSObject
     let csrf_token = window.wrappedJSObject?.__CSRF_TOKEN__;
     if (!csrf_token) {
         const page_text = await page_response.text();
@@ -305,8 +311,7 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
     let size;
     let info;
     const type = obj.deviation.type;
-    if (obj.deviation.isDownloadable) {
-        // the user is cool; downloading full resolution is easy
+    if (options.freeDownload && obj.deviation.isDownloadable) {
         url = obj.deviation.extended.download.url;
         size = obj.deviation.extended.download.filesize;
         info = {
@@ -321,7 +326,6 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
         return { info, meta };
     }
     else {
-        // the user is uncool; downloading is hard and often full resolution is not available
         const fetch_worker = new FetchWorker();
         const watermarked = obj.deviation.extended?.hasWatermark ?? false;
         const download = await getMediaUrl(obj.deviation.media, obj.deviation.extended.originalFile.width, obj.deviation.extended.originalFile.height, options.larger, fetch_worker, watermarked);
@@ -592,7 +596,7 @@ async function getStashIds(obj, init, csrf_token, progress) {
     // https://sta.sh/
     // https://www.deviantart.com/stash/
     const matches = description.matchAll(/(https?:\/\/(?:sta\.sh|www\.deviantart\.com\/stash)\/.+?)[\s'"]/g);
-    const urls = [...new Set([...matches].map((m) => m[1]))];
+    const urls = [...new Set(matches.map((m) => m[1]))];
     if (urls.length > 0) {
         progress.message('Found stash links');
     }
@@ -900,7 +904,7 @@ async function urlToDataUrl(url) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getElementText(element) {
-    element = element.cloneNode(true);
+    element = document.importNode(element, true);
     element.querySelectorAll('li').forEach((li) => li.prepend('  ●  '));
     for (const a of element.querySelectorAll('a')) {
         a.href = a.href.replace(/https?:\/\/www\.deviantart\.com\/users\/outgoing\?/g, '');

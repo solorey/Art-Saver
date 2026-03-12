@@ -14,7 +14,9 @@ async function initializeDB() {
             resolve(request.result);
         };
         request.onupgradeneeded = () => {
-            const store = request.result.createObjectStore('submissions', { keyPath: ['site', 'user', 'submission'] });
+            const store = request.result.createObjectStore('submissions', {
+                keyPath: ['site', 'user', 'submission'],
+            });
             store.createIndex('site', 'site', { unique: false });
             store.createIndex('user', 'user', { unique: false });
             store.createIndex('submission', 'submission', { unique: false });
@@ -245,7 +247,7 @@ browser.runtime.onInstalled.addListener((details) => {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function initialBackgroundSetup(details) {
     await Promise.all([setupStates(), setupOptionsStorage(), initializeDB()]);
-    if (details.previousVersion && Number(details.previousVersion.split('.')[0]) < 2) {
+    if (isVersionLessThan(details.previousVersion, '2.0.0')) {
         await upgradeToVersion2();
     }
     // convert old storage to IndexedDB
@@ -257,12 +259,31 @@ async function initialBackgroundSetup(details) {
         browser.storage.local.set({ old_saved: old_saved_storage });
         removeSavedStorage(SITES);
     }
+    if (isVersionLessThan(details.previousVersion, '2.4.3')) {
+        await changeBlueskyId();
+    }
     if (details.reason === 'install') {
         browser.runtime.openOptionsPage();
     }
 }
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function isVersionLessThan(current, compare) {
+    if (!current) {
+        return false;
+    }
+    const current_parts = current.split('.').map(Number);
+    const compare_parts = compare.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+        const current_num = current_parts[i] ?? 0;
+        const compare_num = compare_parts[i] ?? 0;
+        if (current_num !== compare_num) {
+            return current_num < compare_num;
+        }
+    }
+    return false;
+}
 //---------------------------------------------------------------------------------------------------------------------
-// options functions
+// backend updates
 //---------------------------------------------------------------------------------------------------------------------
 async function upgradeToVersion2() {
     // upgrade storage to lowercase user ids
@@ -339,6 +360,55 @@ async function upgradeToVersion2() {
     await setOptionsStorage(stored_options);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function changeBlueskyId() {
+    const db = await getOrReconnectDB();
+    const submissions = await new Promise((resolve, reject) => {
+        const request = db
+            .transaction('submissions')
+            .objectStore('submissions')
+            .index('site')
+            .getAll('bluesky');
+        request.onsuccess = () => {
+            resolve(request.result);
+        };
+        request.onerror = () => {
+            reject('Could not get Bluesky submissions');
+        };
+    });
+    await new Promise((resolve, reject) => {
+        const transaction = db.transaction('submissions', 'readwrite');
+        transaction.oncomplete = () => {
+            resolve();
+        };
+        transaction.onerror = () => {
+            reject('Could not remove old Bluesky submissions');
+        };
+        const delete_request = transaction.objectStore('submissions').index('site').openCursor('bluesky');
+        delete_request.onsuccess = () => {
+            const cursor = delete_request.result;
+            if (cursor) {
+                cursor.delete();
+                cursor.continue();
+            }
+        };
+    });
+    await new Promise((resolve, reject) => {
+        const transaction = db.transaction('submissions', 'readwrite');
+        transaction.oncomplete = () => {
+            resolve();
+        };
+        transaction.onerror = () => {
+            reject('Could not update Bluesky submissions');
+        };
+        for (const submission of submissions) {
+            submission.submission = `${submission.submission}`.replace('+', ';');
+            transaction.objectStore('submissions').add(submission);
+        }
+    });
+}
+//---------------------------------------------------------------------------------------------------------------------
+// options functions
+//---------------------------------------------------------------------------------------------------------------------
 async function setupOptionsStorage() {
     const stored_options = await getOptionsStorage(SITES_AND_GLOBAL);
     const inital_options = {};
@@ -349,7 +419,7 @@ async function setupOptionsStorage() {
         const options = {};
         for (const [key, option] of Object.entries(SITES_AND_GLOBAL_FORMS[site])) {
             let value = stored_options[site]?.[key];
-            if (typeof value === 'undefined') {
+            if (value != null) {
                 console.log(`New option ${site}.${key}`);
                 value = option.default;
             }

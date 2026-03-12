@@ -2,10 +2,11 @@
   position: absolute;
   border-radius: calc(var(--hem) * 0.25);
   overflow: hidden;
-  max-width: 500px;
+  max-inline-size: 500px;
   transition: 0.5s ease-in;
   visibility: hidden;
   opacity: 0;
+  background-color: var(--color-1);
 }
 .tool-tip:hover, .tool-tip:active, .tool-tip.show {
   transition: none;
@@ -16,29 +17,35 @@
 .submission-tip {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  row-gap: 1px;
-  background-color: var(--color-scheme-3);
   text-align: center;
 }
 
 .row {
-  display: contents;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: span 3;
 }
 .row > * {
   padding-inline: calc(var(--hem) * 0.3333333333);
-  padding-block: calc(var(--hem) * 0.0833333333);
+  padding-block: calc(var(--hem) * 0.1666666667);
+}
+
+.user-row {
+  border-block-end-width: 1px;
+  border-block-end-style: solid;
+  border-block-end-color: var(--color-3);
 }
 
 .label {
-  background-color: var(--color-scheme-2);
+  background-color: var(--color-2);
 }
 
 .value {
-  background-color: var(--color-scheme-1);
+  font-family: monospace;
 }
 
 .submission-value {
-  grid-column: 2/4;
+  grid-column: span 2;
 }
 
 .user-link {
@@ -46,7 +53,7 @@
 }
 
 .error-tip {
-  background-color: var(--color-scheme-1);
+  background-color: var(--color-1);
   padding-inline: calc(var(--hem) * 0.3333333333);
   padding-block: calc(var(--hem) * 0.0833333333);
 }

@@ -21,13 +21,12 @@ async function main() {
     G_head_style.setAttribute('data-art-saver', 'style');
     updateGlobalStyle();
     document.head.append(G_head_style);
-    document.body.style.isolation = 'isolate';
-    G_tool_tip = new ToolTip(tool_tip_nodes);
-    G_info_bar = new InfoBar(info_bar_nodes);
     const ui_root = document.createElement('art-saver-ui');
     ui_root.setAttribute('data-art-saver', 'ui');
-    ui_root.append(G_tool_tip.container, G_info_bar.container);
+    document.body.style.isolation = 'isolate';
     document.body.after(ui_root);
+    G_tool_tip = new ToolTip(ui_root, tool_tip_nodes);
+    G_info_bar = new InfoBar(ui_root, info_bar_nodes);
     document.addEventListener('keydown', onDocumentKeyEvent);
     asLog('info', `Checking ${G_site_info.label}`);
     await startChecking();
@@ -414,7 +413,7 @@ async function downloadSubmission(info, downloads, init, progress, title) {
     const download_ids = await handleDownloads(downloads, init, progress);
     const files = [];
     for (const [i, id] of enumerate(download_ids)) {
-        if (typeof id !== 'undefined') {
+        if (id != null) {
             files.push({ path: downloads[i].path, id });
         }
     }
@@ -546,7 +545,7 @@ function renderTemplate(template, type, ...metas) {
     const mod_regex = new RegExp(`!(${mods.map((mod) => mod.re.source).join('|')})`, 'g');
     let text = template.replace(/{([a-zA-Z]+)(\^)?(?:!.+?)?}/g, (match, p1, p2) => {
         const meta_value = p2 ? metas[1][p1] : metas[0][p1];
-        if (typeof meta_value === 'undefined') {
+        if (meta_value == null) {
             return match;
         }
         let value = meta_value;

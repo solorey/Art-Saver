@@ -1,4 +1,4 @@
-<div id="info-bar" class="info-bar themed border-grid color-scheme-base collapsed" data-theme="preferred">
+<div id="info-bar" class="info-bar themed colors-base" data-theme="preferred">
     <template id="submission-row-template">
         <div class="list-row">
             <div class="row-label" data-label></div>
@@ -19,24 +19,26 @@
         </div>
     </template>
     <template id="error-row-template">
-        <div class="list-row-error">
+        <div class="list-row-error colors-error">
             <div class="error-message" data-message></div>
-            <div class="error-submission" data-submission></div>
-            <a
-                class="error-link row-link clickable"
-                data-flat-icon="12-image"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Open submission page"
-                data-link
-            ></a>
+            <div class="error-row">
+                <div class="error-label" data-label></div>
+                <a
+                    class="error-link row-link clickable"
+                    data-flat-icon="12-image"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open submission page"
+                    data-link
+                ></a>
+            </div>
         </div>
     </template>
-    <div id="submissions" class="list-box border-grid hide">
+    <div id="submissions" class="list-box hide">
         <div id="list-submissions" class="list"></div>
         <div class="list-bar">Submissions</div>
     </div>
-    <div id="files" class="list-box border-grid hide">
+    <div id="files" class="list-box hide">
         <div id="list-files" class="list"></div>
         <div class="list-bar">
             Files
@@ -47,11 +49,11 @@
             </label>
         </div>
     </div>
-    <div id="errors" class="list-box border-grid hide">
-        <div id="list-errors" class="list list-errors color-scheme-error"></div>
+    <div id="errors" class="list-box hide">
+        <div id="list-errors" class="list list-errors"></div>
         <div class="list-bar">Errors</div>
     </div>
-    <div id="stat-bar" class="stat-bar border-grid">
+    <div id="stat-bar" class="stat-bar">
         <button id="collapse" class="collapse" data-flat-icon="16-collapse"></button>
         <button id="submissions-stat" class="stat-block">
             Submissions
@@ -61,7 +63,7 @@
             Files
             <span id="stat-files" class="stat-value">0</span>
         </button>
-        <button id="errors-stat" class="stat-block color-scheme-error hide">
+        <button id="errors-stat" class="stat-block colors-error hide">
             Errors
             <span id="stat-errors" class="stat-value">0</span>
         </button>
@@ -88,6 +90,6 @@
         </div>
     </div>
 </div>
-<div id="show-area" class="show-area colors themed color-scheme-base" data-theme="preferred">
+<div id="show-area" class="show-area themed colors-base" data-theme="preferred">
     <button id="show-tab" class="show-tab" data-flat-icon="16-collapse"></button>
 </div>
