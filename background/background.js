@@ -259,7 +259,7 @@ async function initialBackgroundSetup(details) {
         browser.storage.local.set({ old_saved: old_saved_storage });
         removeSavedStorage(SITES);
     }
-    if (isVersionLessThan(details.previousVersion, '2.4.3')) {
+    if (isVersionLessThan(details.previousVersion, '2.5.0')) {
         await changeBlueskyId();
     }
     if (details.reason === 'install') {
