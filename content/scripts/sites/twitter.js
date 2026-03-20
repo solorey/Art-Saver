@@ -21,11 +21,11 @@ class XClient {
         const key_bytes = new Uint8Array(atob(key)
             .split('')
             .map((n) => n.charCodeAt(0)));
-        const on_demand_file_result = /(['"])ondemand\.s\1:\s*(['"])([\w]*)\2/.exec(dom.documentElement.outerHTML);
+        const on_demand_file_result = /(\d+):\s*(['"])ondemand\.s\2.+\1:\s*(['"])(\w+)\3/.exec(dom.documentElement.outerHTML);
         if (!on_demand_file_result) {
             throw new Error('On demand file not found');
         }
-        const on_demand_file_url = `https://abs.twimg.com/responsive-web/client-web/ondemand.s.${on_demand_file_result[3]}a.js`;
+        const on_demand_file_url = `https://abs.twimg.com/responsive-web/client-web/ondemand.s.${on_demand_file_result[4]}a.js`;
         const on_demand_file_response = await fetchOk(on_demand_file_url);
         const response_text = await on_demand_file_response.text();
         const indices = response_text
