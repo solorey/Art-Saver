@@ -24,6 +24,10 @@ View the [Supported Sites][sites].
 -   Download full image resolution
 -   Export and restore the information on what you saved
 
+## FAQ
+### How do I change the root download folder?
+For automatic downloading, the root download folder is limited to the browsers default downloads folder. This is set in `Settings > General > Files and Applications > save files to`.
+
 ## Download
 
 [![For Firefox][gta]][addon]
