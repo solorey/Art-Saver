@@ -541,6 +541,15 @@ function renderTemplate(template, type, ...metas) {
                 return value.slice(start, end);
             },
         },
+        // replace
+        {
+            re: /(.+?)\/(.*?)\//,
+            fn: (value, re) => {
+                const old = re[1] ? String(re[1]) : undefined;
+                const _new = re[2] ? String(re[2]) : '';
+                return value.replaceAll(old, _new);
+            },
+        },
     ];
     const mod_regex = new RegExp(`!(${mods.map((mod) => mod.re.source).join('|')})`, 'g');
     let text = template.replace(/{([a-zA-Z]+)(\^)?(?:!.+?)?}/g, (match, p1, p2) => {
