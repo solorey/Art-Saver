@@ -541,6 +541,21 @@ function renderTemplate(template, type, ...metas) {
                 return value.slice(start, end);
             },
         },
+        // replace
+        {
+            re: /(.+?)\/(.*?)\//,
+            fn: (value, re) => {
+                const old = re[1] ? (re[1].startsWith('r:') ? new RegExp(re[1].slice(2), 'g') : String(re[1])) : undefined;
+                const _new = re[2] ? String(re[2]) : '';
+                if (typeof old == 'string') {
+                    return value.replaceAll(old, _new);
+                } else if (old instanceof RegExp) {
+                    return value.replace(old, _new);
+                } else {
+                    return value;
+                }
+            },
+        },
     ];
     const mod_regex = new RegExp(`!(${mods.map((mod) => mod.re.source).join('|')})`, 'g');
     let text = template.replace(/{([a-zA-Z]+)(\^)?(?:!.+?)?}/g, (match, p1, p2) => {
