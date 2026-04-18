@@ -545,9 +545,15 @@ function renderTemplate(template, type, ...metas) {
         {
             re: /(.+?)\/(.*?)\//,
             fn: (value, re) => {
-                const old = re[1] ? String(re[1]) : undefined;
+                const old = re[1] ? (re[1].startsWith('r:') ? new RegExp(re[1].slice(2), 'g') : String(re[1])) : undefined;
                 const _new = re[2] ? String(re[2]) : '';
-                return value.replaceAll(old, _new);
+                if (typeof old == 'string') {
+                    return value.replaceAll(old, _new);
+                } else if (old instanceof RegExp) {
+                    return value.replace(old, _new);
+                } else {
+                    return value;
+                }
             },
         },
     ];
