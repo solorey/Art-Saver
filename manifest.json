@@ -1,12 +1,15 @@
 {
     "manifest_version": 3,
     "name": "Art Saver",
-    "version": "2.5.1",
+    "version": "2.6.0",
     "description": "Easily download and track downloads in supported art gallery websites.",
     "browser_specific_settings": {
         "gecko": {
             "id": "{d1af7113-37c0-495e-8396-ee18861346c7}",
-            "strict_min_version": "131.0"
+            "strict_min_version": "131.0",
+            "data_collection_permissions": {
+                "required": ["none"]
+            }
         }
     },
     "options_ui": {
@@ -61,11 +64,7 @@
     "content_scripts": [
         {
             "matches": ["*://*.deviantart.com/*"],
-            "js": [
-                "lib/purify.min.js",
-                "background/sites/deviantart.js",
-                "content/scripts/sites/deviantart.js"
-            ]
+            "js": ["lib/purify.min.js", "background/sites/deviantart.js", "content/scripts/sites/deviantart.js"]
         },
         {
             "matches": ["*://*.newgrounds.com/*"],
