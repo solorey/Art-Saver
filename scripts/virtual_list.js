@@ -190,9 +190,8 @@ function searchValues(search, values, match_case, match_whole, use_regex, sort) 
                 return [];
             }
             for (const value of values) {
-                const result = search_regex.exec(value);
-                if (result && result.indices) {
-                    const index = result.indices[0];
+                const index = search_regex.exec(value)?.indices?.[0];
+                if (index) {
                     results.push({
                         value,
                         start: index[0],

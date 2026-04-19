@@ -250,17 +250,14 @@ async function initialBackgroundSetup(details) {
     if (isVersionLessThan(details.previousVersion, '2.0.0')) {
         await upgradeToVersion2();
     }
-    // convert old storage to IndexedDB
-    const old_saved_storage = await getSavedStorage(SITES);
-    if (Object.keys(old_saved_storage).length > 0) {
-        await addDBFromJSON(old_saved_storage);
-        console.log('Old storage converted to IndexedDB');
-        // just in case
-        browser.storage.local.set({ old_saved: old_saved_storage });
-        removeSavedStorage(SITES);
+    if (isVersionLessThan(details.previousVersion, '2.2.0')) {
+        await convertSavedStorage();
     }
     if (isVersionLessThan(details.previousVersion, '2.5.0')) {
         await changeBlueskyId();
+    }
+    if (isVersionLessThan(details.previousVersion, '2.6.0')) {
+        await fixPadMod();
     }
     if (details.reason === 'install') {
         browser.runtime.openOptionsPage();
@@ -360,6 +357,18 @@ async function upgradeToVersion2() {
     await setOptionsStorage(stored_options);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// convert old storage to IndexedDB
+async function convertSavedStorage() {
+    const old_saved_storage = await getSavedStorage(SITES);
+    if (Object.keys(old_saved_storage).length > 0) {
+        await addDBFromJSON(old_saved_storage);
+        console.log('Old storage converted to IndexedDB');
+        // just in case
+        browser.storage.local.set({ old_saved: old_saved_storage });
+        removeSavedStorage(SITES);
+    }
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function changeBlueskyId() {
     const db = await getOrReconnectDB();
     const submissions = await new Promise((resolve, reject) => {
@@ -405,6 +414,37 @@ async function changeBlueskyId() {
             transaction.objectStore('submissions').add(submission);
         }
     });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// swap the '<' '>' symbols in the pad modifier to match other languages
+async function fixPadMod() {
+    const stored_options = await getOptionsStorage(SITES);
+    for (const site of SITES) {
+        const site_options = stored_options[site];
+        if (site_options) {
+            const text_options = Object.entries(SITES_FORMS[site])
+                .filter(([_, value]) => value.type === 'textarea')
+                .map(([key]) => key);
+            for (const text_option of text_options) {
+                const value = site_options[text_option];
+                if (value) {
+                    site_options[text_option] = value.replace(/{([a-zA-Z]+\^?)(!.+?)?}/g, (match, p1, p2) => {
+                        if (!p2) {
+                            return match;
+                        }
+                        const p2_new = p2.replace(/(!.?)([<>])(\d+)/g, (_, p1, p2, p3) => {
+                            if (p2 === '<') {
+                                return `${p1}>${p3}`;
+                            }
+                            return `${p1}<${p3}`;
+                        });
+                        return `{${p1}${p2_new}}`;
+                    });
+                }
+            }
+        }
+    }
+    await setOptionsStorage(stored_options);
 }
 //---------------------------------------------------------------------------------------------------------------------
 // options functions

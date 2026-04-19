@@ -467,7 +467,7 @@ async function handleDownloads(downloads, init, progress) {
 // filename creation
 //---------------------------------------------------------------------------------------------------------------------
 // replace illegal filename characters
-function sanitize(text) {
+function sanitizePathComponent(text) {
     return text
         .replaceAll('\\', '＼') // \uff3c
         .replaceAll('/', '／') // \uff0f
@@ -523,10 +523,10 @@ function renderTemplate(template, type, ...metas) {
                 const fill = re[1] || ' ';
                 const direction = re[2];
                 const length = Number(re[3]);
-                if (direction === '<') {
+                if (direction === '>') {
                     return value.padStart(length, fill);
                 }
-                else if (direction === '>') {
+                else if (direction === '<') {
                     return value.padEnd(length, fill);
                 }
                 return value;
@@ -541,17 +541,19 @@ function renderTemplate(template, type, ...metas) {
                 return value.slice(start, end);
             },
         },
-        // replace
+        // substitute
         {
-            re: /(.+?)\/(.*?)\//,
+            re: /s\/((?:\\\/|[^\/])*)\/((?:\\\/|[^\/])*)\/([gimsuv]*)/,
             fn: (value, re) => {
-                const old = re[1] ? (re[1].startsWith('r:') ? new RegExp(re[1].slice(2), 'g') : String(re[1])) : undefined;
-                const _new = re[2] ? String(re[2]) : '';
-                if (typeof old == 'string') {
-                    return value.replaceAll(old, _new);
-                } else if (old instanceof RegExp) {
-                    return value.replace(old, _new);
-                } else {
+                // unescape forward slashes
+                const search = re[1].replaceAll('\\/', '/');
+                const replacement = re[2].replaceAll('\\/', '/');
+                const flags = re[3];
+                try {
+                    return value.replace(new RegExp(search, flags), replacement);
+                }
+                catch (error) {
+                    asLog('error', `Invalid RegExp in substitute modifier: ${re[0]}`);
                     return value;
                 }
             },
@@ -565,14 +567,14 @@ function renderTemplate(template, type, ...metas) {
         }
         let value = meta_value;
         if (type === 'path') {
-            value = sanitize(value);
+            value = sanitizePathComponent(value);
             if (G_options.replace) {
                 value = value.replace(/\s/g, '_');
             }
         }
         for (const result of match.matchAll(mod_regex)) {
             for (const { re, fn } of mods) {
-                const re_result = re.exec(result[1]);
+                const re_result = new RegExp(`^${re.source}$`).exec(result[1]);
                 if (re_result) {
                     value = fn(value, re_result);
                     break;
