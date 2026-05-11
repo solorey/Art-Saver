@@ -64,7 +64,12 @@
     "content_scripts": [
         {
             "matches": ["*://*.deviantart.com/*"],
-            "js": ["lib/purify.min.js", "background/sites/deviantart.js", "content/scripts/sites/deviantart.js"]
+            "js": [
+                "lib/purify.min.js",
+                "scripts/writing.js",
+                "background/sites/deviantart.js",
+                "content/scripts/sites/deviantart.js"
+            ]
         },
         {
             "matches": ["*://*.newgrounds.com/*"],
@@ -92,7 +97,12 @@
         },
         {
             "matches": ["*://*.inkbunny.net/*"],
-            "js": ["background/sites/inkbunny.js", "content/scripts/sites/inkbunny.js"]
+            "js": [
+                "lib/purify.min.js",
+                "scripts/writing.js",
+                "background/sites/inkbunny.js",
+                "content/scripts/sites/inkbunny.js"
+            ]
         },
         {
             "matches": [

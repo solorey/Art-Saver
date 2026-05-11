@@ -173,7 +173,7 @@ input:checked + .switch::after {
 .list-row {
   display: flex;
   white-space: nowrap;
-  padding-inline-end: 0.75rem;
+  padding-inline-end: calc(var(--hem) * 0.75);
 }
 .list-row:hover {
   background-color: var(--color-2);
@@ -201,7 +201,7 @@ input:checked + .switch::after {
 .error-row {
   display: flex;
   white-space: nowrap;
-  padding-inline-end: 0.75rem;
+  padding-inline-end: calc(var(--hem) * 0.75);
 }
 .list-row-error:hover .error-row {
   background-color: var(--color-2);
@@ -219,6 +219,11 @@ input:checked + .switch::after {
 }
 .list-row-error:hover .error-label {
   padding-inline-start: calc(var(--hem) * 1.25);
+}
+
+.errors-retry {
+  border-radius: calc(var(--hem) * 0.25);
+  gap: calc(var(--hem) * 0.5);
 }
 
 .row-label {
@@ -252,7 +257,6 @@ input:checked + .switch::after {
   display: grid;
   gap: calc(var(--hem) * 0.5);
   grid-template-columns: auto 1fr;
-  grid-auto-columns: 1fr;
   grid-auto-flow: column;
   padding-block: calc(var(--hem) * 0.25);
   padding-inline: calc(var(--hem) * 0.5);

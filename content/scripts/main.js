@@ -387,6 +387,9 @@ async function pollElement(parent, selectors) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function timer(seconds) {
+    if (seconds <= 0) {
+        return;
+    }
     return await new Promise((resolve) => {
         setTimeout(resolve, seconds * 1000);
     });
@@ -688,4 +691,15 @@ function getPageStats() {
         }
     }
     return stats;
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function urlToDataUrl(url) {
+    const response = await fetchWorkerOk(url);
+    return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.addEventListener('load', function (data) {
+            resolve(data.target?.result);
+        });
+        reader.readAsDataURL(response.body);
+    });
 }

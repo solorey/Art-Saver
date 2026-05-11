@@ -91,7 +91,7 @@ function checkItakuPage(page) {
 function checkItakuThumbnail(element, page_user) {
     let image_url = element.querySelector('a[href*="/images/"]')?.href;
     if (!image_url) {
-        G_check_log.log('Submission url not found for', element);
+        G_check_log.log(element, 'Submission url not found');
         return;
     }
     const submission = parseInt(pathComponents(image_url)[1], 10);
@@ -107,7 +107,7 @@ function checkItakuThumbnail(element, page_user) {
             search_element = next_element;
         }
     }
-    const user = user_link ? pathComponents(user_link)[1].toLowerCase() : page_user ?? '';
+    const user = user_link ? pathComponents(user_link)[1].toLowerCase() : (page_user ?? '');
     const parent = navigateUpSmaller(element);
     parent.style.setProperty('--as-z-index', '11');
     const info = {
@@ -121,6 +121,7 @@ function checkItakuThumbnail(element, page_user) {
 function checkItakuSubmissionPage(url, user) {
     const view = document.querySelector('app-image-detail .img-wrapper');
     if (!view) {
+        G_check_log.log('Submission page:', 'Media element not found');
         return;
     }
     const submission = parseInt(pathComponents(url)[1], 10);

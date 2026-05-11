@@ -122,25 +122,26 @@ function checkInkbunnyPage(page_user) {
 function checkInkbunnyThumbnail(element, page_user) {
     const link = element.querySelector('a');
     if (!link) {
-        G_check_log.log('Link not found for', element);
+        G_check_log.log(element, 'Link not found');
         return;
     }
     const submission_id = /\/(\d+)$/.exec(link.href)?.[1];
     if (!submission_id) {
-        G_check_log.log('Submission not found for', element);
+        G_check_log.log(element, 'Submission ID not found in url');
         return;
     }
     const submission = parseInt(submission_id, 10);
     const img_alt = element.querySelector('img')?.alt ?? '';
     const user = /\sby\s(\w+)(?:$|(?:\s-\s))/.exec(img_alt)?.[1]?.toLowerCase() ?? page_user;
     if (!user) {
-        G_check_log.log('User not found for', element);
+        G_check_log.log(element, 'User not found');
         return;
     }
     // links are inline and don't match size of thumbnail
     // start at links parent instead
     let parent = link.parentElement;
     if (!parent) {
+        G_check_log.log(link, 'Has no parent');
         return;
     }
     parent = navigateUpSmaller(parent);
@@ -149,31 +150,19 @@ function checkInkbunnyThumbnail(element, page_user) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkInkbunnySubmissionPage(url, user) {
-    const content_box = document.querySelector('.content.magicboxParent');
-    if (!content_box) {
-        return;
-    }
-    const media = content_box.querySelector('#magicbox, .widget_imageFromSubmission img, #mediaspace');
+    const media = document.querySelector('.content.magicboxParent');
     if (!media) {
+        G_check_log.log('Submission page:', 'Media element not found');
         return;
     }
     const submission_id = /\/s\/(\d+)/.exec(url)?.[1];
     if (!submission_id) {
+        G_check_log.log('Submission page:', `Unexpected submission url ${url}`);
         return;
     }
     const submission = parseInt(submission_id, 10);
-    if (media.matches('img')) {
-        media.style.display = 'block';
-    }
-    const parent = media.parentElement;
-    if (!parent) {
-        return;
-    }
-    if (parent.matches('a')) {
-        parent.style.display = 'inline-block';
-    }
     const info = { site: inkbunny_info.site, user, submission };
-    createButton(info, parent, { screen: false });
+    createButton(info, media, { screen: false });
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
@@ -187,7 +176,7 @@ var startDownloading = async function (submission, progress) {
     const response = await fetchOk(`https://inkbunny.net/s/${submission}`, init);
     const dom = await response.dom();
     const { info, meta } = getInkbunnySubmissionData(submission, dom);
-    const file_datas = await getInkbunnyFileDatas(dom, meta, progress);
+    const file_datas = await getInkbunnyFileDatas(dom, meta, options, progress);
     const downloads = createInkbunnyDownloads(meta, file_datas, options);
     return await downloadSubmission(info, downloads, init, progress, meta.title);
 };
@@ -226,7 +215,7 @@ function getInkbunnySubmissionData(submission, dom) {
     return { info, meta };
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getInkbunnyFileDatas(dom, submission_meta, progress) {
+async function getInkbunnyFileDatas(dom, submission_meta, options, progress) {
     const files_count = dom.querySelector('#files_area span')?.textContent?.split(' ')[2];
     const pages = files_count ? parseInt(files_count, 10) : 1;
     const init = {
@@ -255,7 +244,97 @@ async function getInkbunnyFileDatas(dom, submission_meta, progress) {
         }
         files.push(getInkbunnyFileData(page_dom));
     }
+    let story_element = dom.querySelector('#storysectionbar > span');
+    const writing_file = files.find((f) => ['txt', 'rtf', 'doc'].includes(f.meta.ext));
+    if (story_element && !(writing_file && options.skipWriting)) {
+        progress.message('Getting writing');
+        const file = writing_file || files[0];
+        const download = await getInkbunnyWriting(options.writing, dom, story_element, { ...submission_meta, ...file.meta }, options);
+        const info = { download };
+        const meta = { ...file.meta, ext: options.writing };
+        files.push({ meta, info });
+    }
     return files;
+}
+//---------------------------------------------------------------------------------------------------------------------
+// writing conversion
+//---------------------------------------------------------------------------------------------------------------------
+async function getInkbunnyWriting(type, dom, story_element, meta, options) {
+    const story = cleanInkbunnyWriting(story_element);
+    story.id = 'content';
+    const decription_element = dom.querySelector('.elephant_bottom > .content > div > span');
+    const description = decription_element
+        ? cleanInkbunnyWriting(decription_element)
+        : document.createElement('section');
+    description.id = 'description';
+    const story_text = getInkbunnyWritingText(story);
+    const word_count = wordCount(story_text);
+    let template;
+    let story_content;
+    let description_content;
+    if (type === 'html') {
+        if (options.includeImage) {
+            const icon_url = dom.querySelector('.content.magicboxParent .shadowedimage')?.src;
+            if (icon_url) {
+                const img = document.createElement('img');
+                img.id = 'image';
+                img.src = icon_url;
+                story.prepend(img);
+            }
+        }
+        if (options.embedImages) {
+            await embedImages(story);
+            await embedImages(description);
+        }
+        template = options.writingHTML;
+        story_content = story.outerHTML;
+        description_content = description.outerHTML;
+    }
+    else {
+        template = options.writingText;
+        story_content = story_text;
+        description_content = getInkbunnyWritingText(description);
+    }
+    const url = `https://inkbunny.net/s/${meta.submissionId}`;
+    meta.ext = type;
+    const story_meta = {
+        story: story_content,
+        description: description_content,
+        wordCount: `${word_count}`,
+        url,
+        ...meta,
+    };
+    const file_text = renderTemplate(template, type, story_meta);
+    return new Blob([file_text], { type: `text/${type}` });
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function cleanInkbunnyWriting(element) {
+    const section = document.createElement('section');
+    section.replaceChildren(...element.childNodes);
+    for (const elem of section.querySelectorAll('.underline')) {
+        const u = document.createElement('u');
+        elem.after(u);
+        u.replaceChildren(elem);
+    }
+    for (const elem of section.querySelectorAll('.strikethrough')) {
+        const s = document.createElement('s');
+        elem.after(s);
+        s.replaceChildren(elem);
+    }
+    for (const elem of section.querySelectorAll('.align_center')) {
+        elem.style.setProperty('text-align', 'center');
+    }
+    for (const elem of section.querySelectorAll('.align_left')) {
+        elem.style.setProperty('text-align', 'start');
+    }
+    for (const elem of section.querySelectorAll('.align_right')) {
+        elem.style.setProperty('text-align', 'end');
+    }
+    return cleanWriting(section, ['id', 'class']);
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function getInkbunnyWritingText(element) {
+    return getElementText(document.importNode(element, true));
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getInkbunnyFileData(dom) {

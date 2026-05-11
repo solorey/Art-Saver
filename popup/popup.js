@@ -69,16 +69,6 @@ class PopupUserTab {
         this.folder_path = user.folder;
     }
     setUserValues(submissions) {
-        let compare_submissions = undefined;
-        switch (typeof submissions[0]) {
-            case 'string':
-                compare_submissions = new Intl.Collator(undefined, { numeric: true }).compare;
-                break;
-            case 'number':
-                compare_submissions = (a, b) => a - b;
-                break;
-        }
-        submissions.sort(compare_submissions);
         this.saved_stat?.replaceChildren(`${submissions.length}`);
         this.search_list?.updateValues(submissions);
         const has_submissions = submissions.length > 0;
@@ -170,20 +160,8 @@ class PopupSiteTab {
         this.downloads_stat?.replaceChildren(`${stats.downloads}`);
     }
     setSiteValues(users, submissions) {
-        const compare_users = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true }).compare;
-        users.sort(compare_users);
         this.users_list?.updateValues(users);
         this.users_stat?.replaceChildren(`${users.length}`);
-        let compare_submissions = undefined;
-        switch (typeof submissions[0]) {
-            case 'string':
-                compare_submissions = new Intl.Collator(undefined, { numeric: true }).compare;
-                break;
-            case 'number':
-                compare_submissions = (a, b) => a - b;
-                break;
-        }
-        submissions.sort(compare_submissions);
         this.submissions_list?.updateValues(submissions);
         this.submissions_stat?.replaceChildren(`${submissions.length}`);
     }

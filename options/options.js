@@ -157,7 +157,7 @@ class OptionNumber {
         const template = cloneTemplate('#number-template');
         const label = template.querySelector('label');
         label?.setAttribute('for', option_id);
-        label?.prepend(values.label);
+        label?.append(values.label);
         if (values.unit) {
             const unit = template.querySelector('[data-number-unit]');
             unit?.classList.remove('hide');
@@ -194,7 +194,7 @@ class OptionSlider {
         const template = cloneTemplate('#slider-template');
         const label = template.querySelector('label');
         label?.setAttribute('for', option_id);
-        label?.prepend(values.label);
+        label?.append(values.label);
         if (values.unit) {
             const unit = template.querySelector('[data-number-unit]');
             unit?.classList.remove('hide');
@@ -579,6 +579,7 @@ class TableSiteData {
     submissions_stat;
     users_list;
     submissions_list;
+    loading = false;
     constructor(site) {
         this.site = site;
         const row = cloneTemplate('#stats-row-template');
@@ -609,25 +610,16 @@ class TableSiteData {
         this.row = row;
     }
     setValues(users, submissions) {
-        const compare_users = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true }).compare;
-        users.sort(compare_users);
         this.users_list?.updateValues(users);
         this.users_stat?.replaceChildren(`${users.length}`);
-        let compare_submissions = undefined;
-        switch (typeof submissions[0]) {
-            case 'string':
-                compare_submissions = new Intl.Collator(undefined, { numeric: true }).compare;
-                break;
-            case 'number':
-                compare_submissions = (a, b) => a - b;
-                break;
-        }
-        submissions.sort(compare_submissions);
         this.submissions_list?.updateValues(submissions);
         this.submissions_stat?.replaceChildren(`${submissions.length}`);
         this.details_element?.classList.toggle('hide', submissions.length === 0);
+        this.loading = false;
+        G_saved_table.checkLoading();
     }
     async getValues() {
+        this.loading = true;
         const values = await browser.runtime.sendMessage({
             action: 'background_get_db_site_values',
             site: this.site,
@@ -638,6 +630,8 @@ class TableSiteData {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class SavedTable {
     table_data;
+    table_element;
+    category_select;
     search_input;
     clear_button;
     case_flag;
@@ -654,6 +648,13 @@ class SavedTable {
         }
         this.table_data = table_data;
         const search_box = document.querySelector('#search-table');
+        const category_select = search_box?.querySelector('[data-category]');
+        category_select?.addEventListener('input', () => {
+            if (this.hasSearch()) {
+                this.setSearch();
+            }
+        });
+        this.category_select = category_select;
         const search_input = search_box?.querySelector('[data-search]');
         search_input?.addEventListener('input', () => {
             this.showSearchActive();
@@ -702,6 +703,7 @@ class SavedTable {
             }
         });
         this.sort_button = sort_button;
+        this.table_element = saved_table;
         this.showSearchActive();
     }
     hasSearch() {
@@ -717,6 +719,7 @@ class SavedTable {
         }
     }
     setSiteSearch(site) {
+        const category = this.category_select?.value ?? 'all';
         const search = this.search_input?.value ?? '';
         const sort = this.sort_button?.getAttribute('data-sort') ?? undefined;
         const match_case = this.case_flag?.checked ?? false;
@@ -726,7 +729,7 @@ class SavedTable {
         let max_results = 0;
         let row_height = 0;
         let default_height = 0;
-        for (const list of [site_data.users_list, site_data.submissions_list]) {
+        const searchList = (list) => {
             if (list) {
                 const result_values = searchValues(search, list.values, match_case, match_whole, use_regex, sort);
                 max_results = Math.max(max_results, result_values.length);
@@ -735,11 +738,24 @@ class SavedTable {
                 default_height = Math.max(vlist.default_height, default_height);
                 vlist.updateList(result_values);
             }
+        };
+        const has_search = Boolean(search);
+        if (has_search && category === 'users') {
+            searchList(site_data.users_list);
+            site_data.submissions_list?.virtual_list.updateList([]);
+        }
+        else if (has_search && category === 'submissions') {
+            searchList(site_data.submissions_list);
+            site_data.users_list?.virtual_list.updateList([]);
+        }
+        else {
+            searchList(site_data.users_list);
+            searchList(site_data.submissions_list);
         }
         const has_results = max_results > 0;
         const details = site_data.details_element;
         if (details) {
-            details.toggleAttribute('open', Boolean(search) && has_results);
+            details.toggleAttribute('open', has_search && has_results);
             details.classList.toggle('hide', !has_results);
             if (has_results) {
                 for (const list_box of details.querySelectorAll('[data-list]')) {
@@ -757,7 +773,16 @@ class SavedTable {
         await this.table_data[site].getValues();
     }
     async getValues() {
+        this.showLoading();
         await Promise.all(SITES.map((s) => this.getSiteValues(s)));
+    }
+    showLoading() {
+        this.table_element?.classList.add('loading-screen');
+    }
+    checkLoading() {
+        if (Object.values(this.table_data).every((w) => !w.loading)) {
+            this.table_element?.classList.remove('loading-screen');
+        }
     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1071,6 +1096,7 @@ document.querySelector('#export-list')?.addEventListener('click', async () => {
 });
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 document.querySelector('#reset-list')?.addEventListener('click', async () => {
+    G_saved_table.showLoading();
     await G_undo_bar.primeUndoSaved('Saved data has been reset');
     await browser.runtime.sendMessage({ action: 'background_set_db_json', saved_json: {} });
     G_undo_bar.show();
@@ -1083,42 +1109,15 @@ document.querySelector('#saved-info')?.addEventListener('input', async function 
     }
     const file_label = document.querySelector('#saved-filename');
     file_label?.replaceChildren(file.name);
+    G_saved_table.showLoading();
     await G_undo_bar.primeUndoSaved('Saved data has been overwritten');
-    const json_file = await getJSON(file);
+    const saved_json = await getJSON(file);
     await browser.runtime.sendMessage({
         action: 'background_set_db_json',
-        saved_json: cleanSavedInfo(json_file),
+        saved_json,
     });
     G_undo_bar.show();
 });
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function cleanSavedInfo(saved_info) {
-    const cleaned_info = {};
-    for (const site of SITES) {
-        const saved_users = saved_info[site];
-        if (!saved_users) {
-            continue;
-        }
-        const users = {};
-        for (const [user, submissions] of Object.entries(saved_users)) {
-            if (!submissions || submissions.length <= 0) {
-                continue;
-            }
-            let clean_submissions;
-            if (SITES_INFO[site].id_type === 'number') {
-                clean_submissions = [...new Set(submissions.map((n) => parseInt(`${n}`, 10)))].sort((a, b) => b - a);
-            }
-            else {
-                clean_submissions = [...new Set(submissions.map((n) => `${n}`))].sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
-            }
-            users[user.toLowerCase()] = clean_submissions;
-        }
-        if (Object.keys(users).length > 0) {
-            cleaned_info[site] = users;
-        }
-    }
-    return cleaned_info;
-}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 document.querySelector('#add-info')?.addEventListener('input', async function () {
     const file = this.files?.[0];
@@ -1127,11 +1126,12 @@ document.querySelector('#add-info')?.addEventListener('input', async function ()
     }
     const file_label = document.querySelector('#add-filename');
     file_label?.replaceChildren(file.name);
+    G_saved_table.showLoading();
     await G_undo_bar.primeUndoSaved('Saved data has been appended');
-    const json_file = await getJSON(file);
+    const saved_json = await getJSON(file);
     await browser.runtime.sendMessage({
         action: 'background_add_db_json',
-        saved_json: cleanSavedInfo(json_file),
+        saved_json,
     });
     G_undo_bar.show();
 });

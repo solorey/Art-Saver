@@ -143,7 +143,7 @@ function checkBlueskyThumbnail(element) {
         // gif
         element.querySelector(':scope div:not([style]) > div[style*="margin-top: 8px;"] > div[style*="width: 100%;"]');
     if (!media_box) {
-        G_check_log.log('Post media not found for', element);
+        G_check_log.log(element, 'Post media not found');
         return;
     }
     const user = element.getAttribute('data-testid')?.split('-by-', 2)[1] ??
@@ -152,7 +152,7 @@ function checkBlueskyThumbnail(element) {
         // saved layout
         element.querySelector('a[href^="/profile/"]')?.href?.split('/').pop();
     if (!user) {
-        G_check_log.log('User not found for', element);
+        G_check_log.log(element, 'User not found');
         return;
     }
     let link;
@@ -164,12 +164,12 @@ function checkBlueskyThumbnail(element) {
         link = element.querySelector('a[href*="/post/"][data-tooltip]')?.href;
     }
     if (!link) {
-        G_check_log.log('Link not found for', element);
+        G_check_log.log(element, 'Link not found');
         return;
     }
     const regex_result = /\/post\/([2-7a-z]+)/.exec(link);
     if (!regex_result) {
-        G_check_log.log('Link does not match RegExp for', element);
+        G_check_log.log(element, 'Link does not match RegExp');
         return;
     }
     let did;
@@ -185,7 +185,7 @@ function checkBlueskyThumbnail(element) {
         }
     }
     if (!did) {
-        G_check_log.log('User DID not found for', element);
+        G_check_log.log(element, 'User DID not found');
         return;
     }
     const info = {

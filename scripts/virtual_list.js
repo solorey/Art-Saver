@@ -138,9 +138,7 @@ class SearchList {
         const sort_button = parent.querySelector('[data-sort]');
         sort_button?.addEventListener('click', () => {
             toggleListSort(sort_button);
-            if (this.hasSearch()) {
-                this.setVirtualList();
-            }
+            this.setVirtualList();
         });
         this.sort_button = sort_button;
         this.showClearButton();

@@ -270,18 +270,12 @@ body {
   content: "▼";
 }
 
-.about-info {
-  display: grid;
-  justify-items: center;
-  gap: 1.5rem;
-  padding: 1rem;
-}
-
 .about-header {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
+  display: flex;
+  padding: 1rem;
+  justify-content: center;
   gap: 1rem;
+  background-color: var(--color-2);
 }
 
 .about-icon {
@@ -294,15 +288,12 @@ body {
   font-weight: bold;
 }
 
-.about-section {
-  display: grid;
-  gap: 0.5rem;
-}
-
 .about-list {
+  width: fit-content;
   margin-inline: auto;
-  display: grid;
-  gap: 0.5rem;
+}
+.about-list > p {
+  margin-block: 0.5rem;
 }
 
 .about-link {

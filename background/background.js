@@ -110,6 +110,36 @@ async function removeUser(site, user) {
     });
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function sortSiteUsers(site, users) {
+    if (site === 'pixiv') {
+        return users
+            .map(Number)
+            .sort((a, b) => a - b)
+            .map((i) => i.toString());
+    }
+    const compare_users = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true }).compare;
+    return users.sort(compare_users);
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function sortSiteSubmissions(site, submissions) {
+    if (site === 'twitter') {
+        return submissions
+            .map(BigInt)
+            .sort((a, b) => (a > b ? 1 : a === b ? 0 : -1))
+            .map((i) => i.toString());
+    }
+    let compare_submissions = undefined;
+    switch (typeof submissions[0]) {
+        case 'string':
+            compare_submissions = new Intl.Collator(undefined, { numeric: true }).compare;
+            break;
+        case 'number':
+            compare_submissions = (a, b) => a - b;
+            break;
+    }
+    return submissions.sort(compare_submissions);
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function getDBSiteValues(site) {
     const store = (await getOrReconnectDB()).transaction('submissions', 'readonly').objectStore('submissions');
     const request = store.index('site').getAll(site);
@@ -125,7 +155,10 @@ async function getDBSiteValues(site) {
                 users.add(submission.user);
                 submissions.add(submission.submission);
             }
-            resolve({ users: [...users], submissions: [...submissions] });
+            resolve({
+                users: sortSiteUsers(site, [...users]),
+                submissions: sortSiteSubmissions(site, [...submissions]),
+            });
         };
     });
 }
@@ -145,7 +178,7 @@ async function getDBUserValues(site, user) {
                     submissions.add(submission.submission);
                 }
             }
-            resolve({ submissions: [...submissions] });
+            resolve({ submissions: sortSiteSubmissions(site, [...submissions]) });
         };
     });
 }
@@ -178,7 +211,36 @@ async function getDBAsJSON(site) {
     });
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function cleanJsonInfo(json_info) {
+    const cleaned_info = {};
+    for (const site of SITES) {
+        const saved_users = json_info[site];
+        if (!saved_users) {
+            continue;
+        }
+        const users = {};
+        for (const [user, submissions] of Object.entries(saved_users)) {
+            if (!submissions || submissions.length <= 0) {
+                continue;
+            }
+            let clean_submissions;
+            if (SITES_INFO[site].id_type === 'number') {
+                clean_submissions = [...new Set(submissions.map((n) => parseInt(`${n}`, 10)))].sort((a, b) => b - a);
+            }
+            else {
+                clean_submissions = [...new Set(submissions.map((n) => `${n}`))].sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+            }
+            users[user.toLowerCase()] = clean_submissions;
+        }
+        if (Object.keys(users).length > 0) {
+            cleaned_info[site] = users;
+        }
+    }
+    return cleaned_info;
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function setDBFromJSON(saved_json) {
+    saved_json = cleanJsonInfo(saved_json);
     const transaction = (await getOrReconnectDB()).transaction('submissions', 'readwrite');
     return await new Promise((resolve, reject) => {
         transaction.oncomplete = () => {
@@ -210,6 +272,7 @@ async function setDBFromJSON(saved_json) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function addDBFromJSON(saved_json) {
+    saved_json = cleanJsonInfo(saved_json);
     const transaction = (await getOrReconnectDB()).transaction('submissions', 'readwrite');
     return await new Promise((resolve, reject) => {
         transaction.oncomplete = () => {

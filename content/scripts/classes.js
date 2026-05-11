@@ -573,21 +573,32 @@ class DownloadQueue {
         if (submission) {
             G_state_manager.updateState(submission, 'downloading', { is_stoppable: false });
             this.updateDownloadInfo();
-            try {
+            let retries = 0;
+            while (true) {
                 const progress = new ProgressController(submission);
-                progress.message('Getting submission');
-                const result = await startDownloading(submission, progress);
-                if (result) {
-                    G_info_bar.addSubmission(submission, result.files, result.user, result.title);
+                try {
+                    progress.message('Getting submission');
+                    const result = await startDownloading(submission, progress);
+                    if (result) {
+                        G_info_bar.addSubmission(submission, result.files, result.user, result.title);
+                    }
+                    else {
+                        G_state_manager.setType(submission, 'download');
+                    }
+                    break;
                 }
-                else {
-                    G_state_manager.setType(submission, 'download');
+                catch (error) {
+                    asLog('error', error);
+                    if (retries <= G_options.retryCount) {
+                        retries += 1;
+                        progress.start(`Retrying: ${retries}`);
+                        await timer(G_options.queueWait);
+                        continue;
+                    }
+                    G_state_manager.setType(submission, 'error', { message: `${error}` });
+                    G_info_bar.addError(submission, `${error}`);
+                    break;
                 }
-            }
-            catch (error) {
-                asLog('error', error);
-                G_state_manager.setType(submission, 'error', { message: `${error}` });
-                G_info_bar.addError(submission, `${error}`);
             }
         }
         this.in_progress -= 1;
@@ -759,8 +770,18 @@ class InfoBar {
             const checked = this.e.folder_switch?.checked;
             this.e.list_files?.classList.toggle('show-folders', checked);
         });
+        this.e.errors_retry?.addEventListener('click', () => {
+            for (const submission_manager of G_state_manager.submission_map.values()) {
+                if (submission_manager.type === 'error') {
+                    const submission = submission_manager.info.submission;
+                    this.removeError(submission);
+                    downloadButtonAction(submission);
+                }
+            }
+        });
         root.append(container);
         this.container = container;
+        // this.test();
     }
     show() {
         this.e.info_bar?.classList.add('show');
@@ -814,6 +835,10 @@ class InfoBar {
             row.querySelector('[data-message]')?.replaceChildren(message);
             row.querySelector('[data-label]')?.replaceChildren(`${submission}`);
             row.querySelector('[data-link]')?.setAttribute('href', submissionLink(submission));
+            row.querySelector('[data-retry]')?.addEventListener('click', () => {
+                this.removeError(submission);
+                downloadButtonAction(submission);
+            });
             this.e.list_errors?.append(row);
         }
         this.e.stat_errors?.replaceChildren(`${this.e.list_errors?.childElementCount ?? 0}`);
@@ -854,11 +879,11 @@ function tryCloneTemplate(template) {
 //---------------------------------------------------------------------------------------------------------------------
 class CheckLogCache {
     cache = new Map();
-    log(message, element) {
-        const cache_message = this.cache.get(element);
+    log(id, message) {
+        const cache_message = this.cache.get(id);
         if (cache_message != message) {
-            asLog('debug', message, element);
-            this.cache.set(element, message);
+            asLog('debug', id, message);
+            this.cache.set(id, message);
         }
     }
 }

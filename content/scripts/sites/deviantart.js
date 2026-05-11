@@ -13,7 +13,7 @@ var getPageInfo = async function () {
     if (['daily-deviations', 'watch', 'notifications'].includes(path_components[0])) {
         page = path_components[0];
     }
-    else if (!path_components[1] && document.title.endsWith(' | DeviantArt')) {
+    else if (!path_components[1] && document.title.endsWith(' on DeviantArt')) {
         page = 'user';
     }
     else if (path_components[1]) {
@@ -140,23 +140,23 @@ function checkDeviantartOldThumbnails(page_user) {
 function checkDeviantartThumbnail(element, page_user) {
     const link = element.matches('a') ? element : element.querySelector('a');
     if (!link) {
-        G_check_log.log('Link not found for', element);
+        G_check_log.log(element, 'Link not found');
         return;
     }
     const url = link.href;
     if (/https?:\/\/(?:sta\.sh|www\.deviantart\.com\/stash)\//.test(url)) {
-        G_check_log.log('Unable to download sta.sh thumbnails', element);
+        G_check_log.log(element, 'Unable to download sta.sh thumbnails');
         return;
     }
     const submission_id = /(?:\/|-)(\d+)(?:\?|#|$)/.exec(url)?.[1];
     if (!submission_id) {
-        G_check_log.log('Submission not found for', element);
+        G_check_log.log(element, 'Submission not found');
         return;
     }
     const submission = parseInt(submission_id, 10);
     const user = url.split('/')[3] ?? page_user;
     if (!user) {
-        G_check_log.log('User not found for', element);
+        G_check_log.log(element, 'User not found');
         return;
     }
     const parent = navigateUpSmaller(link);
@@ -184,10 +184,12 @@ function checkDeviantartThumbnails(page_user) {
 function checkDeviantartSubmissionPage(url, user) {
     const stage = document.querySelector('header + div > div > div > div > :nth-child(2)');
     if (!stage) {
+        G_check_log.log('Submission page:', 'User not found');
         return;
     }
     const submission_id = /(?:\/|-)(\d+)(?:\?|#|$)/.exec(url)?.[1];
     if (!submission_id) {
+        G_check_log.log('Submission page:', 'Submission ID not found in url');
         return;
     }
     const info = {
@@ -320,7 +322,8 @@ async function getDeviantartFileData(obj, submission_meta, options, progress) {
         };
     }
     else if (type === 'literature') {
-        const download = await getLiterature(options.literature, obj, { ...submission_meta, ...meta }, options, progress);
+        progress.message('Getting literature');
+        const download = await getDeviantartLiterature(options.literature, obj, { ...submission_meta, ...meta }, options);
         info = { download };
         meta.ext = options.literature;
         return { info, meta };
@@ -476,7 +479,7 @@ function buildMediaUrl(media_obj) {
     types.sort((a, b) => (b.f ?? 0) - (a.f ?? 0));
     const media = types[0];
     const uri = media_obj.baseUri;
-    let media_url = media.t === 'fullview' ? (media.c ? `${uri}${media.c}` : uri) : media.s ?? media.b;
+    let media_url = media.t === 'fullview' ? (media.c ? `${uri}${media.c}` : uri) : (media.s ?? media.b);
     if (!media_url) {
         throw new Error('Unable to find download URL');
     }
@@ -690,8 +693,7 @@ function deviantartFileName(title, user_id, submission_id) {
 //---------------------------------------------------------------------------------------------------------------------
 // literature conversion
 //---------------------------------------------------------------------------------------------------------------------
-async function getLiterature(type, obj, meta, options, progress) {
-    progress.message('Getting literature');
+async function getDeviantartLiterature(type, obj, meta, options) {
     const url = obj.deviation.url;
     const response = await fetchOk(url, { credentials: 'include' });
     const dom = await response.dom();
@@ -699,12 +701,14 @@ async function getLiterature(type, obj, meta, options, progress) {
     if (!story_element) {
         throw new Error('Story element not found');
     }
-    let story = cleanContent(story_element);
+    const story = cleanDeviantartLiterature(story_element);
     story.id = 'content';
     const decription_element = dom.querySelector('#description > div > div, [role=complementary] + div .legacy-journal, main > div > div > div:only-child > div:not([class]) > div');
-    let description = decription_element ? cleanContent(decription_element) : document.createElement('section');
+    const description = decription_element
+        ? cleanDeviantartLiterature(decription_element)
+        : document.createElement('section');
     description.id = 'description';
-    const story_text = getElementText(story);
+    const story_text = getDeviantartLiteratureText(story);
     const word_count = wordCount(story_text);
     let template;
     let story_content;
@@ -719,9 +723,10 @@ async function getLiterature(type, obj, meta, options, progress) {
                 story.prepend(img);
             }
         }
-        // make sure images in the story are all full quality
-        story = await upgradeContentImages(story, options.embedImages);
-        description = await upgradeContentImages(description, options.embedImages);
+        if (options.embedImages) {
+            await embedImages(story);
+            await embedImages(description);
+        }
         template = options.literatureHTML;
         story_content = story.outerHTML;
         description_content = description.outerHTML;
@@ -729,7 +734,7 @@ async function getLiterature(type, obj, meta, options, progress) {
     else {
         template = options.literatureText;
         story_content = story_text;
-        description_content = getElementText(description);
+        description_content = getDeviantartLiteratureText(description);
     }
     const story_meta = {
         story: story_content,
@@ -742,32 +747,11 @@ async function getLiterature(type, obj, meta, options, progress) {
     return new Blob([file_text], { type: `text/${type}` });
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function getImageIcon(url) {
-    const params = new URLSearchParams({
-        url,
-        format: 'json',
-    });
-    const response = await fetchWorkerOk(`https://backend.deviantart.com/oembed?${params}`);
-    const oembed = await response.json();
-    return oembed.fullsize_url;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function cleanContent(element) {
+function cleanDeviantartLiterature(element) {
     // simplify thumbnail journal links
-    element.querySelectorAll('a.lit').forEach((a) => a.replaceChildren(a.href));
-    element = DOMPurify.sanitize(element, {
-        IN_PLACE: true,
-        FORBID_TAGS: ['style'],
-        FORBID_ATTR: ['id', 'class', 'style', 'srcset'],
-        ALLOW_DATA_ATTR: false,
-    });
-    // remove unnecessary div and span elements
-    for (const elem of element.querySelectorAll('div, span')) {
-        if (elem.attributes.length <= 0) {
-            elem.before(...elem.childNodes);
-            elem.parentElement?.removeChild(elem);
-        }
-    }
+    element
+        .querySelectorAll(`figure[data-deviation*='type":"literature'] a`)
+        .forEach((a) => a.replaceChildren(a.href));
     // deviantart treats paragraphs like line breaks
     // combine paragraphs
     if (element.matches('.da-editor-journal div') && element.firstElementChild) {
@@ -783,145 +767,26 @@ function cleanContent(element) {
             }
         }
     }
-    element.normalize();
-    elementClean(element);
-    // remove double spacing
-    for (const elem of element.querySelectorAll('p + br + p, p + br + br')) {
-        const spacer = elem.previousElementSibling;
-        spacer?.parentElement?.removeChild(spacer);
-    }
-    // remove empty paragraphs
-    for (const elem of element.querySelectorAll('p')) {
-        if (!elem.firstChild) {
-            elem.parentElement?.removeChild(elem);
-        }
-    }
-    return element;
+    const section = document.createElement('section');
+    section.replaceChildren(...element.childNodes);
+    return cleanWriting(section, ['id', 'class', 'style', 'srcset']);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function elementClean(element) {
-    // split text nodes into paragraphs
-    const block_node_names = [
-        'ADDRESS',
-        'ARTICLE',
-        'ASIDE',
-        'BLOCKQUOTE',
-        'DETAILS',
-        'DIV',
-        'DL',
-        'FIELDSET',
-        'FIGCAPTION',
-        'FIGURE',
-        'FOOTER',
-        'FORM',
-        'H1',
-        'H2',
-        'H3',
-        'H4',
-        'H5',
-        'H6',
-        'HEADER',
-        'HGROUP',
-        'HR',
-        'MAIN',
-        'MENU',
-        'NAV',
-        'OL',
-        'P',
-        'PRE',
-        'SEARCH',
-        'SECTION',
-        'TABLE',
-        'UL',
-    ];
-    let child = element.firstChild;
-    const div = document.createElement('div');
-    let p = document.createElement('p');
-    let addP = () => {
-        while (p.lastChild?.nodeName === 'BR') {
-            p.removeChild(p.lastChild);
-        }
-        if (p.hasChildNodes()) {
-            div.append(p);
-            p = document.createElement('p');
-        }
-    };
-    while (child) {
-        const type = child.nodeName;
-        const next = child.nextSibling;
-        if (!p.hasChildNodes() && type === 'BR') {
-            child = next;
-            continue;
-        }
-        let has_breaks = child.querySelector?.('br');
-        if (block_node_names.includes(type) || has_breaks) {
-            addP();
-            if (child.nodeName === 'P') {
-                div.append(...elementClean(child).childNodes);
-            }
-            else if (has_breaks) {
-                div.append(elementClean(child));
-            }
-            else {
-                div.append(child);
-            }
-            child = next;
-            continue;
-        }
-        p.append(child);
-        if (p.lastChild?.nodeName === 'BR' && p.lastChild?.previousSibling?.nodeName === 'BR') {
-            addP();
-        }
-        child = next;
-    }
-    addP();
-    element.replaceChildren(...div.childNodes);
-    return element;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function upgradeContentImages(content, embed) {
-    for (const img of content.querySelectorAll('img')) {
-        let url = img.src;
-        const reg = /.+\w{12}\.\w+/.exec(url);
-        if (reg) {
-            url = reg[0];
-        }
-        // convert images to data urls
-        img.src = embed ? await urlToDataUrl(url) : url;
-    }
-    return content;
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function urlToDataUrl(url) {
-    const response = await fetchWorkerOk(url);
-    return await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.addEventListener('load', function (data) {
-            resolve(data.target?.result);
-        });
-        reader.readAsDataURL(response.body);
-    });
-}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function getElementText(element) {
+function getDeviantartLiteratureText(element) {
     element = document.importNode(element, true);
-    element.querySelectorAll('li').forEach((li) => li.prepend('  ●  '));
     for (const a of element.querySelectorAll('a')) {
         a.href = a.href.replace(/https?:\/\/www\.deviantart\.com\/users\/outgoing\?/g, '');
         a.textContent = a.href;
     }
-    const renderer = document.createElement('div');
-    renderer?.classList.add('artsaver-text-render');
-    renderer.append(...element.childNodes);
-    document.body.append(renderer);
-    let text = renderer.innerText;
-    // fix for lists
-    text = text.replaceAll('  ●  \n\n', '  ●  ');
-    renderer.parentElement?.removeChild(renderer);
-    return text;
+    return getElementText(element);
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function wordCount(text) {
-    // https://www.regular-expressions.info/unicode.html#category
-    return text.replace(/[^\p{L}\s]+/gu, '').match(/\p{L}+/gu)?.length ?? 0;
+async function getImageIcon(url) {
+    const params = new URLSearchParams({
+        url,
+        format: 'json',
+    });
+    const response = await fetchWorkerOk(`https://backend.deviantart.com/oembed?${params}`);
+    const oembed = await response.json();
+    return oembed.fullsize_url;
 }

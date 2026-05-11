@@ -114,12 +114,12 @@ function checkPixivPage(page_user) {
 function checkPixivThumbnail(element, page_user) {
     const link = element.querySelector('a[href*="/artworks/"]');
     if (!link) {
-        G_check_log.log('Link not found for', element);
+        G_check_log.log(element, 'Link not found');
         return;
     }
     const submission_id = /\/(\d+)$/.exec(link.href)?.[1];
     if (!submission_id) {
-        G_check_log.log('Submission not found for', element);
+        G_check_log.log(element, 'Submission not found');
         return;
     }
     const submission = parseInt(submission_id, 10);
@@ -139,7 +139,7 @@ function checkPixivThumbnail(element, page_user) {
     }
     const user = /\/(\d+)/.exec(user_link?.href ?? '')?.[1] ?? page_user;
     if (!user) {
-        G_check_log.log('User not found for', element);
+        G_check_log.log(element, 'User not found');
         return;
     }
     const parent = navigateUpSmaller(link);
@@ -150,10 +150,12 @@ function checkPixivThumbnail(element, page_user) {
 function checkPixivSubmissionPage(url, user) {
     const figure = document.querySelector('figure > [role=presentation]')?.parentElement;
     if (!figure) {
+        G_check_log.log('Submission page:', 'Media element not found');
         return;
     }
     const submission_id = /\/(\d+)$/.exec(url)?.[1];
     if (!submission_id) {
+        G_check_log.log('Submission page:', `Unexpected submission url ${url}`);
         return;
     }
     const info = {

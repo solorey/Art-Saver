@@ -35,16 +35,6 @@ button:active,
   background-color: var(--color-active, var(--color-3));
 }
 
-.border-grid {
-  display: grid;
-  gap: 1px;
-  background-color: var(--color-3);
-}
-:where(.border-grid > *) {
-  background-color: var(--color-1);
-  border: none;
-}
-
 .hide {
   display: none !important;
 }

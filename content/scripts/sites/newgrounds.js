@@ -102,12 +102,12 @@ function checkNewgroundsPage(page_user) {
 function checkNewgroundsArtThumbnail(element) {
     const href = element.href;
     if (!href) {
-        G_check_log.log('Link not found for', element);
+        G_check_log.log(element, 'Link not found');
         return;
     }
     const submission = newgroundsUrlToSubmission(href);
     if (!submission) {
-        G_check_log.log('Submission not found for', element);
+        G_check_log.log(element, 'Submission not found');
         return;
     }
     const user = pathComponents(href)[2];
@@ -123,12 +123,12 @@ function checkNewgroundsPortalThumbnail(element, page_user) {
     const href = element.href ??
         element.querySelector('a[href*="/portal/view/"]')?.href;
     if (!href) {
-        G_check_log.log('Link not found for', element);
+        G_check_log.log(element, 'Link not found');
         return;
     }
     const submission = newgroundsUrlToSubmission(href);
     if (!submission) {
-        G_check_log.log('Submission not found for', element);
+        G_check_log.log(element, 'Submission not found');
         return;
     }
     const user = element.querySelector('.item-details > span:nth-of-type(2)')?.textContent ??
@@ -147,12 +147,12 @@ function checkNewgroundsPortalThumbnail(element, page_user) {
 function checkNewgroundsAudioThumbnail(element, page_user) {
     const href = element.querySelector('a[href*="/audio/listen/"]')?.href;
     if (!href) {
-        G_check_log.log('Link not found for', element);
+        G_check_log.log(element, 'Link not found');
         return;
     }
     const submission = newgroundsUrlToSubmission(href);
     if (!submission) {
-        G_check_log.log('Submission not found for', element);
+        G_check_log.log(element, 'Submission not found');
         return;
     }
     const user = element.querySelector('.item-author')?.href.split('//')[1].split('.')[0] ??
@@ -183,11 +183,13 @@ function checkNewgroundsSubmissionPage(url, user) {
         document.querySelector('#embed_podcontent') ??
         document.querySelector('#ng-global-video-player[style]');
     if (!content) {
+        G_check_log.log('Submission page:', 'Media element not found');
         return;
     }
     content.style.setProperty('--as-z-index', '101');
     const submission = newgroundsUrlToSubmission(url);
     if (!submission) {
+        G_check_log.log('Submission page:', `Unexpected submission url ${url}`);
         return;
     }
     const info = {
@@ -335,8 +337,7 @@ async function getNewgroundsArtFileDatas(dom) {
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function getNewgroundsAudioFileData(dom) {
-    const script_text = dom.querySelector('#audio_player_embed ~ script:nth-of-type(3)')
-        ?.textContent;
+    const script_text = dom.querySelector('#audio_player_embed ~ script:nth-of-type(3)')?.textContent;
     const audio_data = /\snew\sembedController\(\[{"url":(".+?")/.exec(script_text ?? '')?.[1];
     if (!audio_data) {
         throw new Error('Audio data not found');
@@ -347,8 +348,7 @@ function getNewgroundsAudioFileData(dom) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function getNewgroundsMovieFileData(dom, submission_meta) {
     if (!dom.querySelector('#viewing_option_video')) {
-        const script_text = dom.querySelector('#submission_url + script + script:not([src])')
-            ?.textContent;
+        const script_text = dom.querySelector('#submission_url + script + script:not([src])')?.textContent;
         const swf_data = /\snew\sembedController\(\[{"url":(".+?")/.exec(script_text ?? '')?.[1];
         if (swf_data) {
             const url = JSON.parse(swf_data);

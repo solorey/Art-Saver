@@ -24,13 +24,14 @@
             <div class="error-row">
                 <div class="error-label" data-label></div>
                 <a
-                    class="error-link row-link clickable"
+                    class="row-link clickable"
                     data-flat-icon="12-image"
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Open submission page"
                     data-link
                 ></a>
+                <button class="row-link" data-flat-icon="12-reset" title="Retry downloading" data-retry></button>
             </div>
         </div>
     </template>
@@ -51,7 +52,10 @@
     </div>
     <div id="errors" class="list-box hide">
         <div id="list-errors" class="list list-errors"></div>
-        <div class="list-bar">Errors</div>
+        <div class="list-bar">
+            Errors
+            <button id="errors-retry" class="errors-retry row-link" data-flat-icon="12-reset">Retry all</button>
+        </div>
     </div>
     <div id="stat-bar" class="stat-bar">
         <button id="collapse" class="collapse" data-flat-icon="16-collapse"></button>

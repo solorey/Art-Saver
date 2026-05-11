@@ -92,6 +92,12 @@ const global_form = {
         default: 0,
         related: [{ option: 'useQueue', value: true }],
     },
+    retryCount: {
+        type: 'number',
+        label: 'Download retry count',
+        min: 0,
+        default: 0,
+    },
     shortcutDownload: {
         type: 'shortcut',
         label: 'Download hovered submission',

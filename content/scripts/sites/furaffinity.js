@@ -127,7 +127,6 @@ function checkFuraffinityPage(page_user) {
         if (!preview_link) {
             continue;
         }
-        preview_link.style.position = 'relative';
         checkFuraffinityThumbnail(section_body, page_user);
     }
 }
@@ -135,14 +134,14 @@ function checkFuraffinityPage(page_user) {
 function checkFuraffinityThumbnail(element, page_user) {
     const link = element.querySelector('a[href*="/view/"]');
     if (!link) {
-        G_check_log.log('Link not found for', element);
+        G_check_log.log(element, 'Link not found');
         return;
     }
     const submission = parseInt(link.href.split('/')[4], 10);
     const user_link = element.querySelector('a[href*="/user/"]');
     const user = user_link?.href.split('/')[4] ?? page_user;
     if (!user) {
-        G_check_log.log('User not found for', element);
+        G_check_log.log(element, 'User not found');
         return;
     }
     const parent = navigateUpSmaller(link);
@@ -183,29 +182,19 @@ function checkFuraffinityUserFavorites() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function checkFuraffinitySubmissionPage(url, user) {
     const is_modern_layout = isFuraffinityModernLayout();
-    const submission_img = document.querySelector('img#submissionImg');
-    if (!submission_img) {
+    const submission_area = is_modern_layout
+        ? document.querySelector('.submission-area')
+        : document.querySelector('#submissionImg')?.parentElement;
+    if (!submission_area) {
+        G_check_log.log('Submission page:', 'Media element not found');
         return;
-    }
-    const is_story_image = submission_img.classList.contains('imgresizer');
-    const wrapper = wrapElement(submission_img);
-    if (is_modern_layout && is_story_image) {
-        wrapper.style.margin = '10px 0';
-        wrapper.style.display = 'inline-block';
-        submission_img.style.margin = '0';
-    }
-    else if (!is_modern_layout) {
-        // 99% plus padding and border
-        wrapper.style.maxWidth = 'calc(99% + 6px)';
-        submission_img.style.maxWidth = '100%';
-        submission_img.style.boxSizing = 'border-box';
     }
     const info = {
         site: furaffinity_info.site,
         user,
         submission: parseInt(url.split('/')[4], 10),
     };
-    createButton(info, wrapper, { screen: false });
+    createButton(info, submission_area, { screen: false });
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
@@ -231,7 +220,7 @@ function getFuraffinitySubmissionData(submission, dom) {
     }
     const is_modern_layout = isFuraffinityModernLayout(dom);
     const user_name = dom.querySelector(is_modern_layout
-        ? '.submission-id-sub-container .c-usernameBlockSimple__displayName'
+        ? '.submission-description-artist .c-usernameBlockSimple__displayName'
         : '.information .c-usernameBlockSimple__displayName')?.textContent;
     if (!user_name) {
         throw new Error('User name not found');
@@ -247,7 +236,7 @@ function getFuraffinitySubmissionData(submission, dom) {
     }
     const file_id = regex_result[4] || regex_result[5] || regex_result[2];
     const date_time = timeParse(parseInt(`${file_id}000`, 10));
-    const title_element = dom.querySelector(is_modern_layout ? '.submission-title p' : 'div.classic-submission-title > h2');
+    const title_element = dom.querySelector(is_modern_layout ? '.submission-title h2' : 'div.classic-submission-title > h2');
     if (!title_element) {
         throw new Error('Title element not found');
     }

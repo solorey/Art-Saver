@@ -101,13 +101,13 @@ var getPageInfo = async function () {
     let has_user = false;
     let user;
     const canonical = document.querySelector('link[rel="canonical"]')?.href.split('/')[3];
-    if (document.querySelector('script[data-testid^="UserProfileSchema"]')) {
-        page = 'user';
+    if (/\.com\/(?:\w+|i\/web)\/status\/\d+/.test(url)) {
+        page = 'submission';
         has_user = true;
         user = canonical;
     }
-    else if (/\.com\/(?:\w+|i\/web)\/status\/\d+/.test(url)) {
-        page = 'submission';
+    else if (document.querySelector('script[data-testid^="UserProfileSchema"]')) {
+        page = 'user';
         has_user = true;
         user = canonical;
     }
@@ -198,6 +198,10 @@ var startChecking = async function () {
 };
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function checkTwitter() {
+    const page = await getPageInfo();
+    if (page.page === 'submission' && page.user && /\/(?:photo|video)\//.test(page.url)) {
+        checkTwitterSubmissionPage(page.url, page.user);
+    }
     checkTwitterPage();
     checkTwitterMediaGrid();
 }
@@ -221,24 +225,24 @@ function checkTwitterThumbnail(element) {
     const is_quote = element.matches('[tabindex="0"][role="link"]');
     const media_box = element.querySelector(is_quote ? ':scope > div > div:nth-of-type(3)' : ':scope [aria-labelledby] > div > div > div');
     if (!media_box) {
-        G_check_log.log('Tweet media not found for', element);
+        G_check_log.log(element, 'Tweet media not found');
         return;
     }
     // using status url does not guarantee correct user ID
     const user = element.querySelector('[tabindex="-1"] > [dir] > span')?.textContent?.slice(1);
     if (!user) {
-        G_check_log.log('User not found for', element);
+        G_check_log.log(element, 'User not found');
         return;
     }
     // include user to avoid 'From' credit status conflict
     const link = element.querySelector(`a[href*="${user}/status/"]`);
     if (!link) {
-        G_check_log.log('Link not found for', element);
+        G_check_log.log(element, 'Link not found');
         return;
     }
     const regex_result = /\/status\/(\d+)/.exec(link.href);
     if (!regex_result) {
-        G_check_log.log('Link does not match RegExp for', element);
+        G_check_log.log(element, 'Link does not match RegExp');
         return;
     }
     const submission = regex_result[1];
@@ -250,12 +254,12 @@ function checkTwitterMediaGrid() {
     for (const element of document.querySelectorAll('[data-testid="cellInnerDiv"] li')) {
         const link = element.querySelector('a[href*="/status/"]');
         if (!link) {
-            G_check_log.log('Link not found for', element);
+            G_check_log.log(element, 'Link not found');
             continue;
         }
         const regex_result = /\/([^\/]+)\/status\/(\d+)/.exec(link.href);
         if (!regex_result) {
-            G_check_log.log('Link does not match RegExp for', element);
+            G_check_log.log(element, 'Link does not match RegExp');
             continue;
         }
         const info = {
@@ -265,6 +269,27 @@ function checkTwitterMediaGrid() {
         };
         createButton(info, element);
     }
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// this is for adding a button to the media dialog
+function checkTwitterSubmissionPage(url, user) {
+    const media_element = 
+    // multiple
+    document.querySelector(':is([aria-labelledby="modal-header"], main) [aria-roledescription="carousel"]') ??
+        // single
+        document.querySelector(':is([aria-labelledby="modal-header"], main) [data-testid="swipe-to-dismiss"]');
+    if (!media_element) {
+        G_check_log.log('Submission page:', 'Media element not found');
+        return;
+    }
+    const regex_result = /\/status\/(\d+)/.exec(url);
+    if (!regex_result) {
+        G_check_log.log('Submission page:', `Unexpected submission url ${url}`);
+        return;
+    }
+    const submission = regex_result[1];
+    const info = { site: twitter_info.site, user, submission };
+    createButton(info, media_element, { screen: false });
 }
 //---------------------------------------------------------------------------------------------------------------------
 // main download function
