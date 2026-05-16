@@ -1,0 +1,16 @@
+{
+    "useTabs": false,
+    "tabWidth": 4,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "htmlWhitespaceSensitivity": "ignore",
+    "printWidth": 120,
+    "overrides": [
+        {
+            "files": "*.handlebars",
+            "options": {
+                "parser": "html"
+            }
+        }
+    ]
+}

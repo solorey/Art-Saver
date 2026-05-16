@@ -1,0 +1,346 @@
+@use 'sass:math';
+@use '../../base' as b;
+
+$corner-space: 8;
+$toggle-duration: 0.2s;
+
+.info-bar {
+    position: fixed;
+    inset: {
+        block-end: 0;
+        inline-start: b.uhem($corner-space);
+    }
+    inline-size: b.uhem(350);
+    box-shadow: b.$shadow;
+    overflow: hidden;
+    resize: inline;
+    opacity: 0;
+    display: block;
+    visibility: hidden;
+    transition: {
+        property: opacity, visibility, inset-block-end;
+        duration: $toggle-duration;
+        timing-function: ease-out;
+        behavior: allow-discrete;
+    }
+    background-color: var(--color-1);
+    border: none {
+        radius: b.uhem(3);
+    }
+
+    &.show {
+        opacity: 1;
+        visibility: visible;
+        inset-block-end: b.uhem($corner-space);
+    }
+}
+
+.stat-bar {
+    display: grid;
+    grid: {
+        template-columns: auto 1fr 1fr;
+        auto-flow: column;
+    }
+}
+
+.show-area {
+    $radius: 36;
+
+    position: fixed;
+    display: block;
+    inset: {
+        block-end: 0;
+        inline-start: b.uhem($corner-space - math.div($radius, 2));
+    }
+    inline-size: b.uhem($radius * 2);
+    block-size: b.uhem($radius);
+    border-start: {
+        start-radius: b.uhem($radius);
+        end-radius: b.uhem($radius);
+    }
+    overflow: hidden;
+    opacity: 0;
+    visibility: visible;
+    transition: {
+        property: visibility;
+        delay: $toggle-duration;
+    }
+
+    &:hover {
+        opacity: 1;
+    }
+
+    .show + & {
+        transition-delay: 0s;
+        visibility: hidden;
+    }
+}
+
+.show-tab {
+    position: relative;
+    inset-block-end: b.uhem(-20);
+    padding: {
+        block: b.uhem(3);
+        inline: b.uhem(9);
+    }
+    margin: auto;
+    scale: -1;
+    border: none {
+        end: {
+            start-radius: b.uhem(3);
+            end-radius: b.uhem(3);
+        }
+    }
+    opacity: 0.5;
+    box-shadow: b.$shadow;
+    transition: {
+        property: opacity, inset-block-end;
+        duration: 0.1s;
+        timing-function: ease-out;
+    }
+
+    &:hover {
+        inset-block-end: b.uhem(-14);
+        opacity: 1;
+    }
+}
+
+.collapse {
+    padding: {
+        block: b.uhem(3);
+        inline: b.uhem(9);
+    }
+    border: none;
+}
+
+.stat-block {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: b.uhem(6);
+    padding: {
+        block: b.uhem(3);
+        inline: b.uhem(9);
+    }
+    white-space: nowrap;
+    align-items: center;
+    text-align: start;
+    border: none {
+        inline-start: {
+            width: 1px;
+            style: solid;
+            color: var(--color-3);
+        }
+    }
+
+    &::before {
+        content: '▶';
+        font-size: b.uhem(10);
+        inline-size: 1.5ch;
+    }
+
+    &[data-open]::before {
+        content: '▲';
+    }
+}
+
+.stat-value {
+    inline-size: fit-content;
+    border-radius: b.uhem(3);
+    overflow: hidden;
+    padding: {
+        block: b.uhem(3);
+        inline: b.uhem(6);
+    }
+    font-family: monospace;
+    background-color: var(--color-2);
+}
+
+.switch {
+    @include b.p-switch(32, 18, 12, hem);
+
+    background-color: var(--color-3);
+
+    &:hover {
+        background-color: var(--color-4);
+    }
+}
+
+.list-box {
+    border-block-end: {
+        width: 1px;
+        style: solid;
+        color: var(--color-3);
+    }
+}
+
+.list {
+    overscroll-behavior: contain;
+    min-inline-size: 0;
+    max-block-size: 300px;
+    overflow-y: auto;
+
+    &:has(*) {
+        border-block-end: {
+            width: 1px;
+            style: solid;
+            color: var(--color-3);
+        }
+    }
+}
+
+.list-row {
+    display: flex;
+    white-space: nowrap;
+    padding-inline-end: b.uhem(9);
+
+    &:hover {
+        background-color: var(--color-2);
+    }
+}
+
+.list-row-error {
+    background-color: var(--color-1);
+    border-block-end: {
+        width: 1px;
+        style: solid;
+        color: var(--color-1);
+    }
+}
+
+.error-message {
+    background-color: var(--color-2);
+    padding: {
+        block: b.uhem(1);
+        inline: b.uhem(9);
+    }
+    min-inline-size: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+
+    .list-row-error:hover & {
+        background-color: var(--color-3);
+    }
+}
+
+.error-row {
+    display: flex;
+    white-space: nowrap;
+    padding-inline-end: b.uhem(9);
+
+    .list-row-error:hover & {
+        background-color: var(--color-2);
+    }
+}
+
+.error-label {
+    flex: 1;
+    padding: {
+        block: b.uhem(1);
+        inline-start: b.uhem(9);
+    }
+    transition: {
+        property: padding-inline-start;
+        duration: 0.2s;
+    }
+    min-inline-size: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+
+    .list-row-error:hover & {
+        padding-inline-start: b.uhem(15);
+    }
+}
+
+.errors-retry {
+    border-radius: b.uhem(3);
+    gap: b.uhem(6);
+}
+
+.row-label {
+    flex: 1;
+    padding: {
+        block: b.uhem(1);
+        inline-start: b.uhem(9);
+    }
+    transition: {
+        property: padding-inline-start;
+        duration: 0.2s;
+    }
+    min-inline-size: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+
+    .list-row:hover & {
+        padding-inline-start: b.uhem(15);
+    }
+}
+
+.row-link {
+    padding-inline: b.uhem(4);
+    border: none;
+}
+
+.bar-switch {
+    display: flex;
+    align-items: center;
+    gap: b.uhem(6);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.list-bar {
+    display: grid;
+    gap: b.uhem(6);
+    grid: {
+        template-columns: auto 1fr;
+        auto-flow: column;
+    }
+    padding: {
+        block: b.uhem(3);
+        inline: b.uhem(6);
+    }
+    background-color: var(--color-2);
+    align-items: center;
+
+    &::before {
+        content: '▲';
+        font-size: b.uhem(10);
+        inline-size: 1.5ch;
+    }
+}
+
+.queue {
+    padding: {
+        block: b.uhem(3);
+        inline: b.uhem(6);
+    }
+    display: flex;
+    flex-direction: column;
+    gap: b.uhem(3);
+    background-color: var(--color-2);
+    border-block-start: {
+        width: 1px;
+        style: solid;
+        color: var(--color-3);
+    }
+}
+
+.queue-stats {
+    display: flex;
+    white-space: nowrap;
+    justify-content: space-evenly;
+    min-inline-size: min-content;
+    gap: b.uhem(6);
+}
+
+.progress {
+    position: relative;
+}
+
+.folder-path {
+    display: none;
+
+    .show-folders & {
+        display: initial;
+    }
+}

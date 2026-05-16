@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "noUnusedLocals": true,
+        "noEmit": true,
+        "target": "esnext",
+        "module": "nodenext",
+        "rewriteRelativeImportExtensions": true,
+        "erasableSyntaxOnly": true,
+        "verbatimModuleSyntax": true,
+        "types": ["node"]
+    },
+    "include": ["build.ts"]
+}

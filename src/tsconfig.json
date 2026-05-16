@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "removeComments": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "rootDir": "./",
+        "outDir": "../dist"
+    }
+}

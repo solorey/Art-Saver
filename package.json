@@ -1,0 +1,41 @@
+{
+    "name": "art-saver",
+    "version": "2.8.0",
+    "description": "A WebExtension to download and track downloads in supported art gallery websites.",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "format": "prettier --write .",
+        "build:ts": "tsc --project ./src/tsconfig.json",
+        "build:scss": "sass ./src/:dist --no-source-map",
+        "build": "node ./build.ts && npm run build:ts && npm run build:scss",
+        "cleanbuild": "node ./build.ts --clean && npm run build:ts && npm run build:scss",
+        "test": "web-ext run -s ./dist/ --start-url about:debugging#addons",
+        "zip": "web-ext build -s ./dist/ -o",
+        "pack": "npm run build && npm run zip",
+        "cleanpack": "npm run cleanbuild && npm run zip"
+    },
+    "author": "solorey",
+    "license": "GPL-3.0",
+    "engines": {
+        "node": ">=25",
+        "npm": ">=11"
+    },
+    "homepage": "https://github.com/solorey/Art-Saver",
+    "bugs": {
+        "url": "https://github.com/solorey/Art-Saver/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/solorey/Art-Saver.git"
+    },
+    "devDependencies": {
+        "@types/node": "^25.7.0",
+        "@types/webextension-polyfill": "^0.12.5",
+        "handlebars": "^4.7.9",
+        "prettier": "^3.8.3",
+        "sass": "^1.99.0",
+        "typescript": "^6.0.3",
+        "web-ext": "^10.1.0"
+    }
+}

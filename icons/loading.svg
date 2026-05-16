@@ -1,22 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <svg version="1.1" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
- <circle cx="8" cy="8" r="8" fill="#b3b3b3"/>
- <g transform="matrix(-1 0 0 1 0 -118.03)" fill="#fff">
-  <rect x="-9" y="119.03" width="2" height="4" ry="1"/>
-  <rect x="-9" y="129.03" width="2" height="4" ry="1" opacity=".4"/>
- </g>
- <g transform="matrix(-.86603 .49999 .50001 .86602 0 -118.03)" fill="#fff">
-  <rect x="55.088" y="106.15" width="2" height="4" ry="1" opacity=".9"/>
-  <rect x="55.088" y="116.15" width="2" height="4" ry="1" opacity=".3"/>
- </g>
- <g transform="matrix(-.50001 .86602 .86603 .49999 0 -118.03)" fill="#fff">
-  <rect x="104.15" y="62.944" width="2" height="4" ry="1" opacity=".8"/>
-  <rect x="104.15" y="72.944" width="2" height="4" ry="1" opacity=".2"/>
- </g>
- <g transform="matrix(0 1 1 0 0 -118.03)" fill="#fff">
-  <rect x="125.03" y="1" width="2" height="4" ry="1" opacity=".7"/>
-  <rect x="125.03" y="11" width="2" height="4" ry="1" opacity=".1"/>
- </g>
- <rect transform="matrix(.50001 .86602 .86603 -.49999 0 -118.03)" x="112.15" y="-63.088" width="2" height="4" ry="1" fill="#fff" opacity=".6"/>
- <rect transform="matrix(.86603 .49999 .50001 -.86602 0 -118.03)" x="68.945" y="-112.15" width="2" height="4" ry="1" fill="#fff" opacity=".5"/>
+    <circle cx="8" cy="8" r="8" fill="#b3b3b3" />
+    <g transform="matrix(-1 0 0 1 0 -118.03)" fill="#fff">
+        <rect x="-9" y="119.03" width="2" height="4" ry="1" />
+        <rect x="-9" y="129.03" width="2" height="4" ry="1" opacity=".4" />
+    </g>
+    <g transform="matrix(-.86603 .49999 .50001 .86602 0 -118.03)" fill="#fff">
+        <rect x="55.088" y="106.15" width="2" height="4" ry="1" opacity=".9" />
+        <rect x="55.088" y="116.15" width="2" height="4" ry="1" opacity=".3" />
+    </g>
+    <g transform="matrix(-.50001 .86602 .86603 .49999 0 -118.03)" fill="#fff">
+        <rect x="104.15" y="62.944" width="2" height="4" ry="1" opacity=".8" />
+        <rect x="104.15" y="72.944" width="2" height="4" ry="1" opacity=".2" />
+    </g>
+    <g transform="matrix(0 1 1 0 0 -118.03)" fill="#fff">
+        <rect x="125.03" y="1" width="2" height="4" ry="1" opacity=".7" />
+        <rect x="125.03" y="11" width="2" height="4" ry="1" opacity=".1" />
+    </g>
+    <rect transform="matrix(.50001 .86602 .86603 -.49999 0 -118.03)" x="112.15" y="-63.088" width="2" height="4" ry="1"
+        fill="#fff" opacity=".6" />
+    <rect transform="matrix(.86603 .49999 .50001 -.86602 0 -118.03)" x="68.945" y="-112.15" width="2" height="4" ry="1"
+        fill="#fff" opacity=".5" />
 </svg>

@@ -1,0 +1,92 @@
+// options, popup, content ui
+
+@use '../base' as b;
+@use 'sass:math';
+
+@function color-shade($color, $shade) {
+    $step: 0.06;
+    @if $shade == 0 {
+        @return $color;
+    } @else {
+        $offset: $step * $shade;
+        $l: null;
+        @if $offset > 0 {
+            $l: calc(l - #{$offset});
+        } @else {
+            $l: calc(l + #{math.abs($offset)});
+        }
+        @return oklch(from #{$color} clamp(0, #{$l}, 1) c h);
+    }
+}
+
+@mixin color-shades($name, $shades) {
+    @for $i from 0 to $shades * 2 + 1 {
+        $shade: $i - $shades;
+        --color-#{$name}-#{$i + 1}: #{color-shade(var(--color-#{$name}), $shade)};
+    }
+}
+
+@mixin color-light-dark($name, $shades) {
+    @for $i from 0 to $shades * 2 + 1 {
+        $shade: $i - $shades;
+        --color-#{$name}-#{$i + 1}: light-dark(
+            #{color-shade(var(--color-#{$name}-light), $shade)},
+            #{color-shade(var(--color-#{$name}-dark), -$shade)}
+        );
+    }
+}
+
+:root,
+:host {
+    // color gen sites
+    // https://oklch.com
+    // https://huetone.ardov.me/
+
+    --color-blue: oklch(58% 0.23 260);
+    --color-green: oklch(62% 0.25 142);
+
+    --color-warning: oklch(84% 0.1 85);
+    --color-warning-text: oklch(40% 0.1 85);
+
+    --color-progress: oklch(32% 0.01 290);
+    --color-progress-text: oklch(100% 0 0);
+
+    --color-base-light: oklch(88% 0.01 290);
+    --color-base-dark: oklch(32% 0.01 290);
+    --color-base-text: light-dark(oklch(0% 0 0), oklch(100% 0 0));
+
+    --color-error-light: oklch(78% 0.125 15);
+    --color-error-dark: oklch(40% 0.18 25);
+    --color-error-text: light-dark(oklch(28% 0.18 25), oklch(95% 0.125 15));
+
+    @include color-shades('blue', 2);
+    @include color-shades('green', 2);
+    @include color-shades('warning', 1);
+    @include color-light-dark('base', 2);
+    @include color-light-dark('error', 2);
+}
+
+.themed {
+    &[data-theme='light'] {
+        color-scheme: light;
+    }
+    &[data-theme='dark'] {
+        color-scheme: dark;
+    }
+    &[data-theme='preferred'] {
+        color-scheme: light dark;
+    }
+}
+
+@mixin colors($name, $n) {
+    .colors-#{$name} {
+        @for $i from 0 to $n {
+            --color-#{$i + 1}: var(--color-#{$name}-#{$i + 1});
+        }
+        --color-text: var(--color-#{$name}-text);
+    }
+}
+
+@include colors('base', 5);
+@include colors('error', 5);
+@include colors('warning', 3);

@@ -1,0 +1,120 @@
+@use '../../base' as b;
+
+:host {
+    > * {
+        z-index: var(--as-z-index, 1);
+    }
+}
+
+.invisible {
+    visibility: hidden;
+}
+
+.action-button {
+    position: absolute;
+    inset: {
+        block-start: 0;
+        inline-start: 0;
+    }
+    inline-size: var(--as-icon-size);
+    aspect-ratio: 1;
+    background: {
+        repeat: no-repeat;
+        color: transparent;
+        position: center;
+        size: cover;
+    }
+    border-width: 0;
+
+    &:not(:disabled) {
+        cursor: pointer;
+
+        &:hover {
+            background: {
+                color: rgba(255, 255, 255, 0.15);
+                blend-mode: hard-light;
+            }
+        }
+
+        &:active {
+            background: {
+                color: rgba(0, 0, 0, 0.25);
+                blend-mode: multiply;
+            }
+        }
+    }
+}
+
+.icon-check {
+    border-radius: var(--as-icon-size);
+
+    &[data-color='green'] {
+        background-image: var(--icon-check_green);
+    }
+
+    &[data-color='yellow'] {
+        background-image: var(--icon-check_yellow);
+    }
+
+    &:hover,
+    &:active {
+        background-image: var(--icon-remove);
+    }
+}
+
+.screen {
+    position: absolute;
+    inset: 0;
+    display: var(--as-screen-display, flex);
+    justify-content: center;
+    align-items: center;
+    background-color: gray;
+    opacity: var(--as-screen-opacity);
+    pointer-events: none;
+
+    &::after {
+        $scale: 80%;
+        $max-size: b.uhem(200);
+
+        content: '';
+        inline-size: $scale;
+        block-size: $scale;
+        max: {
+            inline-size: $max-size;
+            block-size: $max-size;
+        }
+        background-color: dimgray;
+        mask: {
+            image: var(--icon-16-check);
+            size: contain;
+            repeat: no-repeat;
+            position: center;
+        }
+    }
+}
+
+.icon-download {
+    border-radius: calc(var(--as-icon-size) * (3 / 16));
+    background-image: var(--icon-download);
+}
+
+.icon-remove {
+    border-radius: var(--as-icon-size);
+    background-image: var(--icon-remove);
+}
+
+.icon-error {
+    border-radius: calc(var(--as-icon-size) * (3 / 16));
+    background-image: var(--icon-error);
+}
+
+.icon-loading {
+    border-radius: var(--as-icon-size);
+    background-image: var(--icon-loading);
+    animation: {
+        name: rotation;
+        duration: 0.6s;
+        timing-function: steps(12);
+        iteration-count: infinite;
+    }
+}

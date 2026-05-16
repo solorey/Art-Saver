@@ -1,0 +1,7 @@
+libs/
+icons/
+dist/libs/
+dist/icons/
+local/
+web-ext-artifacts/
+package-lock.json

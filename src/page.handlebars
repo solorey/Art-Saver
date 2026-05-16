@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{{title}}</title>
+        <link rel="stylesheet" href="/styles/page.css" type="text/css" />
+        <link rel="stylesheet" href="/styles/colors.css" type="text/css" />
+        <link rel="stylesheet" href="/styles/common.css" type="text/css" />
+        <link rel="stylesheet" href="{{page}}.css" type="text/css" />
+        <script defer src="/scripts/storage.js"></script>
+        <script defer src="/scripts/templates.js"></script>
+        <script defer src="/scripts/virtual_list.js"></script>
+        {{#each scripts}}
+        <script defer src="/{{this}}"></script>
+        {{/each}}
+        <script defer src="/background/settings.js"></script>
+        <script defer src="{{page}}.js"></script>
+    </head>
+    <body class="themed colors-base" data-theme="preferred">
+        {{{body}}}
+    </body>
+</html>

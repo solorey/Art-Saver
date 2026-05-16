@@ -1,0 +1,95 @@
+// options, popup, content ui
+
+@use '../base' as b;
+
+:root,
+:host {
+    font: {
+        family: system-ui, sans-serif;
+        style: normal;
+        weight: normal;
+        size: 1px * b.$root-font-size;
+    }
+    line-height: normal;
+}
+
+*,
+::before,
+::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    color: var(--color-text);
+}
+
+:focus-visible {
+    z-index: 1;
+}
+
+button,
+.clickable {
+    cursor: pointer;
+    background-color: var(--color-initial, var(--color-1));
+
+    &:hover {
+        background-color: var(--color-hover, var(--color-2));
+    }
+
+    &:active {
+        background-color: var(--color-active, var(--color-3));
+    }
+}
+
+.hide {
+    display: none !important;
+}
+
+img {
+    display: block;
+}
+
+strong {
+    font-weight: bold;
+}
+
+code {
+    font-family: monospace;
+}
+
+[data-flat-icon] {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &::after {
+        content: '';
+        aspect-ratio: 1;
+        background-color: currentColor;
+        mask: {
+            size: contain;
+            repeat: no-repeat;
+            position: center;
+        }
+    }
+}
+
+@each $icon in b.$icons-12 {
+    [data-flat-icon='12-#{$icon}']::after {
+        mask-image: var(--icon-12-#{$icon});
+    }
+}
+@each $icon in b.$icons-16 {
+    [data-flat-icon='16-#{$icon}']::after {
+        mask-image: var(--icon-16-#{$icon});
+    }
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

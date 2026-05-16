@@ -1,0 +1,71 @@
+@use '../../base' as b;
+
+.tool-tip {
+    position: absolute;
+    border-radius: b.uhem(3);
+    overflow: hidden;
+    max-inline-size: 500px;
+    transition: 0.5s ease-in;
+    visibility: hidden;
+    opacity: 0;
+    background-color: var(--color-1);
+
+    &:hover,
+    &:active,
+    &.show {
+        transition: none;
+        visibility: visible;
+        opacity: 1;
+    }
+}
+
+.submission-tip {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    text-align: center;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: span 3;
+
+    > * {
+        padding: {
+            inline: b.uhem(4);
+            block: b.uhem(2);
+        }
+    }
+}
+
+.user-row {
+    border-block-end: {
+        width: 1px;
+        style: solid;
+        color: var(--color-3);
+    }
+}
+
+.label {
+    background-color: var(--color-2);
+}
+
+.value {
+    font-family: monospace;
+}
+
+.submission-value {
+    grid-column: span 2;
+}
+
+.user-link {
+    text-decoration: none;
+}
+
+.error-tip {
+    background-color: var(--color-1);
+    padding: {
+        inline: b.uhem(4);
+        block: b.uhem(1);
+    }
+}

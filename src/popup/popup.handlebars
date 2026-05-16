@@ -1,0 +1,274 @@
+<template id="user-row-template">
+    <div class="list-row" data-row>
+        <div class="row-label" data-label></div>
+        <a
+            class="row-link clickable"
+            data-flat-icon="12-home"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open user page"
+            data-user-link
+        ></a>
+        <a
+            class="row-link clickable"
+            data-flat-icon="12-gallery"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open gallery page"
+            data-gallery-link
+        ></a>
+        <a
+            class="row-link clickable"
+            data-flat-icon="12-star"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open favorites page"
+            data-favorites-link
+        ></a>
+    </div>
+</template>
+<template id="submission-row-template">
+    <div class="list-row" data-row>
+        <div class="row-label" data-label></div>
+        <a
+            class="row-link clickable"
+            data-flat-icon="12-image"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open submission page"
+            data-submission-link
+        ></a>
+    </div>
+</template>
+
+<header class="header">
+    <nav class="tabs">
+        <button
+            id="user-tab"
+            class="tab-button hide"
+            data-flat-icon="16-user"
+            data-tab="user"
+            title="User stats"
+        ></button>
+        <button
+            id="site-tab"
+            class="tab-button hide"
+            data-flat-icon="16-stats"
+            data-tab="site"
+            title="Page and Site stats"
+        ></button>
+        <button
+            id="about-tab"
+            class="tab-button"
+            data-flat-icon="16-addon"
+            data-tab="about"
+            title="About Art Saver"
+        ></button>
+        <button id="settings-tab" class="tab-button" data-flat-icon="16-gear" title="Go to options page"></button>
+    </nav>
+</header>
+<main class="main">
+    <section id="user-content" class="tab-content" data-tab-content>
+        <div id="user-loading" class="content-loading hide">
+            <img src="/icons/loading.svg" class="loading-icon" width="16" height="16" />
+            Getting user information...
+        </div>
+        <div id="user-error" class="content-error colors-warning hide">
+            Unable to get user information.
+            <hr class="line-break" />
+            <span id="user-error-message"></span>
+        </div>
+        <div id="user-info" class="content-info hide">
+            <div class="user-profile">
+                <div id="profile-cover" class="profile-cover">
+                    <img id="profile-image" class="profile-image" alt="Profile picture" />
+                    <h2 id="user-name" class="user-name"></h2>
+                    <div id="user-buttons" class="user-buttons">
+                        <a
+                            id="user-home"
+                            class="user-button clickable"
+                            data-flat-icon="12-home"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open user page"
+                        ></a>
+                        <a
+                            id="user-gallery"
+                            class="user-button clickable"
+                            data-flat-icon="12-gallery"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open gallery page"
+                        ></a>
+                        <a
+                            id="user-favorites"
+                            class="user-button clickable"
+                            data-flat-icon="12-star"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open favorites page"
+                        ></a>
+                        <button
+                            id="user-folder"
+                            class="user-button hide"
+                            data-flat-icon="12-folder"
+                            title="Open user folder"
+                        ></button>
+                    </div>
+                </div>
+                <div id="user-stats" class="user-stats">
+                    <div class="stat-header">User stats</div>
+                    <div id="user-stats-list" class="user-stats-list"></div>
+                </div>
+            </div>
+            <details id="user-saved" class="saved-details hide">
+                <summary class="saved-summary clickable">
+                    Saved
+                    <span id="user-saved-stat" class="stat-value">-</span>
+                </summary>
+                <search id="saved-list" class="search-box">
+                    <div class="search-controls" data-controls>
+                        <input class="search-input" type="search" placeholder="Search saved" data-search />
+                        <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                        <label class="search-flag clickable" data-flat-icon="16-match_case" title="Match case">
+                            <input type="checkbox" data-match-case />
+                        </label>
+                        <label class="search-flag clickable" data-flat-icon="16-match_whole" title="Match whole word">
+                            <input type="checkbox" data-match-whole />
+                        </label>
+                        <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                            <input type="checkbox" data-use-regex />
+                        </label>
+                        <button
+                            class="search-sort"
+                            data-flat-icon="16-ascend"
+                            title="Sorted by ascending"
+                            data-sort="ascend"
+                        ></button>
+                    </div>
+                    <div class="search-results" data-list></div>
+                </search>
+            </details>
+        </div>
+    </section>
+
+    <section id="site-content" class="tab-content" data-tab-content>
+        <div id="site-loading" class="content-loading hide">
+            <img src="/icons/loading.svg" class="loading-icon" width="16" height="16" />
+            Getting site information...
+        </div>
+        <div id="site-error" class="content-error colors-warning hide">
+            Unable to get site information.
+            <hr class="line-break" />
+            <span id="site-error-message"></span>
+        </div>
+        <div id="site-info" class="content-info hide">
+            <div class="stat-header">On current page</div>
+            <div id="page-stats" class="page-stats">
+                <button id="refresh" class="stat-colored-button green-stat">
+                    <span>Saved</span>
+                    <span>Refresh</span>
+                    <span id="saved-stat" class="stat-value">-</span>
+                </button>
+                <button id="download-all" class="stat-colored-button blue-stat">
+                    <span>Downloads</span>
+                    <span>Download all</span>
+                    <span id="downloads-stat" class="stat-value">-</span>
+                </button>
+            </div>
+            <div id="stats-site" class="stat-header stats-site">-</div>
+            <details id="users-details" class="saved-details">
+                <summary id="total-users" class="saved-summary clickable">
+                    Users saved
+                    <span id="users-stat-value" class="stat-value">-</span>
+                </summary>
+                <search id="user-list" class="search-box" data-users-info>
+                    <div class="search-controls" data-controls>
+                        <input class="search-input" type="search" placeholder="Search users" data-search />
+                        <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                        <label class="search-flag clickable" data-flat-icon="16-match_case" title="Match case">
+                            <input type="checkbox" data-match-case />
+                        </label>
+                        <label class="search-flag clickable" data-flat-icon="16-match_whole" title="Match whole word">
+                            <input type="checkbox" data-match-whole />
+                        </label>
+                        <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                            <input type="checkbox" data-use-regex />
+                        </label>
+                        <button
+                            class="search-sort"
+                            data-flat-icon="16-descend"
+                            title="Sorted by descending"
+                            data-sort="descend"
+                        ></button>
+                    </div>
+                    <div class="search-results" data-list></div>
+                </search>
+            </details>
+            <details id="submissions-details" class="saved-details">
+                <summary id="total-submissions" class="saved-summary clickable">
+                    Submissions saved
+                    <span id="submissions-stat-value" class="stat-value">-</span>
+                </summary>
+                <search id="submission-list" class="search-box" data-submissions-info>
+                    <div class="search-controls" data-controls>
+                        <input class="search-input" type="search" placeholder="Search submissions" data-search />
+                        <button class="search-clear" data-flat-icon="12-x" data-clear></button>
+                        <label class="search-flag clickable" data-flat-icon="16-match_case" title="Match case">
+                            <input type="checkbox" data-match-case />
+                        </label>
+                        <label class="search-flag clickable" data-flat-icon="16-match_whole" title="Match whole word">
+                            <input type="checkbox" data-match-whole />
+                        </label>
+                        <label class="search-flag clickable" data-flat-icon="16-regex" title="Use regex">
+                            <input type="checkbox" data-use-regex />
+                        </label>
+                        <button
+                            class="search-sort"
+                            data-flat-icon="16-ascend"
+                            title="Sorted by ascending"
+                            data-sort="ascend"
+                        ></button>
+                    </div>
+                    <div class="search-results" data-list></div>
+                </search>
+            </details>
+        </div>
+    </section>
+
+    <section id="about-content" class="tab-content" data-tab-content>
+        <header class="about-header">
+            <img class="about-icon" src="/icons/icon.svg" alt="" />
+            <h2 class="about-title">Art Saver</h2>
+        </header>
+        <div class="about-list">
+            <p>
+                <a
+                    id="version-number"
+                    class="about-link about-version"
+                    href="https://github.com/solorey/Art-Saver/releases"
+                ></a>
+            </p>
+            <p>
+                <a
+                    class="about-link"
+                    href="https://github.com/solorey/Art-Saver"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Github
+                </a>
+            </p>
+            <p>
+                <a
+                    class="about-link"
+                    href="https://github.com/solorey/Art-Saver/wiki"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Wiki
+                </a>
+            </p>
+        </div>
+    </section>
+</main>

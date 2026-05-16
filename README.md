@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://github.com/solorey/Art-Saver/blob/master/icons/icon.svg" height=128 width=128>
+<img src="./icons/icon.svg" height=128 width=128>
 </p>
 
 <h1 align="center">Art Saver</h1>
@@ -9,10 +9,10 @@ A Webextension to easily download art submissions directly from the thumbnail.
 ## How to use
 
 Simply hover over a thumbnail on any page of the website and click the download button.
-<img src="https://github.com/solorey/Art-Saver/blob/master/icons/download.svg" width=16 height=16>
+<img src="./icons/download.svg" width=16 height=16>
 
 Submissions that have already been downloaded will show a green checkmark.
-<img src="https://github.com/solorey/Art-Saver/blob/master/icons/check_green.svg" width=16 height=16>
+<img src="./icons/check_green.svg" width=16 height=16>
 
 Check the [Wiki][wiki] for additional information.
 
@@ -20,38 +20,55 @@ View the [Supported Sites][sites].
 
 ## Features
 
--   Custom filenames
--   Download full image resolution
--   Export and restore the information on what you saved
+- Custom filenames
+- Download full image resolution
+- Export and restore the information on what you saved
 
 ## FAQ
+
 ### How do I change the root download folder?
+
 For automatic downloading, the root download folder is limited to the browsers default downloads folder. This is set in `Settings > General > Files and Applications > save files to`.
 
 ## Download
 
 [![For Firefox][gta]][addon]
 
-## Install Temporarily
+## Developing
 
--   Download repository anywhere on your computer.
--   Enter `about:debugging` in the URL bar and click `This Firefox`.
--   Click `Load Temporary Add-on...` and select the `manifest.json` file.
+> Requirements: [Node.js 25][nodejs], npm 11
+
+1. Clone the repository `git clone https://github.com/solorey/Art-Saver`
+2. Run `npm run install`
+3. Run `npm run build`
+
+This will create the extension in a new `dist/` folder
+
+### Testing Methods
+
+#### 1. Using Temporary Installation
+
+1. Enter `about:debugging` in the URL bar and click `This Firefox`
+2. Click `Load Temporary Add-on...` and select the `dist/manifest.json` file
+
+#### 2. Using `web-ext`
+
+1. Run `npm run test` to load the built extension on a blank browser profile
 
 ## Credits
 
 Inspired by:
 
--   [Px Downloader][px]
--   [Raccoony][raccony]
+- [Px Downloader][px]
+- [Raccoony][raccony]
 
 Code used:
 
--   [UPNG.js][upng] : for APNG encoding
--   [UZIP.js][uzip] : for ZIP encoding
--   [gif.js][gif] : for GIF encoding
--   [Whammy][whammy] : for WebM encoding
--   [DOMPurify][dompurify]
+- [UPNG.js][upng] : for APNG encoding
+- [UZIP.js][uzip] : for ZIP encoding
+- [gif.js][gif] : for GIF encoding
+- [Whammy][whammy] : for WebM encoding
+- [DOMPurify][dompurify]
 
 [wiki]: https://github.com/solorey/Art-Saver/wiki
 [sites]: https://github.com/solorey/Art-Saver/wiki/Supported-Sites
@@ -64,3 +81,4 @@ Code used:
 [gif]: https://jnordberg.github.io/gif.js/
 [dompurify]: https://github.com/cure53/DOMPurify
 [whammy]: https://github.com/antimatter15/whammy
+[nodejs]: https://nodejs.org

@@ -1,0 +1,101 @@
+@use 'sass:math';
+
+//px
+$root-font-size: 12;
+
+$shadow: 0px 2px 5px#0000000e;
+
+@function urem($size) {
+    @return math.div(1rem, $root-font-size) * $size;
+}
+
+@function uhem($size) {
+    @if $size == $root-font-size {
+        @return var(--hem);
+    }
+    $factor: math.div(1, $root-font-size) * $size;
+    @return calc(var(--hem) * #{$factor});
+}
+
+@function unit($unit, $value) {
+    @if $unit == rem {
+        @return urem($value);
+    } @else if $unit == hem {
+        @return uhem($value);
+    }
+}
+
+$icons-12:
+    'file', 'folder', 'copy', 'download', 'upload', 'link', 'reset', 'user', 'home', 'gallery', 'image', 'star', 'x',
+    'selection';
+
+$icons-16:
+    'addon', 'stats', 'user', 'gear', 'check', 'collapse', 'descend', 'ascend', 'match_case', 'match_whole', 'regex';
+
+@mixin c-icon-widths($unit) {
+    @each $size in 12, 16 {
+        [data-flat-icon^='#{$size}']::after {
+            inline-size: unit($unit, $size);
+        }
+    }
+}
+
+@mixin p-switch($width, $height, $diameter, $unit) {
+    $space: math.div($height - $diameter, 2);
+
+    position: relative;
+    transition: {
+        property: background-color;
+        duration: 0.2s;
+    }
+    background-color: var(--color-2);
+    inline-size: unit($unit, $width);
+    block-size: unit($unit, $height);
+    border-radius: unit($unit, math.div($height, 2));
+
+    &:hover {
+        background-color: var(--color-3);
+    }
+
+    input:checked + & {
+        background-color: var(--color-blue-3);
+    }
+
+    label:hover input:checked + & {
+        background-color: var(--color-blue-2);
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        background-color: var(--color-1);
+        transition: {
+            property: inset-inline-start;
+            duration: 0.2s;
+        }
+        inline-size: unit($unit, $diameter);
+        aspect-ratio: 1;
+        inset: {
+            inline-start: unit($unit, $space);
+            block-end: unit($unit, $space);
+        }
+        border-radius: unit($unit, math.div($diameter, 2));
+    }
+
+    input:checked + &::after {
+        background-color: white;
+        inset-inline-start: unit($unit, $width - ($diameter + $space));
+    }
+}
+
+@mixin p-click-colors($initial, $hovered, $active, $name) {
+    @if $name {
+        --color-initial: var(--color-#{$name}-#{$initial});
+        --color-hover: var(--color-#{$name}-#{$hovered});
+        --color-active: var(--color-#{$name}-#{$active});
+    } @else {
+        --color-initial: var(--color-#{$initial});
+        --color-hover: var(--color-#{$hovered});
+        --color-active: var(--color-#{$active});
+    }
+}
