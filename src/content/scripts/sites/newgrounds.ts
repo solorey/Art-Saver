@@ -82,15 +82,8 @@ var getUserInfo = async (user: User) => {
 // main add checks and download buttons to image thumbnails
 //---------------------------------------------------------------------------------------------------------------------
 
-var startChecking = async () => {
-    const throttler = new FunctionThrottler(checkNewgrounds);
-
-    const observer = new MutationObserver(() => {
-        throttler.run();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    throttler.run();
+var startChecking = () => {
+    observeThrottle(checkNewgrounds);
 };
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

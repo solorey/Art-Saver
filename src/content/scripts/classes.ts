@@ -611,8 +611,8 @@ class ProgressController {
     message(message: string) {
         G_state_manager.updateState(this.submission, 'downloading', { message });
     }
-    width(width: number) {
-        G_state_manager.updateState(this.submission, 'downloading', { width });
+    width(percent: number) {
+        G_state_manager.updateState(this.submission, 'downloading', { width: percent });
     }
     start(message: string) {
         this.width(0);

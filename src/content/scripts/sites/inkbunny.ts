@@ -116,8 +116,8 @@ var getUserInfo = async (user: User) => {
 // main add checks and download buttons to image thumbnails
 //---------------------------------------------------------------------------------------------------------------------
 
-var startChecking = async () => {
-    await checkInkbunny();
+var startChecking = () => {
+    checkInkbunny();
 };
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

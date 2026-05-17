@@ -533,7 +533,7 @@ class OptionsForm {
                 let value = all_options[site]?.[key];
                 if (initialize_default) {
                     value ??= option.default;
-                } else if (typeof value === 'undefined') {
+                } else if (value == null) {
                     continue;
                 }
                 this.form[site][key].setValue(value);

@@ -9,7 +9,7 @@ var G_site_info: SiteInfo = twitter_info;
 // https://antibot.blog/posts/1741552092462
 // https://github.com/iSarabjitDhiman/XClientTransaction
 class XClient {
-    client_values: XClientValues | undefined;
+    client_values?: XClientValues;
     async getClientValues() {
         if (this.client_values) {
             return this.client_values;
@@ -238,15 +238,8 @@ var getUserInfo = async (user: User) => {
 // main add checks and download buttons to image thumbnails
 //---------------------------------------------------------------------------------------------------------------------
 
-var startChecking = async () => {
-    const throttler = new FunctionThrottler(checkTwitter);
-
-    const observer = new MutationObserver(() => {
-        throttler.run();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    throttler.run();
+var startChecking = () => {
+    observeThrottle(checkTwitter);
 };
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

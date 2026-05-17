@@ -455,6 +455,19 @@ async function pollElement<E extends Element = Element>(parent: ParentNode, sele
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+function observeThrottle(callbackfn: () => Promise<void>, wait_time?: number) {
+    const throttler = new FunctionThrottler(callbackfn, wait_time);
+
+    const observer = new MutationObserver(() => {
+        throttler.run();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    throttler.run();
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 async function timer(seconds: number) {
     if (seconds <= 0) {
         return;

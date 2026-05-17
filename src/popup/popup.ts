@@ -201,7 +201,7 @@ class PopupSiteTab {
         }
     }
     sendMessage(message: 'content_refresh' | 'content_download_all') {
-        if (typeof this.tab_id === 'undefined') {
+        if (this.tab_id == null) {
             return;
         }
         browser.tabs.sendMessage(this.tab_id, {
@@ -235,7 +235,7 @@ const G_popup_site_tab = new PopupSiteTab();
     });
     const tab_id = tabs[0].id;
     const site = findSupportedSite(tabs[0].url);
-    if (typeof tab_id === 'undefined' || !site) {
+    if (tab_id == null || !site) {
         return;
     }
     if (!(await getOptionsStorage(site)).enabled) {
@@ -423,7 +423,7 @@ function createPopupSubmissionRow(search: VirtualSearchResult) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function findSupportedSite(url: string | undefined) {
+function findSupportedSite(url?: string) {
     if (!url || !/^https?:\/\//.test(url)) {
         return;
     }
