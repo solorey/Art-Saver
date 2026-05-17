@@ -128,7 +128,7 @@ body {
 }
 
 .stat-colored-button {
-    --color-text: white;
+    --color-text: var(--color-base-text-light);
 
     cursor: pointer;
     display: grid;

@@ -21,7 +21,7 @@ $height: 16;
     overflow: hidden;
     inline-size: 100%;
     block-size: b.uhem($height);
-    background-color: var(--color-progress);
+    background-color: var(--color-base-dark);
 
     &::after {
         $stripe-color: rgba(255, 255, 255, 0.15);
@@ -65,7 +65,7 @@ $height: 16;
 }
 
 .progress-label {
-    --color-text: var(--color-progress-text);
+    --color-text: var(--color-base-text-light);
     text-align: end;
     white-space: nowrap;
     padding-inline: b.uhem(4);

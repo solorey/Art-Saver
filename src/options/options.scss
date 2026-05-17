@@ -909,7 +909,7 @@ form {
 }
 
 .blue-button {
-    --color-text: white;
+    --color-text: var(--color-base-text-light);
 
     @include b.p-click-colors(3, 2, 4, 'blue');
     @extend %side-button;
