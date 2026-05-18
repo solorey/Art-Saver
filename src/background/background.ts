@@ -39,7 +39,7 @@ async function getOrReconnectDB() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function findSubmission(info: SubmissionInfo) {
-    const request = (await getOrReconnectDB())
+    const request: IDBRequest<SubmissionInfo[]> = (await getOrReconnectDB())
         .transaction('submissions', 'readonly')
         .objectStore('submissions')
         .index('submission')
@@ -49,7 +49,7 @@ async function findSubmission(info: SubmissionInfo) {
             reject('Could not get from IndexedDB');
         };
         request.onsuccess = () => {
-            const submissions: SubmissionInfo[] = request.result;
+            const submissions = request.result;
             const same_site = submissions.filter((item) => item.site === info.site);
             resolve(same_site.find((item) => item.user === info.user) ?? same_site.shift());
         };
@@ -90,7 +90,7 @@ async function removeSubmission(site: Site, submission: Submission) {
         request.onsuccess = () => {
             const cursor = request.result;
             if (cursor) {
-                if (cursor.value.site === site) {
+                if ((cursor.value as SubmissionInfo).site === site) {
                     cursor.delete();
                 }
                 cursor.continue();
@@ -116,7 +116,7 @@ async function removeUser(site: Site, user: User) {
         request.onsuccess = () => {
             const cursor = request.result;
             if (cursor) {
-                if (cursor.value.site === site) {
+                if ((cursor.value as SubmissionInfo).site === site) {
                     cursor.delete();
                 }
                 cursor.continue();
@@ -163,13 +163,13 @@ function sortSiteSubmissions(site: Site, submissions: Submission[]) {
 
 async function getDBSiteValues(site: Site) {
     const store = (await getOrReconnectDB()).transaction('submissions', 'readonly').objectStore('submissions');
-    const request = store.index('site').getAll(site);
+    const request: IDBRequest<SubmissionInfo[]> = store.index('site').getAll(site);
     return await new Promise<{ users: User[]; submissions: Submission[] }>((resolve, reject) => {
         request.onerror = () => {
             reject('Could not get from IndexedDB');
         };
         request.onsuccess = () => {
-            const values: SubmissionInfo[] = request.result;
+            const values = request.result;
             const users = new Set<User>();
             const submissions = new Set<Submission>();
             for (const submission of values) {
@@ -188,13 +188,13 @@ async function getDBSiteValues(site: Site) {
 
 async function getDBUserValues(site: Site, user: User) {
     const store = (await getOrReconnectDB()).transaction('submissions', 'readonly').objectStore('submissions');
-    const request = store.index('user').getAll(user);
+    const request: IDBRequest<SubmissionInfo[]> = store.index('user').getAll(user);
     return await new Promise<{ submissions: Submission[] }>((resolve, reject) => {
         request.onerror = () => {
             reject('Could not get from IndexedDB');
         };
         request.onsuccess = () => {
-            const values: SubmissionInfo[] = request.result;
+            const values = request.result;
             const submissions = new Set<Submission>();
             for (const submission of values) {
                 if (submission.site === site) {
@@ -211,7 +211,7 @@ async function getDBUserValues(site: Site, user: User) {
 async function getDBAsJSON(site?: Site) {
     const saved_json: Partial<JsonSaved> = {};
     const store = (await getOrReconnectDB()).transaction('submissions', 'readonly').objectStore('submissions');
-    let request: IDBRequest<any[]>;
+    let request: IDBRequest<SubmissionInfo[]>;
     if (site) {
         request = store.index('site').getAll(site);
     } else {
@@ -222,7 +222,7 @@ async function getDBAsJSON(site?: Site) {
             reject('Could not get from IndexedDB');
         };
         request.onsuccess = () => {
-            const submissions: SubmissionInfo[] = request.result;
+            const submissions = request.result;
             for (const info of submissions) {
                 const site = saved_json[info.site] ?? {};
                 const user = site[info.user] ?? [];
@@ -587,7 +587,7 @@ async function setupOptionsStorage() {
         const options: OptionsValues = {};
         for (const [key, option] of Object.entries(SITES_AND_GLOBAL_FORMS[site])) {
             let value = stored_options[site]?.[key];
-            if (value != null) {
+            if (value == null) {
                 console.log(`New option ${site}.${key}`);
                 value = option.default;
             }

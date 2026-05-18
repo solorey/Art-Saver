@@ -273,7 +273,7 @@ function wrapElement(element: HTMLElement) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function navigateUpSmaller(element: HTMLElement) {
-    if (element.offsetParent === null) {
+    if (element.offsetParent == null) {
         return element;
     }
     let current = element;
