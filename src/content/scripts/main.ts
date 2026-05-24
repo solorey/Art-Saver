@@ -35,7 +35,7 @@ async function main() {
     document.addEventListener('keydown', onDocumentKeyEvent);
 
     asLog('info', `Checking ${G_site_info.label}`);
-    await startChecking();
+    startChecking();
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -273,7 +273,7 @@ function wrapElement(element: HTMLElement) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function navigateUpSmaller(element: HTMLElement) {
-    if (element.offsetParent == null) {
+    if (!element.offsetParent) {
         return element;
     }
     let current = element;
