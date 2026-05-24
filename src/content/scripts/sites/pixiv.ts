@@ -124,6 +124,11 @@ function checkPixivPage(page_user?: User) {
             checkPixivThumbnail(thumb, page_user);
         }
     }
+    for (const work of document.querySelectorAll<HTMLElement>(
+        '[data-ga4-entity-id^="manga/"], [data-ga4-entity-id^="illust/"]',
+    )) {
+        checkPixivWork(work);
+    }
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -163,6 +168,36 @@ function checkPixivThumbnail(element: HTMLElement, page_user?: User) {
     const parent = navigateUpSmaller(link);
     const info = { site: pixiv_info.site, user, submission };
     return createButton(info, parent);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function checkPixivWork(element: HTMLElement) {
+    const attr_data = element.getAttribute('data-cr-data');
+    if (!attr_data) {
+        G_check_log.log(element, 'Data attribute not found');
+        return;
+    }
+    const data: { cid?: number; aui?: number } = JSON.parse(attr_data);
+    const submission = data.cid;
+    if (!submission) {
+        G_check_log.log(element, 'Submission not found');
+        return;
+    }
+    const user = data.aui;
+    if (!user) {
+        G_check_log.log(element, 'User not found');
+        return;
+    }
+
+    const thumbail = element.querySelector<HTMLElement>(':scope > [data-ga4-label="thumbnail_link"]');
+    if (!thumbail) {
+        G_check_log.log(element, 'Thumbnail link not found');
+        return;
+    }
+
+    const info = { site: pixiv_info.site, user: `${user}`, submission };
+    return createButton(info, thumbail);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
