@@ -1,6 +1,6 @@
 {
     "name": "art-saver",
-    "version": "2.8.0",
+    "version": "2.8.1",
     "description": "A WebExtension to download and track downloads in supported art gallery websites.",
     "private": true,
     "type": "module",
