@@ -1,4 +1,4 @@
-importScripts('/lib/UZIP.js');
+importScripts('/libs/UZIP.js');
 
 addEventListener('message', async (message: MessageEvent<ZipWorkerSend>) => {
     const zip_blob = message.data.blob;

@@ -27,14 +27,14 @@ addEventListener('message', async (message: MessageEvent<UgoiraWorkerSend>) => {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createGIF(blobs: Blob[], delays: number[], width: number, height: number) {
-    importScripts('/lib/gif.js');
+    importScripts('/libs/gif.js');
 
     const frames = await createImageDatas(blobs, width, height);
 
     const gif: GIFLib = new GIF({
         workers: 2,
         quality: 10,
-        workerScript: '/lib/gif.worker.js',
+        workerScript: '/libs/gif.worker.js',
     });
 
     for (let i = 0; i < frames.length; i++) {
@@ -52,7 +52,7 @@ async function createGIF(blobs: Blob[], delays: number[], width: number, height:
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createAPNG(blobs: Blob[], delays: number[], width: number, height: number) {
-    importScripts('/lib/UZIP.js', '/lib/UPNG.js');
+    importScripts('/libs/UZIP.js', '/libs/UPNG.js');
 
     const frames = await createImageDatas(blobs, width, height);
 
@@ -65,7 +65,7 @@ async function createAPNG(blobs: Blob[], delays: number[], width: number, height
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createZIP(blobs: Blob[], delays: number[], ext: string) {
-    importScripts('/lib/UZIP.js');
+    importScripts('/libs/UZIP.js');
 
     const frame_pad = `${blobs.length}`.length;
     const delay_pad = `${Math.max(...delays)}`.length;
@@ -109,7 +109,7 @@ async function createImageDatas(blobs: Blob[], width: number, height: number) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createWEBM(blobs: Blob[], delays: number[], width: number, height: number) {
-    importScripts('/lib/whammy.js');
+    importScripts('/libs/whammy.js');
 
     const image_bitmaps = await createBitmaps(blobs, width, height);
     const canvas = new OffscreenCanvas(width, height);
