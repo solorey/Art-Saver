@@ -30,11 +30,11 @@
         "url": "git+https://github.com/solorey/Art-Saver.git"
     },
     "devDependencies": {
-        "@types/node": "^25.7.0",
+        "@types/node": "^25.9.1",
         "@types/webextension-polyfill": "^0.12.5",
         "handlebars": "^4.7.9",
         "prettier": "^3.8.3",
-        "sass": "^1.99.0",
+        "sass": "^1.100.0",
         "typescript": "^6.0.3",
         "web-ext": "^10.2.0"
     }
