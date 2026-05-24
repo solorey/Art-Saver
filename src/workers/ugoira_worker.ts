@@ -1,4 +1,5 @@
 addEventListener('message', async (message: MessageEvent<UgoiraWorkerSend>) => {
+    debugger;
     const { type, blobs, delays, width, height, ext } = message.data;
     try {
         let result: Blob;
@@ -27,14 +28,15 @@ addEventListener('message', async (message: MessageEvent<UgoiraWorkerSend>) => {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createGIF(blobs: Blob[], delays: number[], width: number, height: number) {
-    importScripts('/lib/gif.js');
+    debugger;
+    importScripts('/libs/gif.js');
 
     const frames = await createImageDatas(blobs, width, height);
 
     const gif: GIFLib = new GIF({
         workers: 2,
         quality: 10,
-        workerScript: '/lib/gif.worker.js',
+        workerScript: '/libs/gif.worker.js',
     });
 
     for (let i = 0; i < frames.length; i++) {
@@ -52,7 +54,8 @@ async function createGIF(blobs: Blob[], delays: number[], width: number, height:
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createAPNG(blobs: Blob[], delays: number[], width: number, height: number) {
-    importScripts('/lib/UZIP.js', '/lib/UPNG.js');
+    debugger;
+    importScripts('/libs/UZIP.js', '/libs/UPNG.js');
 
     const frames = await createImageDatas(blobs, width, height);
 
@@ -65,7 +68,8 @@ async function createAPNG(blobs: Blob[], delays: number[], width: number, height
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createZIP(blobs: Blob[], delays: number[], ext: string) {
-    importScripts('/lib/UZIP.js');
+    debugger;
+    importScripts('/libs/UZIP.js');
 
     const frame_pad = `${blobs.length}`.length;
     const delay_pad = `${Math.max(...delays)}`.length;
@@ -84,12 +88,14 @@ async function createZIP(blobs: Blob[], delays: number[], ext: string) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createBitmaps(blobs: Blob[], width: number, height: number) {
+    debugger;
     return await Promise.all(blobs.map((blob) => createImageBitmap(blob, 0, 0, width, height)));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createImageDatas(blobs: Blob[], width: number, height: number) {
+    debugger;
     const image_bitmaps = await createBitmaps(blobs, width, height);
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
@@ -109,7 +115,8 @@ async function createImageDatas(blobs: Blob[], width: number, height: number) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createWEBM(blobs: Blob[], delays: number[], width: number, height: number) {
-    importScripts('/lib/whammy.js');
+    debugger;
+    importScripts('/libs/whammy.js');
 
     const image_bitmaps = await createBitmaps(blobs, width, height);
     const canvas = new OffscreenCanvas(width, height);
@@ -140,6 +147,7 @@ async function createWEBM(blobs: Blob[], delays: number[], width: number, height
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function blobToDataUrl(blob: Blob) {
+    debugger;
     // using FileReaderSync made the worker get garbage collected?
     return await new Promise<string>((resolve) => {
         const reader = new FileReader();
