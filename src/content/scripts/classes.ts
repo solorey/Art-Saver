@@ -697,7 +697,7 @@ class DownloadQueue {
                     break;
                 } catch (error) {
                     asLog('error', error);
-                    if (retries <= G_options.retryCount) {
+                    if (retries < G_options.retryCount) {
                         retries += 1;
                         progress.start(`Retrying: ${retries}`);
                         await timer(G_options.queueWait);
