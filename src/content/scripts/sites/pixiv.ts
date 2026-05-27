@@ -56,7 +56,7 @@ var getUserInfo = async (user: User) => {
     const name = user_data.body.name;
 
     const icon_url = user_data.body.imageBig;
-    const icon_response = await fetchWorkerOk(icon_url, init);
+    const icon_response = await workFetchOk(icon_url, init);
     const icon: string = await browser.runtime.sendMessage({
         action: 'background_create_object_url',
         blob: icon_response.body,
@@ -390,44 +390,59 @@ async function getUgoira(
 
     let bytes = 0;
     const total = frames.length;
-    const blobs = [];
+    const blobs: Blob[] = [];
 
     const init: RequestInit = {
         credentials: 'include',
         referrer: window.location.href,
     };
-    const fetch_worker = new FetchWorker();
+    const work_fetch = new WorkFetch();
     for (const [i, frame] of enumerate(frames)) {
-        const response = await fetch_worker.fetchOk(frame, init, (loaded, blob_total) => {
+        const response = await work_fetch.fetchOk(frame, init, (loaded, blob_total) => {
             progress.blobMessage(i, total, bytes, loaded, blob_total);
         });
         bytes += response.body.size;
         blobs.push(response.body);
     }
-    fetch_worker.terminate();
+    work_fetch.disconnect();
 
     progress.width(100);
     progress.message(`Creating ${type.toUpperCase()}`);
 
-    const ugoira_worker = new Worker(browser.runtime.getURL('/workers/ugoira_worker.js'));
+    const work_ugoira = browser.runtime.connect();
     const ugoira_promise = new Promise<Blob>((resolve, reject) => {
-        ugoira_worker.onmessage = (message: MessageEvent<UgoiraWorkerResponse>) => {
-            switch (message.data.message) {
+        work_ugoira.onMessage.addListener((message) => {
+            const m = message as WorkUgoiraResponse;
+            switch (m.message) {
                 case 'result':
-                    resolve(message.data.result);
+                    resolve(m.result);
                     break;
 
                 case 'error':
-                    reject(message.data.error);
+                    reject(m.error);
                     break;
             }
-        };
+        });
+        work_ugoira.onDisconnect.addListener((p) => {
+            if (p.error) {
+                reject(p.error.message);
+            }
+        });
+        const ext = frames[0].split('.').pop() ?? '';
+        work_ugoira.postMessage({
+            action: 'work_ugoira',
+            type,
+            blobs,
+            width,
+            height,
+            delays,
+            ext,
+        } satisfies WorkMessage);
     });
 
-    const ext = frames[0].split('.').pop() ?? '';
-    ugoira_worker.postMessage({ type, blobs, width, height, delays, ext } satisfies UgoiraWorkerSend);
-
     const urgoira_blob = await ugoira_promise;
-    ugoira_worker.terminate();
+
+    work_ugoira.disconnect();
+
     return urgoira_blob;
 }

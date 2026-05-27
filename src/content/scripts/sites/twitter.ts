@@ -202,7 +202,7 @@ var getUserInfo = async (user: User) => {
 
     const icon_url = user_data.profile_image_url_https.replace('_normal', '_200x200');
 
-    const icon_response = await fetchWorkerOk(icon_url);
+    const icon_response = await workFetchOk(icon_url);
 
     const icon: string = await browser.runtime.sendMessage({
         action: 'background_create_object_url',

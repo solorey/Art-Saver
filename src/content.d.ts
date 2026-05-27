@@ -91,27 +91,28 @@ type OptionClass = {
 };
 
 //---------------------------------------------------------------------------------------------------------------------
-// worker send and return
+// background work send and return
 //---------------------------------------------------------------------------------------------------------------------
 
-type WorkerProgress = { message: 'progress'; loaded: number; total: number };
-type WorkerResult<T> = { message: 'result'; result: T };
-type WorkerError = { message: 'error'; error: any };
+type WorkProgress = { message: 'progress'; loaded: number; total: number };
+type WorkResult<T> = { message: 'result'; result: T };
+type WorkError = { message: 'error'; error: any };
 
-type WorkerResponse<T> = WorkerResult<T> | WorkerError;
+type WorkResponse<T> = WorkResult<T> | WorkError;
 
-type FetchWorkerSend = { url: RequestInfo; init?: RequestInit };
-type FetchWorkerResponse =
-    | WorkerProgress
-    | WorkerResponse<{ url: string; headers: Record<string, string>; body: Blob }>;
+type WorkFetchSend = { url: RequestInfo; init?: RequestInit };
+type WorkFetchResult = { url: string; headers: Record<string, string>; body: Blob };
+type WorkFetchResponse = WorkProgress | WorkResponse<WorkFetchResult>;
 
-type UgoiraWorkerSend = { type: string; blobs: Blob[]; width: number; height: number; delays: number[]; ext: string };
-type UgoiraWorkerResponse = WorkerResponse<Blob>;
+type WorkUgoiraSend = { type: string; blobs: Blob[]; width: number; height: number; delays: number[]; ext: string };
+type WorkUgoiraResult = Blob;
+type WorkUgoiraResponse = WorkResponse<WorkUgoiraResult>;
 
-type ZipWorkerSend = { blob: Blob };
-type ZipWorkerResponse = WorkerResponse<Record<string, Uint8Array<ArrayBuffer>>>;
+type WorkZipSend = { blob: Blob };
+type WorkZipResult = Record<string, Uint8Array<ArrayBuffer>>;
+type WorkZipResponse = WorkResponse<WorkZipResult>;
 
-type TileWorkerSend = {
+type WorkTileSend = {
     width: number;
     height: number;
     tile_width: number;
@@ -120,7 +121,20 @@ type TileWorkerSend = {
     token: string;
     watermarked: boolean;
 };
-type TileWorkerResponse = WorkerResponse<Blob>;
+type WorkTileResult = Blob;
+type WorkTileResponse = WorkResponse<WorkTileResult>;
+
+type WorkMessage =
+    | ({
+          action: 'work_fetch';
+      } & WorkFetchSend)
+    | ({
+          action: 'work_ugoira';
+      } & WorkUgoiraSend)
+    | ({ action: 'work_zip' } & WorkZipSend)
+    | ({
+          action: 'work_tile';
+      } & WorkTileSend);
 
 //---------------------------------------------------------------------------------------------------------------------
 // runtime messages

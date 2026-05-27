@@ -252,7 +252,7 @@ var startDownloading = async (submission: Submission, progress: ProgressControll
         referrer: window.location.href,
     };
     const url = newgrounds_info.links.submission(submission);
-    const response = await fetchWorkerOk(url, init);
+    const response = await workFetchOk(url, init);
     const dom = await response.dom();
     const { info, meta } = getNewgroundsSubmissionData(submission, dom);
     let downloads: DownloadInfo[];
@@ -376,12 +376,12 @@ async function getNewgroundsArtFileDatas(dom: Document) {
         file_datas.push(urlFileData(img.src));
     }
     const formats = ['png', 'jpg', 'gif'];
-    const fetch_worker = new FetchWorker();
+    const work_fetch = new WorkFetch();
     for (const data of file_datas) {
         if (data.meta.ext === 'webp') {
             for (const format of formats) {
                 const url = data.info.download.replace('.webp', `.${format}`);
-                if (await fetch_worker.testOk(url)) {
+                if (await work_fetch.testOk(url)) {
                     data.meta.ext = format;
                     data.info.download = url;
                     break;
@@ -389,7 +389,7 @@ async function getNewgroundsArtFileDatas(dom: Document) {
             }
         }
     }
-    fetch_worker.terminate();
+    work_fetch.disconnect();
     return file_datas;
 }
 
@@ -432,15 +432,15 @@ async function getNewgroundsMovieFileData(dom: Document, submission_meta: Newgro
     const src = obj.sources['360p'][0].src as string;
     const base_src = src.split('.360p.mp4')[0];
     const formats = ['mp4', 'webm', 'm4v', 'mov', 'mkv', 'wmv', '1080p.mp4', '720p.mp4', '360p.mp4'];
-    const fetch_worker = new FetchWorker();
+    const work_fetch = new WorkFetch();
     for (const format of formats) {
         const url = `${base_src}.${format}`;
-        if (await fetch_worker.testOk(url)) {
-            fetch_worker.terminate();
+        if (await work_fetch.testOk(url)) {
+            work_fetch.disconnect();
             return urlFileData(url);
         }
     }
-    fetch_worker.terminate();
+    work_fetch.disconnect();
     throw new Error('Movie file not found');
 }
 

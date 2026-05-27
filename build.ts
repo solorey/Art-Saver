@@ -72,10 +72,16 @@ const manfiest = {
     },
     background: {
         scripts: [
+            'libs/gif.js',
+            'libs/gif.worker.js',
+            'libs/UPNG.js',
+            'libs/UZIP.js',
+            'libs/whammy.js',
             'scripts/storage.js',
             ...site_background_scripts,
             'background/settings.js',
             'background/background.js',
+            'background/worker.js',
         ],
     },
     icons: {
@@ -96,7 +102,7 @@ const manfiest = {
     web_accessible_resources: [
         {
             matches: site_patterns,
-            resources: ['icons/*', 'content/ui/*', 'content/styles/*', 'styles/*', 'workers/*'],
+            resources: ['icons/*', 'content/ui/*', 'content/styles/*', 'styles/*'],
         },
     ],
     content_scripts: [

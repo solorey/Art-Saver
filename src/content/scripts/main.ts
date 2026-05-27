@@ -312,10 +312,10 @@ async function fetchOk(info: RequestInfo, init?: RequestInit) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-async function fetchWorkerOk(info: RequestInfo, init?: RequestInit) {
-    const fetch_worker = new FetchWorker();
-    const response = await fetch_worker.fetchOk(info, init);
-    fetch_worker.terminate();
+async function workFetchOk(info: RequestInfo, init?: RequestInit) {
+    const work_fetch = new WorkFetch();
+    const response = await work_fetch.fetchOk(info, init);
+    work_fetch.disconnect();
     return response;
 }
 
@@ -542,12 +542,12 @@ async function handleDownloads(downloads: DownloadInfo[], init?: RequestInit, pr
     const total = downloads.length;
     const download_ids = [];
 
-    const fetch_worker = new FetchWorker();
+    const background_fetch = new WorkFetch();
     for (const [i, info] of enumerate(downloads)) {
         const download = info.download;
         let blob: Blob;
         if (typeof download === 'string') {
-            const response = await fetch_worker.fetchOk(download, init, (loaded, blob_total) => {
+            const response = await background_fetch.fetchOk(download, init, (loaded, blob_total) => {
                 progress?.blobMessage(i, total, bytes, loaded, blob_total);
             });
             blob = response.body;
@@ -564,7 +564,7 @@ async function handleDownloads(downloads: DownloadInfo[], init?: RequestInit, pr
         } as BackgroundMessage);
         download_ids.push(download_id);
     }
-    fetch_worker.terminate();
+    background_fetch.disconnect();
 
     return download_ids;
 }
@@ -829,7 +829,7 @@ function getPageStats() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function urlToDataUrl(url: string) {
-    const response = await fetchWorkerOk(url);
+    const response = await workFetchOk(url);
     return await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.addEventListener('load', (data) => {

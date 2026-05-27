@@ -769,45 +769,40 @@ class OkResponse {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-class FetchWorker {
-    worker: Worker;
+class WorkFetch {
+    port: Browser.Runtime.Port;
     constructor() {
-        if (G_site_info.site === 'twitter') {
-            // workaround for media urls being blocked with strict tracking
-            // when using a web worker with an extension scope
-            this.worker = new Worker(
-                URL.createObjectURL(
-                    new Blob([`importScripts('${browser.runtime.getURL('/workers/fetch_worker.js')}')`]),
-                ),
-            );
-        } else {
-            this.worker = new Worker(browser.runtime.getURL('/workers/fetch_worker.js'));
-        }
+        this.port = browser.runtime.connect();
     }
     async fetchOk(url: RequestInfo, init?: RequestInit, progressfn?: (loaded: number, total: number) => void) {
-        const result = new Promise<OkResponse>((resolve, reject) => {
-            this.worker.onmessage = (message: MessageEvent<FetchWorkerResponse>) => {
-                switch (message.data.message) {
+        return await new Promise<OkResponse>((resolve, reject) => {
+            this.port.onMessage.addListener((message) => {
+                const m = message as WorkFetchResponse;
+                switch (m.message) {
                     case 'progress':
                         if (progressfn) {
-                            progressfn(message.data.loaded, message.data.total);
+                            progressfn(m.loaded, m.total);
                         }
                         break;
 
                     case 'result': {
-                        const { url, headers, body } = message.data.result;
+                        const { url, headers, body } = m.result;
                         resolve(new OkResponse(url, new Headers(headers), body));
                         break;
                     }
 
                     case 'error':
-                        reject(message.data.error);
+                        reject(m.error);
                         break;
                 }
-            };
+            });
+            this.port.onDisconnect.addListener((p) => {
+                if (p.error) {
+                    reject(p.error.message);
+                }
+            });
+            this.port.postMessage({ action: 'work_fetch', url, init } satisfies WorkMessage);
         });
-        this.worker.postMessage({ url, init } satisfies FetchWorkerSend);
-        return await result;
     }
     async testOk(url: RequestInfo) {
         try {
@@ -817,37 +812,42 @@ class FetchWorker {
             return false;
         }
     }
-    terminate() {
-        this.worker.terminate();
+    disconnect() {
+        this.port.disconnect();
     }
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-class ZipWorker {
-    worker: Worker;
+class WorkZip {
+    port: Browser.Runtime.Port;
     constructor() {
-        this.worker = new Worker(browser.runtime.getURL('/workers/zip_worker.js'));
+        this.port = browser.runtime.connect();
     }
     async parseZip(blob: Blob) {
-        const result = new Promise<Record<string, Uint8Array<ArrayBuffer>>>((resolve, reject) => {
-            this.worker.onmessage = (message: MessageEvent<ZipWorkerResponse>) => {
-                switch (message.data.message) {
+        return await new Promise<WorkZipResult>((resolve, reject) => {
+            this.port.onMessage.addListener((message) => {
+                const m = message as WorkZipResponse;
+                switch (m.message) {
                     case 'result':
-                        resolve(message.data.result);
+                        resolve(m.result);
                         break;
 
                     case 'error':
-                        reject(message.data.error);
+                        reject(m.error);
                         break;
                 }
-            };
+            });
+            this.port.onDisconnect.addListener((p) => {
+                if (p.error) {
+                    reject(p.error.message);
+                }
+            });
+            this.port.postMessage({ action: 'work_zip', blob } satisfies WorkMessage);
         });
-        this.worker.postMessage({ blob } satisfies ZipWorkerSend);
-        return await result;
     }
-    terminate() {
-        this.worker.terminate();
+    disconnect() {
+        this.port.disconnect();
     }
 }
 

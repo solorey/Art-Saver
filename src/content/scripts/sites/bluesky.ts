@@ -93,9 +93,9 @@ var getUserInfo = async (user: User) => {
 
     const icon_url = obj.avatar;
 
-    const fetch_worker = new FetchWorker();
-    const icon_response = await fetch_worker.fetchOk(icon_url, init);
-    fetch_worker.terminate();
+    const work_fetch = new WorkFetch();
+    const icon_response = await work_fetch.fetchOk(icon_url, init);
+    work_fetch.disconnect();
 
     const icon: string = await browser.runtime.sendMessage({
         action: 'background_create_object_url',

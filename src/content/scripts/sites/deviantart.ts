@@ -388,17 +388,17 @@ async function getDeviantartFileData(
         meta.ext = options.literature;
         return { info, meta };
     } else {
-        const fetch_worker = new FetchWorker();
+        const work_fetch = new WorkFetch();
         const watermarked = obj.deviation.extended?.hasWatermark ?? false;
         const download = await getMediaUrl(
             obj.deviation.media,
             obj.deviation.extended.originalFile.width,
             obj.deviation.extended.originalFile.height,
             options.larger,
-            fetch_worker,
+            work_fetch,
             watermarked,
         );
-        fetch_worker.terminate();
+        work_fetch.disconnect();
         info = { download };
         if (typeof download === 'string') {
             url = download;
@@ -436,7 +436,7 @@ async function getDeviantartAdditionalFileDatas(obj: any, get_larger: boolean) {
         const orig_w = obj.deviation.extended.originalFile.width;
         const orig_h = obj.deviation.extended.originalFile.height;
         const watermarked = obj.deviation.extended?.hasWatermark ?? false;
-        const fetch_worker = new FetchWorker();
+        const work_fetch = new WorkFetch();
         for (const item of additional_media) {
             const file_name_ext: string = item.filename;
 
@@ -474,7 +474,7 @@ async function getDeviantartAdditionalFileDatas(obj: any, get_larger: boolean) {
                 full_width,
                 full_height,
                 get_larger,
-                fetch_worker,
+                work_fetch,
                 watermarked,
             );
             if (!(typeof download === 'string')) {
@@ -485,7 +485,7 @@ async function getDeviantartAdditionalFileDatas(obj: any, get_larger: boolean) {
             };
             file_datas.push({ info, meta });
         }
-        fetch_worker.terminate();
+        work_fetch.disconnect();
     }
     return file_datas;
 }
@@ -500,35 +500,41 @@ async function buildLargerImage(url: string, full_width: number, full_height: nu
     if (!tile_width || !tile_height || !base_url) {
         throw new Error('URL does not match expected preview URL');
     }
-    const tile_worker = new Worker(browser.runtime.getURL('/workers/tile_worker.js'));
+    const work_tile = browser.runtime.connect();
 
     const result = new Promise<Blob>((resolve, reject) => {
-        tile_worker.onmessage = (message: MessageEvent<TileWorkerResponse>) => {
-            switch (message.data.message) {
+        work_tile.onMessage.addListener((message) => {
+            const m = message as WorkTileResponse;
+            switch (m.message) {
                 case 'result':
-                    resolve(message.data.result);
+                    resolve(m.result);
                     break;
 
                 case 'error':
-                    reject(message.data.error);
+                    reject(m.error);
                     break;
             }
-        };
+        });
+        work_tile.onDisconnect.addListener((p) => {
+            if (p.error) {
+                reject(p.error.message);
+            }
+        });
+        work_tile.postMessage({
+            action: 'work_tile',
+            width: full_width,
+            height: full_height,
+            tile_width: parseInt(tile_width, 10),
+            tile_height: parseInt(tile_height, 10),
+            url: base_url,
+            token: params.get('token') ?? '',
+            watermarked,
+        } satisfies WorkMessage);
     });
-
-    tile_worker.postMessage({
-        width: full_width,
-        height: full_height,
-        tile_width: parseInt(tile_width, 10),
-        tile_height: parseInt(tile_height, 10),
-        url: base_url,
-        token: params.get('token') ?? '',
-        watermarked,
-    } satisfies TileWorkerSend);
 
     const blob = await result;
 
-    tile_worker.terminate();
+    work_tile.disconnect();
     return blob;
 }
 
@@ -539,7 +545,7 @@ async function getMediaUrl(
     width: number,
     height: number,
     get_larger: boolean,
-    fetch_worker: FetchWorker,
+    work_fetch: WorkFetch,
     watermarked: boolean,
 ) {
     const url = buildMediaUrl(media_obj);
@@ -552,7 +558,7 @@ async function getMediaUrl(
         ...(media_obj.token ?? []).map((token: string) => `${media_obj.baseUri}?token=${token}`),
     ];
     for (const url of test_urls) {
-        if (await fetch_worker.testOk(url)) {
+        if (await work_fetch.testOk(url)) {
             return url;
         }
     }
@@ -636,7 +642,7 @@ async function getStashDatas(
     options: DeviantartOptionsValues,
     progress: ProgressController,
 ) {
-    const fetch_worker = new FetchWorker();
+    const work_fetch = new WorkFetch();
     const datas = [];
     const stash_url = 'https://www.deviantart.com/_puppy/dadeviation/stash/init';
     for (const [i, stash_id] of enumerate(stash_ids)) {
@@ -651,7 +657,7 @@ async function getStashDatas(
 
         let obj: any;
         try {
-            const response = await fetch_worker.fetchOk(`${stash_url}?${params}`, init);
+            const response = await work_fetch.fetchOk(`${stash_url}?${params}`, init);
             obj = await response.json();
         } catch (error) {
             asLog('error', error);
@@ -668,7 +674,7 @@ async function getStashDatas(
         datas.push({ submission, file });
     }
 
-    fetch_worker.terminate();
+    work_fetch.disconnect();
     return datas;
 }
 
@@ -759,11 +765,11 @@ async function getStashIds(obj: any, init: RequestInit, csrf_token: string, prog
         }
     }
 
-    const fetch_worker = new FetchWorker();
+    const work_fetch = new WorkFetch();
     // some stash folder urls are redirects
     let folder_ids = [];
     for (const folder of folder_urls) {
-        const response = await fetch_worker.fetchOk(folder, { method: 'HEAD', ...init });
+        const response = await work_fetch.fetchOk(folder, { method: 'HEAD', ...init });
         const folder_id = stash_regex.exec(response.url)?.[2];
         if (folder_id) {
             folder_ids.push(parseInt(folder_id, 36));
@@ -772,12 +778,12 @@ async function getStashIds(obj: any, init: RequestInit, csrf_token: string, prog
 
     const stash_blobs: Record<string, Blob> = {};
     if (folder_ids.length > 0) {
-        const zip_worker = new ZipWorker();
+        const work_zip = new WorkZip();
         for (const [i, folder_id] of enumerate(folder_ids)) {
             const zip_url = `https://sta.sh/zip/2${folder_id.toString(36)}`;
             progress.onOf('Getting stash folder', i + 1, folder_ids.length);
-            const response = await fetch_worker.fetchOk(zip_url, init);
-            const zip_object = await zip_worker.parseZip(response.body);
+            const response = await work_fetch.fetchOk(zip_url, init);
+            const zip_object = await work_zip.parseZip(response.body);
             for (const [file, data] of Object.entries(zip_object)) {
                 const submission_id_36 = /d(\w+?)-/.exec(file.split('/').pop() ?? '')?.[1];
                 if (!submission_id_36) {
@@ -787,7 +793,7 @@ async function getStashIds(obj: any, init: RequestInit, csrf_token: string, prog
                 stash_blobs[submission_id] = new Blob([data]);
             }
         }
-        zip_worker.terminate();
+        work_zip.disconnect();
     }
 
     const stash_folder_url = 'https://www.deviantart.com/_puppy/v1/studio/pages/stash';
@@ -799,7 +805,7 @@ async function getStashIds(obj: any, init: RequestInit, csrf_token: string, prog
                 folderid: `${folder_id}`,
                 csrf_token,
             });
-            const response = await fetch_worker.fetchOk(`${stash_folder_url}?${params}`, init);
+            const response = await work_fetch.fetchOk(`${stash_folder_url}?${params}`, init);
             let obj = await response.json();
 
             new_folder_ids.push(...obj.subfolders.results.map((f: any) => f.folderId));
@@ -815,14 +821,14 @@ async function getStashIds(obj: any, init: RequestInit, csrf_token: string, prog
                     deviations_offset: `${offset}`,
                     csrf_token,
                 });
-                const response = await fetch_worker.fetchOk(`${stash_folder_url}?${params}`, init);
+                const response = await work_fetch.fetchOk(`${stash_folder_url}?${params}`, init);
                 obj = await response.json();
                 stash_ids.push(...obj.deviations.studioResults.deviation.map((f: any) => f.stashPrivateid));
             }
         }
         folder_ids = new_folder_ids;
     }
-    fetch_worker.terminate();
+    work_fetch.disconnect();
 
     return {
         blobs: stash_blobs,
@@ -960,7 +966,7 @@ async function getImageIcon(url: string) {
         url,
         format: 'json',
     });
-    const response = await fetchWorkerOk(`https://backend.deviantart.com/oembed?${params}`);
+    const response = await workFetchOk(`https://backend.deviantart.com/oembed?${params}`);
     const oembed = await response.json();
     return oembed.fullsize_url as string | undefined;
 }
