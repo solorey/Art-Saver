@@ -11,6 +11,7 @@
         "build": "node ./build.ts && npm run build:ts && npm run build:scss",
         "cleanbuild": "node ./build.ts --clean && npm run build:ts && npm run build:scss",
         "test": "web-ext run -s ./dist/ --start-url about:debugging#addons",
+        "testdev": "web-ext run -s ./dist/ --start-url about:debugging#addons --firefox=deved",
         "zip": "web-ext build -s ./dist/ -o",
         "pack": "npm run build && npm run zip",
         "cleanpack": "npm run cleanbuild && npm run zip"

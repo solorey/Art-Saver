@@ -650,7 +650,7 @@ class DownloadQueue {
         this.downloading += 1;
         this.updateDownloadInfo();
 
-        if (this.threads < G_options.queueConcurrent) {
+        if (!G_options.useQueue || this.threads < G_options.queueConcurrent) {
             this.addThread();
         }
     }

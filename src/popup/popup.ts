@@ -200,13 +200,15 @@ class PopupSiteTab {
             element?.classList.toggle('hide', p !== page);
         }
     }
-    sendMessage(message: 'content_refresh' | 'content_download_all') {
+    async sendMessage(message: 'content_refresh' | 'content_download_all') {
         if (this.tab_id == null) {
             return;
         }
-        browser.tabs.sendMessage(this.tab_id, {
+        const stats: PageStats = await browser.tabs.sendMessage(this.tab_id, {
             action: message,
         } as ContentMessage);
+        this.saved_stat?.replaceChildren(`${stats.checks}`);
+        this.downloads_stat?.replaceChildren(`${stats.downloads}`);
     }
 }
 

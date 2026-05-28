@@ -740,11 +740,11 @@ function contentMessageActions(message: ContentMessage) {
 
         case 'content_download_all':
             downloadAll();
-            break;
+            return Promise.resolve(getPageStats());
 
         case 'content_refresh':
             refreshButtons();
-            break;
+            return Promise.resolve(getPageStats());
     }
 }
 
