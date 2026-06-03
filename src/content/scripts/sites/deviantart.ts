@@ -211,7 +211,7 @@ function checkDeviantartThumbnails(page_user?: User) {
 function checkDeviantartSubmissionPage(url: string, user: User) {
     const stage = document.querySelector('header + div > div > div > div > :nth-child(2)');
     if (!stage) {
-        G_check_log.log('Submission page:', 'User not found');
+        G_check_log.log('Submission page:', 'Media element not found');
         return;
     }
     const submission_id = /(?:\/|-)(\d+)(?:\?|#|$)/.exec(url)?.[1];
@@ -225,7 +225,7 @@ function checkDeviantartSubmissionPage(url: string, user: User) {
         submission: parseInt(submission_id, 10),
     };
     // img, video, pdf
-    const content = stage.querySelector('img, video, object[type="application/pdf"]');
+    const content = stage.matches('object') ? stage : stage.querySelector('img, video');
     if (content) {
         let parent = content.parentElement;
         if (parent) {
@@ -387,6 +387,13 @@ async function getDeviantartFileData(
         info = { download };
         meta.ext = options.literature;
         return { info, meta };
+    } else if (type === 'pdf') {
+        const download: string | undefined = obj.deviation.media.types.find((t: any) => t.t === 'pdf')?.s;
+        if (!download) {
+            throw new Error('PDF url not found');
+        }
+        url = download;
+        info = { download };
     } else {
         const work_fetch = new WorkFetch();
         const watermarked = obj.deviation.extended?.hasWatermark ?? false;
@@ -500,39 +507,17 @@ async function buildLargerImage(url: string, full_width: number, full_height: nu
     if (!tile_width || !tile_height || !base_url) {
         throw new Error('URL does not match expected preview URL');
     }
-    const work_tile = browser.runtime.connect();
-
-    const result = new Promise<Blob>((resolve, reject) => {
-        work_tile.onMessage.addListener((message) => {
-            const m = message as WorkTileResponse;
-            switch (m.message) {
-                case 'result':
-                    resolve(m.result);
-                    break;
-
-                case 'error':
-                    reject(m.error);
-                    break;
-            }
-        });
-        work_tile.onDisconnect.addListener((p) => {
-            if (p.error) {
-                reject(p.error.message);
-            }
-        });
-        work_tile.postMessage({
-            action: 'work_tile',
-            width: full_width,
-            height: full_height,
-            tile_width: parseInt(tile_width, 10),
-            tile_height: parseInt(tile_height, 10),
-            url: base_url,
-            token: params.get('token') ?? '',
-            watermarked,
-        } satisfies WorkMessage);
+    const work_tile = new BackgroundPort();
+    const blob: WorkTileResult = await work_tile.send({
+        action: 'work_tile',
+        width: full_width,
+        height: full_height,
+        tile_width: parseInt(tile_width, 10),
+        tile_height: parseInt(tile_height, 10),
+        url: base_url,
+        token: params.get('token') ?? '',
+        watermarked,
     });
-
-    const blob = await result;
 
     work_tile.disconnect();
     return blob;
@@ -778,12 +763,12 @@ async function getStashIds(obj: any, init: RequestInit, csrf_token: string, prog
 
     const stash_blobs: Record<string, Blob> = {};
     if (folder_ids.length > 0) {
-        const work_zip = new WorkZip();
+        const work_zip = new BackgroundPort();
         for (const [i, folder_id] of enumerate(folder_ids)) {
             const zip_url = `https://sta.sh/zip/2${folder_id.toString(36)}`;
             progress.onOf('Getting stash folder', i + 1, folder_ids.length);
             const response = await work_fetch.fetchOk(zip_url, init);
-            const zip_object = await work_zip.parseZip(response.body);
+            const zip_object: WorkZipResult = await work_zip.send({ action: 'work_zip', blob: response.body });
             for (const [file, data] of Object.entries(zip_object)) {
                 const submission_id_36 = /d(\w+?)-/.exec(file.split('/').pop() ?? '')?.[1];
                 if (!submission_id_36) {

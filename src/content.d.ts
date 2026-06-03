@@ -98,19 +98,16 @@ type WorkProgress = { message: 'progress'; loaded: number; total: number };
 type WorkResult<T> = { message: 'result'; result: T };
 type WorkError = { message: 'error'; error: any };
 
-type WorkResponse<T> = WorkResult<T> | WorkError;
+type WorkResponse<T> = WorkProgress | WorkResult<T> | WorkError;
 
 type WorkFetchSend = { url: RequestInfo; init?: RequestInit };
 type WorkFetchResult = { url: string; headers: Record<string, string>; body: Blob };
-type WorkFetchResponse = WorkProgress | WorkResponse<WorkFetchResult>;
 
 type WorkUgoiraSend = { type: string; blobs: Blob[]; width: number; height: number; delays: number[]; ext: string };
 type WorkUgoiraResult = Blob;
-type WorkUgoiraResponse = WorkResponse<WorkUgoiraResult>;
 
 type WorkZipSend = { blob: Blob };
 type WorkZipResult = Record<string, Uint8Array<ArrayBuffer>>;
-type WorkZipResponse = WorkResponse<WorkZipResult>;
 
 type WorkTileSend = {
     width: number;
@@ -122,7 +119,6 @@ type WorkTileSend = {
     watermarked: boolean;
 };
 type WorkTileResult = Blob;
-type WorkTileResponse = WorkResponse<WorkTileResult>;
 
 type WorkMessage =
     | ({

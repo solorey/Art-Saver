@@ -703,7 +703,8 @@ function renderTemplate(template: string, type: string, ...metas: MetaRecord[]) 
             .map((p) => p.trim())
             .join('/')
             .replace(/\s+/g, ' ')
-            .replaceAll('./', '．/'); // \uff0e
+            .replaceAll('./', '．/')
+            .replaceAll('/.', '/．'); // \uff0e
     }
     return text;
 }

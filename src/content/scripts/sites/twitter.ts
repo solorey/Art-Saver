@@ -275,7 +275,9 @@ function checkTwitterPage() {
 function checkTwitterThumbnail(element: HTMLElement) {
     const is_quote = element.matches('[tabindex="0"][role="link"]');
     const media_box = element.querySelector<HTMLElement>(
-        is_quote ? ':scope > div > div:nth-of-type(3)' : ':scope [aria-labelledby] > div > div > div',
+        is_quote
+            ? ':scope > div > div:nth-of-type(3), :scope [data-testid="testCondensedMedia"]'
+            : ':scope [aria-labelledby] > div > div > div',
     );
     if (!media_box) {
         G_check_log.log(element, 'Tweet media not found');
@@ -288,6 +290,7 @@ function checkTwitterThumbnail(element: HTMLElement) {
         return;
     }
     // include user to avoid 'From' credit status conflict
+    // known issue: quoted video tweet has no status in the HTML
     const link = element.querySelector<HTMLAnchorElement>(`a[href*="${user}/status/"]`);
     if (!link) {
         G_check_log.log(element, 'Link not found');

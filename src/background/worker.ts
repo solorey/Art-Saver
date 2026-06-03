@@ -1,6 +1,9 @@
 browser.runtime.onConnect.addListener((port) => {
     port.onMessage.addListener((message, p) => {
-        workMessageActions(message as WorkMessage, p);
+        const m = message as WorkMessage | { action: undefined };
+        if (m.action) {
+            workMessageActions(m, p);
+        }
     });
 });
 
@@ -12,7 +15,7 @@ async function workMessageActions(message: WorkMessage, port: Browser.Runtime.Po
         switch (message.action) {
             case 'work_fetch': {
                 result = await workFetch(message.url, message.init, (loaded, total) => {
-                    port.postMessage({ message: 'progress', loaded, total } satisfies WorkFetchResponse);
+                    port.postMessage({ message: 'progress', loaded, total } satisfies WorkProgress);
                 });
                 break;
             }
@@ -29,7 +32,7 @@ async function workMessageActions(message: WorkMessage, port: Browser.Runtime.Po
                 break;
             }
         }
-        port.postMessage({ message: 'result', result } satisfies WorkResult<unknown>);
+        port.postMessage({ message: 'result', result } satisfies WorkResult<typeof result>);
     } catch (error) {
         port.postMessage({ message: 'error', error } satisfies WorkError);
     }
@@ -39,7 +42,11 @@ async function workMessageActions(message: WorkMessage, port: Browser.Runtime.Po
 // work fetch
 //---------------------------------------------------------------------------------------------------------------------
 
-async function workFetch(url: RequestInfo, init?: RequestInit, progressfn?: (loaded: number, total: number) => void) {
+async function workFetch(
+    url: RequestInfo,
+    init?: RequestInit,
+    progressfn?: (loaded: number, total: number) => void,
+): Promise<WorkFetchResult> {
     const response = await fetch(url, init);
     if (!response.ok) {
         throw new Error(`Received ${response.status}: ${response.url}`);
@@ -88,7 +95,7 @@ function readTimeout(reader: ReadableStreamDefaultReader<Uint8Array<ArrayBuffer>
 // work uqoira
 //---------------------------------------------------------------------------------------------------------------------
 
-async function workUqoira(params: WorkUgoiraSend) {
+async function workUqoira(params: WorkUgoiraSend): Promise<WorkUgoiraResult> {
     const { type, blobs, delays, width, height, ext } = params;
     switch (type) {
         case 'gif':
@@ -233,7 +240,7 @@ async function blobToDataUrl(blob: Blob) {
 // work zip
 //---------------------------------------------------------------------------------------------------------------------
 
-async function workZip(blob: Blob) {
+async function workZip(blob: Blob): Promise<WorkZipResult> {
     const buffer = await blob.arrayBuffer();
     return UZIP.parse(buffer);
 }
@@ -242,7 +249,7 @@ async function workZip(blob: Blob) {
 // work tile
 //---------------------------------------------------------------------------------------------------------------------
 
-async function workTile(params: WorkTileSend) {
+async function workTile(params: WorkTileSend): Promise<WorkTileResult> {
     const { width, height, tile_width, tile_height, url, token, watermarked } = params;
 
     const canvas = new OffscreenCanvas(width, height);

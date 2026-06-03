@@ -409,38 +409,18 @@ async function getUgoira(
     progress.width(100);
     progress.message(`Creating ${type.toUpperCase()}`);
 
-    const work_ugoira = browser.runtime.connect();
-    const ugoira_promise = new Promise<Blob>((resolve, reject) => {
-        work_ugoira.onMessage.addListener((message) => {
-            const m = message as WorkUgoiraResponse;
-            switch (m.message) {
-                case 'result':
-                    resolve(m.result);
-                    break;
+    const ext = frames[0].split('.').pop() ?? '';
 
-                case 'error':
-                    reject(m.error);
-                    break;
-            }
-        });
-        work_ugoira.onDisconnect.addListener((p) => {
-            if (p.error) {
-                reject(p.error.message);
-            }
-        });
-        const ext = frames[0].split('.').pop() ?? '';
-        work_ugoira.postMessage({
-            action: 'work_ugoira',
-            type,
-            blobs,
-            width,
-            height,
-            delays,
-            ext,
-        } satisfies WorkMessage);
+    const work_ugoira = new BackgroundPort();
+    const urgoira_blob: WorkUgoiraResult = await work_ugoira.send({
+        action: 'work_ugoira',
+        type,
+        blobs,
+        width,
+        height,
+        delays,
+        ext,
     });
-
-    const urgoira_blob = await ugoira_promise;
 
     work_ugoira.disconnect();
 

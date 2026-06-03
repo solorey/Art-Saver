@@ -769,67 +769,31 @@ class OkResponse {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-class WorkFetch {
+class BackgroundPort {
     port: Browser.Runtime.Port;
+    is_running = false;
     constructor() {
         this.port = browser.runtime.connect();
     }
-    async fetchOk(url: RequestInfo, init?: RequestInit, progressfn?: (loaded: number, total: number) => void) {
-        return await new Promise<OkResponse>((resolve, reject) => {
+    async send<T>(message: WorkMessage, progressfn?: (loaded: number, total: number) => void) {
+        this.is_running = true;
+        // bug the background script to prevent it from unloading
+        (async () => {
+            while (this.is_running) {
+                this.port.postMessage({});
+                await timer(10);
+            }
+        })();
+        return await new Promise<T>((resolve, reject) => {
             this.port.onMessage.addListener((message) => {
-                const m = message as WorkFetchResponse;
+                const m = message as WorkResponse<T>;
                 switch (m.message) {
                     case 'progress':
-                        if (progressfn) {
-                            progressfn(m.loaded, m.total);
-                        }
+                        progressfn?.(m.loaded, m.total);
                         break;
 
-                    case 'result': {
-                        const { url, headers, body } = m.result;
-                        resolve(new OkResponse(url, new Headers(headers), body));
-                        break;
-                    }
-
-                    case 'error':
-                        reject(m.error);
-                        break;
-                }
-            });
-            this.port.onDisconnect.addListener((p) => {
-                if (p.error) {
-                    reject(p.error.message);
-                }
-            });
-            this.port.postMessage({ action: 'work_fetch', url, init } satisfies WorkMessage);
-        });
-    }
-    async testOk(url: RequestInfo) {
-        try {
-            await this.fetchOk(url, { method: 'HEAD' });
-            return true;
-        } catch (error) {
-            return false;
-        }
-    }
-    disconnect() {
-        this.port.disconnect();
-    }
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-class WorkZip {
-    port: Browser.Runtime.Port;
-    constructor() {
-        this.port = browser.runtime.connect();
-    }
-    async parseZip(blob: Blob) {
-        return await new Promise<WorkZipResult>((resolve, reject) => {
-            this.port.onMessage.addListener((message) => {
-                const m = message as WorkZipResponse;
-                switch (m.message) {
                     case 'result':
+                        this.is_running = false;
                         resolve(m.result);
                         break;
 
@@ -843,8 +807,32 @@ class WorkZip {
                     reject(p.error.message);
                 }
             });
-            this.port.postMessage({ action: 'work_zip', blob } satisfies WorkMessage);
+            this.port.postMessage(message);
         });
+    }
+    disconnect() {
+        this.port.disconnect();
+    }
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class WorkFetch {
+    port: BackgroundPort;
+    constructor() {
+        this.port = new BackgroundPort();
+    }
+    async fetchOk(url: RequestInfo, init?: RequestInit, progressfn?: (loaded: number, total: number) => void) {
+        const result: WorkFetchResult = await this.port.send({ action: 'work_fetch', url, init }, progressfn);
+        return new OkResponse(result.url, new Headers(result.headers), result.body);
+    }
+    async testOk(url: RequestInfo) {
+        try {
+            await this.fetchOk(url, { method: 'HEAD' });
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
     disconnect() {
         this.port.disconnect();
