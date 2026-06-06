@@ -76,14 +76,14 @@ var getUserInfo = async (user: User) => {
     const stats_values = dom
         .querySelectorAll('.elephant_babdb6 .content > div > span strong')
         .values()
-        .map((stat) => stat.textContent?.replaceAll(',', '') ?? '')
+        .map((stat) => stat.textContent.replaceAll(',', '') ?? '')
         .toArray();
 
     const favorites_response = await fetchOk(`https://inkbunny.net/userfavorites_process.php?favs_user_id=${user_id}`);
     const favorites_dom = await favorites_response.dom();
     const favorites = favorites_dom
         .querySelector('.elephant_555753 .content > div:first-child')
-        ?.textContent?.trim()
+        ?.textContent.trim()
         .split(' ')[0]
         .replaceAll(',', '');
 
@@ -225,7 +225,10 @@ function getInkbunnySubmissionData(submission: Submission, dom: Document) {
     if (!title_element) {
         throw new Error('Title element not found');
     }
-    const title = title_element.textContent?.trim() ?? '';
+    const title = title_element.textContent.trim() ?? '';
+
+    const description =
+        dom.querySelector('.elephant_white .content > div > span')?.textContent.trim().replace(/\s+/g, ' ') ?? '';
 
     const user_name = dom
         .querySelector<HTMLAnchorElement>('[href*="/gallery/"], [href*="/scraps/"]')
@@ -235,7 +238,7 @@ function getInkbunnySubmissionData(submission: Submission, dom: Document) {
     }
     const user_id = dom.querySelector<HTMLAnchorElement>('a[href*="user_id"]')?.href.split('=').pop() ?? '';
 
-    const date_text = dom.querySelector<HTMLElement>('#submittime_exact')?.textContent?.trim();
+    const date_text = dom.querySelector<HTMLElement>('#submittime_exact')?.textContent.trim();
     if (!date_text) {
         throw new Error('Date not found');
     }
@@ -247,6 +250,7 @@ function getInkbunnySubmissionData(submission: Submission, dom: Document) {
         userName: user_name,
         submissionId: `${submission}`,
         title,
+        description,
         ...date_time,
     };
 
@@ -267,7 +271,7 @@ async function getInkbunnyFileDatas(
     options: InkbunnyOptionsValues,
     progress: ProgressController,
 ) {
-    const files_count = dom.querySelector<HTMLElement>('#files_area span')?.textContent?.trim().split(' ')[2];
+    const files_count = dom.querySelector<HTMLElement>('#files_area span')?.textContent.trim().split(' ')[2];
     const pages = files_count ? parseInt(files_count, 10) : 1;
 
     const init: RequestInit = {
@@ -372,11 +376,11 @@ async function getInkbunnyWriting(
     meta.ext = type;
 
     const story_meta: InkbunnyWriting = {
+        ...meta,
         story: story_content,
         description: description_content,
         wordCount: `${word_count}`,
         url,
-        ...meta,
     };
 
     const file_text = renderTemplate(template, type, story_meta as unknown as MetaRecord);

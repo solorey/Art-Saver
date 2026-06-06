@@ -50,11 +50,10 @@ var getUserInfo = async (user: User) => {
     const is_modern_layout = isFuraffinityModernLayout(dom);
 
     let name =
-        dom
-            .querySelector(is_modern_layout ? '.top-bar .js-displayName' : '.cat .js-displayName')
-            ?.textContent?.trim() ?? '';
+        dom.querySelector(is_modern_layout ? '.top-bar .js-displayName' : '.cat .js-displayName')?.textContent.trim() ??
+        '';
     if (!name) {
-        const redirect = dom.querySelector('.redirect-message')?.textContent?.trim() ?? '';
+        const redirect = dom.querySelector('.redirect-message')?.textContent.trim() ?? '';
         const redirect_regex_result = /User\s"(.+?)"\s/.exec(redirect);
 
         if (!redirect_regex_result) {
@@ -283,7 +282,7 @@ function getFuraffinitySubmissionData(submission: Submission, dom: Document) {
                 ? '.submission-description-artist .c-usernameBlockSimple__displayName'
                 : '.information .c-usernameBlockSimple__displayName',
         )
-        ?.textContent?.trim();
+        ?.textContent.trim();
     if (!user_name) {
         throw new Error('User name not found');
     }
@@ -308,7 +307,13 @@ function getFuraffinitySubmissionData(submission: Submission, dom: Document) {
     if (!title_element) {
         throw new Error('Title element not found');
     }
-    const title = title_element.textContent?.trim() ?? '';
+    const title = title_element.textContent.trim() ?? '';
+
+    const description =
+        dom
+            .querySelector(is_modern_layout ? '.submission-description-text' : '.maintable .alt1[width="70%"]')
+            ?.textContent.trim()
+            .replace(/\s+/g, ' ') ?? '';
 
     const meta: FuraffinitySubmissionMeta = {
         site: furaffinity_info.site,
@@ -316,6 +321,7 @@ function getFuraffinitySubmissionData(submission: Submission, dom: Document) {
         userName: user_name,
         submissionId: `${submission}`,
         title,
+        description,
         ...date_time,
     };
 

@@ -22,6 +22,7 @@ class TwitterUserFolder {
 }
 
 class TwitterFile extends TwitterUserFolder {
+    description = '';
     submissionId = '';
     fileName = '';
     ext = '';

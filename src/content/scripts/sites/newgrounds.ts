@@ -41,7 +41,7 @@ var getUserInfo = async (user: User) => {
     const response = await fetchOk(`https://${user}.newgrounds.com/`, init);
     const dom = await response.dom();
 
-    const name = dom.querySelector<HTMLElement>('.user-header-name a')?.textContent?.trim() ?? user;
+    const name = dom.querySelector<HTMLElement>('.user-header-name a')?.textContent.trim() ?? user;
 
     const icon = dom.querySelector<HTMLMetaElement>(`meta[name="image"]`)?.content;
 
@@ -50,8 +50,8 @@ var getUserInfo = async (user: User) => {
     for (const tab of tabs) {
         const element = dom.querySelector<HTMLElement>(`.user-header-button[href="/${tab}"]`);
         if (element) {
-            const label = element.querySelector<HTMLElement>('span')?.textContent?.trim();
-            const value = element.querySelector<HTMLElement>('strong')?.textContent?.trim();
+            const label = element.querySelector<HTMLElement>('span')?.textContent.trim();
+            const value = element.querySelector<HTMLElement>('strong')?.textContent.trim();
             if (label && value) {
                 stats.set(label[0].toUpperCase() + label.slice(1).toLowerCase(), value);
             }
@@ -166,7 +166,7 @@ function checkNewgroundsPortalThumbnail(element: HTMLElement, page_user?: User) 
     const user =
         element.querySelector<HTMLElement>('.item-details > span:nth-of-type(2)')?.textContent ??
         element.querySelector<HTMLElement>('.detail-title > span > strong')?.textContent ??
-        element.querySelector<HTMLElement>('.card-title > span')?.textContent?.split(' ')[1] ??
+        element.querySelector<HTMLElement>('.card-title > span')?.textContent.split(' ')[1] ??
         page_user ??
         '';
     const info = {
@@ -312,15 +312,17 @@ function getNewgroundsSubmissionData(submission: Submission, dom: Document) {
     if (!user_id) {
         throw new Error('User ID not found');
     }
-    const user_name = user_link?.textContent?.trim();
+    const user_name = user_link?.textContent.trim();
     if (!user_name) {
         throw new Error('User name not found');
     }
 
-    const title = dom.querySelector<HTMLElement>('[itemprop="name"]')?.textContent?.trim();
+    const title = dom.querySelector<HTMLElement>('[itemprop="name"]')?.textContent.trim();
     if (!title) {
         throw new Error('Title not found');
     }
+
+    const description = dom.querySelector('#author_comments')?.textContent.trim().replace(/\s+/g, ' ') ?? '';
 
     const date_string = dom.querySelector<HTMLMetaElement>('[itemprop="datePublished"]')?.content;
     if (!date_string) {
@@ -341,6 +343,7 @@ function getNewgroundsSubmissionData(submission: Submission, dom: Document) {
         userName: user_name,
         submissionId: submission_id,
         title,
+        description,
         ...timeParse(date_string),
     };
 

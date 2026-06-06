@@ -260,13 +260,13 @@ var startDownloading = async (submission: Submission, progress: ProgressControll
         referrer: window.location.href,
     };
     const page_response = await fetchOk(submissionLink(submission), init);
+    const page_dom = await page_response.dom();
     const user_name = page_response.url.split('/')[3];
 
     // Firefox only - wrappedJSObject
     let csrf_token: string | undefined = (window as any).wrappedJSObject?.__CSRF_TOKEN__;
     if (!csrf_token) {
-        const page_text = await page_response.text();
-        csrf_token = /__CSRF_TOKEN__\s=\s'(.+?)'/.exec(page_text)?.[1];
+        csrf_token = /__CSRF_TOKEN__\s=\s'(.+?)'/.exec(page_dom.body.textContent)?.[1];
     }
     if (!csrf_token) {
         throw new Error('Unable to find CSRF token');
@@ -282,7 +282,7 @@ var startDownloading = async (submission: Submission, progress: ProgressControll
     const response = await fetchOk(`https://www.deviantart.com/_puppy/dadeviation/init?${params}`, init);
     let obj = await response.json();
 
-    const { info, meta } = getDeviantartSubmissionData(submission, obj);
+    const { info, meta } = getDeviantartSubmissionData(submission, obj, page_dom);
 
     const stash_downloads = [];
     if (options.stash) {
@@ -322,10 +322,19 @@ var startDownloading = async (submission: Submission, progress: ProgressControll
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function getDeviantartSubmissionData(submission: Submission, obj: any) {
+function getDeviantartSubmissionData(submission: Submission, obj: any, dom: Document) {
     const user_name = obj.deviation.author.username;
     const user_id = user_name.toLowerCase();
     const title = obj.deviation.title;
+
+    // api often gives custom markup. use the rendered html
+    const description =
+        dom
+            .querySelector<HTMLElement>(
+                '#description > div > div, [role=complementary] + div .legacy-journal, main > div > div > div:only-child > div:not([class]) > div',
+            )
+            ?.textContent.trim()
+            .replace(/\s+/g, ' ') ?? '';
 
     const date_time = timeParse(obj.deviation.publishedTime);
 
@@ -335,6 +344,7 @@ function getDeviantartSubmissionData(submission: Submission, obj: any) {
         userName: user_name,
         submissionId: `${submission}`,
         title,
+        description,
         ...date_time,
     };
 
@@ -630,6 +640,7 @@ async function getStashDatas(
     const work_fetch = new WorkFetch();
     const datas = [];
     const stash_url = 'https://www.deviantart.com/_puppy/dadeviation/stash/init';
+    const stash_page_url = 'https://www.deviantart.com/stash/';
     for (const [i, stash_id] of enumerate(stash_ids)) {
         progress.onOf('Getting stash', i + 1, stash_ids.length);
         await timer(G_options.queueWait);
@@ -641,15 +652,18 @@ async function getStashDatas(
         });
 
         let obj: any;
+        let dom: Document;
         try {
-            const response = await work_fetch.fetchOk(`${stash_url}?${params}`, init);
-            obj = await response.json();
+            const response_api = await work_fetch.fetchOk(`${stash_url}?${params}`, init);
+            obj = await response_api.json();
+            const response_html = await work_fetch.fetchOk(`${stash_page_url}0${stash_id.toString(36)}`, init);
+            dom = await response_html.dom();
         } catch (error) {
             asLog('error', error);
             continue;
         }
 
-        const submission = getStashSubmissionData(obj);
+        const submission = getStashSubmissionData(obj, dom);
         const file: { info: FileInfo; meta: StashFileMeta } = await getDeviantartFileData(
             obj,
             submission.meta,
@@ -665,7 +679,7 @@ async function getStashDatas(
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function getStashSubmissionData(obj: any) {
+function getStashSubmissionData(obj: any, dom: Document) {
     const url_id = obj.deviation.stashPrivateid.toString(36);
     if (!url_id) {
         throw new Error('URL ID not found');
@@ -675,6 +689,15 @@ function getStashSubmissionData(obj: any) {
     }
     const submission_id = `${obj.deviation.deviationId}`;
     const title = obj.deviation.title ?? '';
+
+    // api often gives custom markup. use the rendered html
+    const description =
+        dom
+            .querySelector<HTMLElement>(
+                '#description > div > div, [role=complementary] + div .legacy-journal, main > div > div > div:only-child > div:not([class]) > div',
+            )
+            ?.textContent.trim()
+            .replace(/\s+/g, ' ') ?? '';
 
     const user_name = obj.deviation.author.username;
     if (!user_name) {
@@ -694,6 +717,7 @@ function getStashSubmissionData(obj: any) {
         userName: user_name,
         submissionId: submission_id,
         title,
+        description,
         urlId: url_id,
         ...date_time,
     };
@@ -854,11 +878,11 @@ async function getDeviantartLiterature(
     const story = cleanDeviantartLiterature(story_element);
     story.id = 'content';
 
-    const decription_element = dom.querySelector<HTMLElement>(
+    const description_element = dom.querySelector<HTMLElement>(
         '#description > div > div, [role=complementary] + div .legacy-journal, main > div > div > div:only-child > div:not([class]) > div',
     );
-    const description = decription_element
-        ? cleanDeviantartLiterature(decription_element)
+    const description = description_element
+        ? cleanDeviantartLiterature(description_element)
         : document.createElement('section');
     description.id = 'description';
 
@@ -895,11 +919,11 @@ async function getDeviantartLiterature(
     }
 
     const story_meta: DeviantartLiterature | StashLiterature = {
+        ...meta,
         story: story_content,
         description: description_content,
         wordCount: `${word_count}`,
         url,
-        ...meta,
     };
 
     const file_text = renderTemplate(template, type, story_meta as unknown as MetaRecord);

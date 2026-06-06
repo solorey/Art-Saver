@@ -23,6 +23,7 @@ class InkbunnyUserFolder {
 
 class InkbunnyFile extends InkbunnyUserFolder {
     title = '';
+    description = '';
     submissionId = '';
     fileName = '';
     fileId = '';

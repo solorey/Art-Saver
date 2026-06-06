@@ -23,6 +23,7 @@ class FuraffinityUserFolder {
 
 class FuraffinityFile extends FuraffinityUserFolder {
     title = '';
+    description = '';
     submissionId = '';
     fileName = '';
     fileId = '';

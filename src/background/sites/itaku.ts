@@ -23,6 +23,7 @@ class ItakuUserFolder {
 
 class ItakuFile extends ItakuUserFolder {
     title = '';
+    description = '';
     submissionId = '';
     fileName = '';
     ext = '';

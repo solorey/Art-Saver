@@ -182,6 +182,7 @@ function getItakuSubmissionData(submission: Submission, obj: any) {
     const user_id = obj.owner_username;
     const user_name = obj.owner_displayname;
     const title = obj.title;
+    const description = obj.description.trim().replace(/\s+/g, ' ') ?? '';
 
     const date_time = timeParse(obj.date_added);
 
@@ -191,6 +192,7 @@ function getItakuSubmissionData(submission: Submission, obj: any) {
         userName: user_name,
         submissionId: `${submission}`,
         title,
+        description,
         ...date_time,
     };
 

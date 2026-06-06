@@ -267,10 +267,12 @@ function getBlueskySubmissionData(submission: Submission, obj: any) {
     const split = `${submission}`.split(';', 2);
     const user_name = obj.thread.post.author.displayName;
     const user_id = obj.thread.post.author.handle;
+    const description = obj.thread.post.record.text.trim().replace(/\s+/g, ' ');
 
     const date_time = timeParse(obj.thread.post.record.createdAt);
 
     const meta: BlueskySubmissionMeta = {
+        description,
         site: bluesky_info.site,
         userId: user_id,
         userName: user_name,

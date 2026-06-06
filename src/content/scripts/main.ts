@@ -697,15 +697,15 @@ function renderTemplate(template: string, type: string, ...metas: MetaRecord[]) 
         }
         return value;
     });
+
     if (type === 'path') {
         text = text
             .split('/')
-            .map((p) => p.trim())
+            .map((p) => p.trim().replace(/^\./, '．').replace(/\s+/g, ' '))
             .join('/')
-            .replace(/\s+/g, ' ')
-            .replaceAll('./', '．/')
-            .replaceAll('/.', '/．'); // \uff0e
+            .replaceAll('./', '．/'); // \uff0e
     }
+
     return text;
 }
 

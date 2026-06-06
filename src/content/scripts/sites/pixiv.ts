@@ -252,6 +252,12 @@ function getPixivSubmissionData(submission: Submission, obj: any) {
     const user_id = obj.body.userId;
     const title = obj.body.title;
 
+    const description =
+        new DOMParser()
+            .parseFromString(obj.body.description, 'text/html')
+            .body.textContent.trim()
+            .replace(/\s+/g, ' ') ?? '';
+
     const date_time = timeParse(obj.body.uploadDate);
 
     const meta: PixivSubmissionMeta = {
@@ -260,6 +266,7 @@ function getPixivSubmissionData(submission: Submission, obj: any) {
         userName: user_name,
         submissionId: `${submission}`,
         title,
+        description,
         ...date_time,
     };
 

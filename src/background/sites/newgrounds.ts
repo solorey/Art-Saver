@@ -35,6 +35,7 @@ class NewgroundsUserFolder {
 
 class NewgroundsFile extends NewgroundsUserFolder {
     title = '';
+    description = '';
     submissionId = '';
     fileName = '';
     ext = '';
@@ -56,6 +57,7 @@ class NewgroundsMultiple extends NewgroundsArtFile {
 
 class NewgroundsGameFolder extends NewgroundsUserFolder {
     title = '';
+    description = '';
     submissionId = '';
     YYYY = '';
     MM = '';

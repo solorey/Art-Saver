@@ -28,6 +28,7 @@ class BlueskyUserFolder {
 }
 
 class BlueskyFile extends BlueskyUserFolder {
+    description = '';
     submissionId = '';
     fileName = '';
     ext = '';

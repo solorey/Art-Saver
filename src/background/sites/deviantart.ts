@@ -23,6 +23,7 @@ class DeviantartUserFolder {
 
 class DeviantartFile extends DeviantartUserFolder {
     title = '';
+    description = '';
     submissionId = '';
     fileName = '';
     ext = '';

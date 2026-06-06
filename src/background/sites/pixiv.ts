@@ -23,6 +23,7 @@ class PixivUserFolder {
 
 class PixivFile extends PixivUserFolder {
     title = '';
+    description = '';
     submissionId = '';
     fileName = '';
     ext = '';

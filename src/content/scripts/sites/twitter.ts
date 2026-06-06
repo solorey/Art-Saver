@@ -284,7 +284,7 @@ function checkTwitterThumbnail(element: HTMLElement) {
         return;
     }
     // using status url does not guarantee correct user ID
-    const user = element.querySelector('[tabindex="-1"] > [dir] > span')?.textContent?.trim().slice(1);
+    const user = element.querySelector('[tabindex="-1"] > [dir] > span')?.textContent.trim().slice(1);
     if (!user) {
         G_check_log.log(element, 'User not found');
         return;
@@ -482,9 +482,13 @@ function getTwitterSubmissionData(submission: Submission, obj: any) {
     const user_name = user.name;
     const user_id = user.screen_name;
 
+    // short url is added at end of full_text but not shown on page. remove it
+    const description = (obj.legacy.full_text.trim().replace(/\s+/g, ' ') ?? '').split(' ').slice(0, -1).join(' ');
+
     const date_time = timeParse(obj.legacy.created_at);
 
     const meta: TwitterSubmissionMeta = {
+        description,
         site: twitter_info.site,
         userId: user_id,
         userName: user_name,
