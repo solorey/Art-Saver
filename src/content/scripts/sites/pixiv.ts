@@ -167,7 +167,7 @@ function checkPixivThumbnail(element: HTMLElement, page_user?: User) {
 
     const parent = navigateUpSmaller(link);
     const info = { site: pixiv_info.site, user, submission };
-    return createButton(info, parent);
+    createButton(info, parent);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -197,7 +197,7 @@ function checkPixivWork(element: HTMLElement) {
     }
 
     const info = { site: pixiv_info.site, user: `${user}`, submission };
-    return createButton(info, thumbail);
+    createButton(info, thumbail);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

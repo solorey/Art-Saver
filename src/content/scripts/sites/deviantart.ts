@@ -187,7 +187,7 @@ function checkDeviantartThumbnail(element: HTMLElement, page_user?: User) {
         user,
         submission,
     };
-    return createButton(info, parent);
+    createButton(info, parent);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -436,7 +436,7 @@ async function getDeviantartFileData(
 
     const ext_regex_result = /\.(\w+)(?:\?|$)/.exec(url);
     if (!ext_regex_result) {
-        throw new Error('File extention not found');
+        throw new Error('File extension not found');
     }
 
     meta.ext = ext_regex_result[1];

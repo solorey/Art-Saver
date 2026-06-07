@@ -92,11 +92,7 @@ var getUserInfo = async (user: User) => {
     const did = obj.did;
 
     const icon_url = obj.avatar;
-
-    const work_fetch = new WorkFetch();
-    const icon_response = await work_fetch.fetchOk(icon_url, init);
-    work_fetch.disconnect();
-
+    const icon_response = await workFetchOk(icon_url, init);
     const icon: string = await browser.runtime.sendMessage({
         action: 'background_create_object_url',
         blob: icon_response.body,
@@ -231,7 +227,7 @@ function checkBlueskyThumbnail(element: HTMLElement) {
         user: user.toLowerCase(),
         submission: `${regex_result[1]};${did}`,
     };
-    return createButton(info, media_box);
+    createButton(info, media_box);
 }
 
 //---------------------------------------------------------------------------------------------------------------------

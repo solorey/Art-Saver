@@ -304,7 +304,7 @@ function checkTwitterThumbnail(element: HTMLElement) {
     const submission = regex_result[1];
 
     const info = { site: twitter_info.site, user: user.toLowerCase(), submission };
-    return createButton(info, media_box);
+    createButton(info, media_box);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

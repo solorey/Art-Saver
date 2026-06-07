@@ -174,7 +174,7 @@ function checkInkbunnyThumbnail(element: HTMLElement, page_user?: User) {
     }
     parent = navigateUpSmaller(parent);
     const info = { site: inkbunny_info.site, user, submission };
-    return createButton(info, parent);
+    createButton(info, parent);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

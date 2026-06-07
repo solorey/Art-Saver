@@ -134,7 +134,7 @@ function checkItakuThumbnail(element: HTMLElement, page_user?: User) {
         user,
         submission,
     };
-    return createButton(info, parent);
+    createButton(info, parent);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

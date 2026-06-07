@@ -145,7 +145,7 @@ function checkNewgroundsArtThumbnail(element: HTMLElement) {
         user,
         submission,
     };
-    return createButton(info, element);
+    createButton(info, element);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -174,7 +174,7 @@ function checkNewgroundsPortalThumbnail(element: HTMLElement, page_user?: User) 
         user: user.trim().toLowerCase(),
         submission,
     };
-    return createButton(info, element);
+    createButton(info, element);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -200,7 +200,7 @@ function checkNewgroundsAudioThumbnail(element: HTMLElement, page_user?: User) {
         user: user.trim().toLowerCase(),
         submission,
     };
-    return createButton(info, element);
+    createButton(info, element);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -238,7 +238,7 @@ function checkNewgroundsSubmissionPage(url: string, user: User) {
         user,
         submission,
     };
-    return createButton(info, content, { screen: false });
+    createButton(info, content, { screen: false });
 }
 
 //---------------------------------------------------------------------------------------------------------------------
