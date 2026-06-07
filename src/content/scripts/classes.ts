@@ -323,6 +323,11 @@ class CheckButton implements SubmissionAction {
     }
     update(state: Partial<CheckButtonState>) {
         if (state.saved_user != null) {
+            // initial button was given an empty string
+            // as user if the user was not found at first
+            if (!this.info.user) {
+                this.info.user = state.saved_user;
+            }
             this.saved_user = state.saved_user;
             this.setColor();
         }

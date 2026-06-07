@@ -26,6 +26,9 @@ const sites: Record<string, ContentSite> = {
     bluesky: {
         pattern: '*://*.bsky.app/*',
     },
+    instagram: {
+        pattern: '*://*.instagram.com/*',
+    },
     itaku: {
         pattern: '*://*.itaku.ee/*',
     },

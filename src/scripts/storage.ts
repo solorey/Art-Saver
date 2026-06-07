@@ -3,6 +3,7 @@ const SITES_KEYS = {
     newgrounds: '',
     twitter: '',
     bluesky: '',
+    instagram: '',
     itaku: '',
     pixiv: '',
     furaffinity: '',

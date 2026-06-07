@@ -233,6 +233,7 @@ const SITES_INFO: Record<Site, SiteInfo> = {
     newgrounds: newgrounds_info,
     twitter: twitter_info,
     bluesky: bluesky_info,
+    instagram: instagram_info,
     itaku: itaku_info,
     pixiv: pixiv_info,
     furaffinity: furaffinity_info,
@@ -244,6 +245,7 @@ const SITES_FORMS: Record<Site, SiteForm> = {
     newgrounds: newgrounds_form,
     twitter: twitter_form,
     bluesky: bluesky_form,
+    instagram: instagram_form,
     itaku: itaku_form,
     pixiv: pixiv_form,
     furaffinity: furaffinity_form,
@@ -251,6 +253,6 @@ const SITES_FORMS: Record<Site, SiteForm> = {
 };
 
 const SITES_AND_GLOBAL_FORMS: Record<SiteOrGlobal, SiteForm> = {
-    global: global_form,
     ...SITES_FORMS,
+    global: global_form,
 };

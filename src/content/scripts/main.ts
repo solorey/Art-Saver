@@ -358,12 +358,14 @@ function hasButton(parent: HTMLElement, submission: Submission) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-async function createButton(info: SubmissionInfo, parent: HTMLElement, options?: ContainerOptions) {
+async function createButton(info: SubmissionInfo, parent: HTMLElement, options?: ContainerOptions, no_style?: boolean) {
     if (hasButton(parent, info.submission)) {
         return;
     }
-    parent.style.position = 'relative';
-    parent.style.isolation = 'isolate';
+    if (!no_style) {
+        parent.style.position = 'relative';
+        parent.style.isolation = 'isolate';
+    }
     options ??= { screen: true };
     const saved_user = await checkUserForSubmission(info);
     if (saved_user) {
