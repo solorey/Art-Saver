@@ -520,6 +520,10 @@ form {
     background-color: var(--color-2);
 }
 
+.header-link {
+    text-underline-offset: 2px;
+}
+
 .help-link {
     $diameter: 15;
 

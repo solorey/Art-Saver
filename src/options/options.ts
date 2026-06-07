@@ -1032,7 +1032,7 @@ async function setupOptionsSections() {
         const help_link = section?.querySelector('[data-help-link]');
 
         if (site === 'global') {
-            header?.prepend('Global');
+            header?.parentElement?.replaceChildren('Global');
             help_link?.setAttribute('href', `${wiki_url}Options`);
 
             global_section?.prepend(template);
@@ -1040,6 +1040,7 @@ async function setupOptionsSections() {
             const info = SITES_INFO[site];
 
             header?.prepend(info.label);
+            header?.setAttribute('href', info.links.main);
             help_link?.setAttribute('href', `${wiki_url}${info.label.replaceAll(' ', '-')}`);
 
             sites_section?.append(template);
