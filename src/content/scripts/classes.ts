@@ -134,6 +134,8 @@ class StateManager {
         if (!submission_group) {
             submission_group = new SubmissionManager(info, type, state);
             this.submission_map.set(info.submission, submission_group);
+        } else if (!submission_group.info.user) {
+            submission_group.info.user = info.user;
         }
         const button = submission_group.addButton(parent, options);
         return button;
@@ -245,6 +247,7 @@ class SubmissionManager {
                 button.remove();
                 this.addButton(button.parent, button.options);
             } else {
+                button.info = this.info;
                 button.update?.(this.state);
                 this.buttons.push(button);
             }
@@ -319,15 +322,14 @@ class CheckButton implements SubmissionAction {
         this.setColor();
     }
     setColor() {
-        this.button.setAttribute('data-color', this.info.user === this.saved_user ? 'green' : 'yellow');
+        // sometimes the user may be an empty string if no user was found
+        this.button.setAttribute(
+            'data-color',
+            !this.info.user || this.info.user === this.saved_user ? 'green' : 'yellow',
+        );
     }
     update(state: Partial<CheckButtonState>) {
         if (state.saved_user != null) {
-            // initial button was given an empty string
-            // as user if the user was not found at first
-            if (!this.info.user) {
-                this.info.user = state.saved_user;
-            }
             this.saved_user = state.saved_user;
             this.setColor();
         }

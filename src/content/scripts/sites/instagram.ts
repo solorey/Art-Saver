@@ -58,16 +58,14 @@ async function getInstagramUserKey(user: User) {
 
 var getUserInfo = async (user: User) => {
     const user_key = await getInstagramUserKey(user);
+    // Firefox only - wrappedJSObject
+    const fb_dtsg: string | undefined = (window as any).wrappedJSObject?.fb_dtsg;
+    if (!fb_dtsg) {
+        throw new Error('Unable to find fb_dtsg value');
+    }
     const params = new URLSearchParams({
-        fb_dtsg: 'NAfwS-sevUK_Gc_A7p1IRTcu-AJWMA5D_3jB_W9LVivrMr8FCyj4gsw:17843691127146670:1778038660',
-        variables: JSON.stringify({
-            enable_integrity_filters: true,
-            id: user_key,
-            __relay_internal__pv__PolarisCannesGuardianExperienceEnabledrelayprovider: false,
-            __relay_internal__pv__PolarisCASB976ProfileEnabledrelayprovider: false,
-            __relay_internal__pv__PolarisWebSchoolsEnabledrelayprovider: false,
-            __relay_internal__pv__PolarisRepostsConsumptionEnabledrelayprovider: false,
-        }),
+        fb_dtsg,
+        variables: JSON.stringify({ id: user_key }),
         doc_id: '26672929172408668',
     });
     const init: RequestInit = {
@@ -77,7 +75,6 @@ var getUserInfo = async (user: User) => {
         },
         body: params,
         method: 'POST',
-        mode: 'cors',
     };
     const response = await fetchOk('https://www.instagram.com/api/graphql', init);
     const obj = await response.json();
@@ -133,9 +130,9 @@ async function checkInstagram() {
     for (const a of document.querySelectorAll<HTMLElement>('main article')) {
         checkInstagramArticle(a);
     }
-    const main_post = document.querySelector<HTMLElement>(
-        'main > div > div[style*="max-width:"], [role="dialog"] article',
-    );
+    const full_page_post = 'main > div:first-child:last-child > div:has(+ div > hr)';
+    const full_dialog_post = '[role="dialog"] article';
+    const main_post = document.querySelector<HTMLElement>(`${full_page_post}, ${full_dialog_post}`);
     if (main_post) {
         checkInstagramPost(main_post);
     }
@@ -151,12 +148,23 @@ function checkInstagramThumbnail(element: HTMLElement) {
         return;
     }
     // posts on search page have no user name
-    const user = (regex_result[2] ?? '').toLowerCase();
+    let user: string | undefined = regex_result[2];
     const submission = regex_result[3];
 
+    element.style.position = 'unset';
+    if (!user) {
+        // hover preview user
+        const user_preview_sel = 'div[data-interactable] > div > div[style*="transform: translate("]';
+        const preview_element = document.querySelector(user_preview_sel);
+        if (element.matches(`${user_preview_sel} a`) && preview_element) {
+            user = preview_element.querySelector('div a span')?.textContent.trim();
+            element.style.position = 'relative';
+        }
+    }
+    user = (user ?? '').toLowerCase();
+
     const info = { site: instagram_info.site, user, submission };
-    element.style.isolation = 'isolate';
-    createButton(info, element, undefined, true);
+    createButton(info, element);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -200,8 +208,15 @@ function checkInstagramPost(element: HTMLElement) {
     const user = regex_result[1].toLowerCase();
     const submission = regex_result[2];
 
+    let parent = element;
+    // dialog media
+    const media_element = element.querySelector<HTMLElement>(':scope > div > div[style*="max-width:"]');
+    if (media_element) {
+        parent = media_element;
+    }
+
     const info = { site: instagram_info.site, user, submission };
-    createButton(info, element, { screen: false });
+    createButton(info, parent, { screen: false });
 }
 
 //---------------------------------------------------------------------------------------------------------------------
