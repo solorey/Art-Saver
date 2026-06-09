@@ -170,7 +170,7 @@ function checkInstagramThumbnail(element: HTMLElement) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function checkInstagramArticle(element: HTMLElement) {
-    const href = element.querySelector<HTMLAnchorElement>('a[href*="/p/"]')?.getAttribute('href');
+    const href = element.querySelector<HTMLAnchorElement>('a[href^="/p/"]')?.getAttribute('href');
     if (!href) {
         G_check_log.log(element, 'Link not found');
         return;
@@ -182,8 +182,15 @@ function checkInstagramArticle(element: HTMLElement) {
         return;
     }
 
+    // :nth-child(2) // image media
+    // :first-child  // video media
+    const parent =
+        element.querySelector<HTMLElement>(
+            ':scope > div > div:is(:nth-child(2), :first-child):has(+ div:last-child)',
+        ) ?? element;
+
     const info = { site: instagram_info.site, user, submission };
-    createButton(info, element, { screen: false });
+    createButton(info, parent, { screen: false });
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -194,7 +201,7 @@ function checkInstagramPost(element: HTMLElement) {
     const a =
         element.querySelector<HTMLAnchorElement>(`section + div:last-child ${href_sel}`) ?? // full page post
         element.querySelector<HTMLAnchorElement>(`section + div + div:last-child ${href_sel}`) ?? // vertical dialog post
-        element.querySelector<HTMLAnchorElement>(`div:has( + section) ${href_sel}`); // full dialog post
+        element.querySelector<HTMLAnchorElement>(`div:has(+ section) ${href_sel}`); // full dialog post
     const href = a?.getAttribute('href');
     if (!href) {
         G_check_log.log(element, 'Link not found');
@@ -208,12 +215,12 @@ function checkInstagramPost(element: HTMLElement) {
     const user = regex_result[1].toLowerCase();
     const submission = regex_result[2];
 
-    let parent = element;
-    // dialog media
-    const media_element = element.querySelector<HTMLElement>(':scope > div > div[style*="max-width:"]');
-    if (media_element) {
-        parent = media_element;
-    }
+    // :nth-child(2) // vertical dialog media
+    // :first-child  // full page/dialog media
+    const parent =
+        element.querySelector<HTMLElement>(
+            ':scope > div > div:is(:nth-child(2), :first-child):has(+ div:last-child)',
+        ) ?? element;
 
     const info = { site: instagram_info.site, user, submission };
     createButton(info, parent, { screen: false });
