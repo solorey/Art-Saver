@@ -50,6 +50,10 @@ class StashFile extends DeviantartFile {
     urlId = '';
 }
 
+class StashMultiple extends StashFile {
+    page = '';
+}
+
 class StashLiterature extends DeviantartLiterature {
     urlId = '';
 }
@@ -137,10 +141,11 @@ const deviantart_form = {
         metas: Object.keys(new StashFile()),
         related: [{ option: 'stash', value: true }],
     },
-    moveFile: {
-        type: 'checkbox',
-        label: 'Save submission file in stash folder',
-        default: false,
+    stashMultiple: {
+        type: 'textarea',
+        label: 'Save multiple stash files as',
+        default: 'Saved/{site}/{userName}/{submissionId^}_{title^}/{title}_{page}_by_{userName}_{urlId}.{ext}',
+        metas: Object.keys(new StashMultiple()),
         related: [{ option: 'stash', value: true }],
     },
     stashLiteratureHTML: {

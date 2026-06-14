@@ -290,11 +290,11 @@ var startDownloading = async (submission: Submission, progress: ProgressControll
         const stashes = await getStashIds(obj, init, csrf_token, progress);
         const stash_datas = await getStashDatas(stashes.stash_ids, init, csrf_token, options, progress);
         for (const stash of stash_datas) {
-            const download = createStashDownload(meta, stash.submission.meta, stash.file, options);
+            const downloads = createStashDownloads(meta, stash.submission.meta, stash.files, options);
             if (stash.submission.meta.submissionId in stashes.blobs) {
-                download.download = stashes.blobs[stash.submission.meta.submissionId];
+                downloads[0].download = stashes.blobs[stash.submission.meta.submissionId];
             }
-            stash_downloads.push(download);
+            stash_downloads.push(...downloads);
         }
         // re-get the submission data after 5 minutes for a new download token
         if (Date.now() - start_time > 300_000) {
@@ -306,14 +306,6 @@ var startDownloading = async (submission: Submission, progress: ProgressControll
     const file_data = await getDeviantartFileData(obj, meta, options, progress);
     const file_datas = [file_data, ...(await getDeviantartAdditionalFileDatas(obj, options.larger))];
     const downloads = createDeviantartDownloads(meta, file_datas, options);
-
-    if (options.moveFile && stash_downloads.length > 0) {
-        const stash_folder = /.*\//.exec(stash_downloads[0].path)?.[0] ?? '';
-        for (const download of downloads) {
-            const deviant_file = download.path.split('/').pop();
-            download.path = `${stash_folder}${deviant_file}`;
-        }
-    }
 
     downloads.push(...stash_downloads);
 
@@ -581,7 +573,7 @@ function buildMediaUrl(media_obj: any) {
     const media = types[0];
 
     const uri = media_obj.baseUri;
-    let media_url = media.t === 'fullview' ? (media.c ? `${uri}${media.c}` : uri) : (media.s ?? media.b);
+    let media_url: string = media.t === 'fullview' ? (media.c ? `${uri}${media.c}` : uri) : (media.s ?? media.b);
     if (!media_url) {
         throw new Error('Unable to find download URL');
     }
@@ -589,7 +581,7 @@ function buildMediaUrl(media_obj: any) {
     media_url = media_url.replace(/<prettyName>/g, media_obj.prettyName);
 
     const tokens = media_obj.token;
-    if (tokens) {
+    if (tokens && !/\/v\//.test(media_url)) {
         media_url = `${media_url}?token=${tokens[0]}`;
     }
     return media_url as string;
@@ -664,13 +656,14 @@ async function getStashDatas(
         }
 
         const submission = getStashSubmissionData(obj, dom);
-        const file: { info: FileInfo; meta: StashFileMeta } = await getDeviantartFileData(
+        const file_data: { info: FileInfo; meta: StashFileMeta } = await getDeviantartFileData(
             obj,
             submission.meta,
             options,
             progress,
         );
-        datas.push({ submission, file });
+        const file_datas = [file_data, ...(await getDeviantartAdditionalFileDatas(obj, options.larger))];
+        datas.push({ submission, files: file_datas });
     }
 
     work_fetch.disconnect();
@@ -684,10 +677,11 @@ function getStashSubmissionData(obj: any, dom: Document) {
     if (!url_id) {
         throw new Error('URL ID not found');
     }
-    if (!obj.deviation.deviationId) {
+    const deviation_id = obj.deviation.deviationId;
+    if (!deviation_id) {
         throw new Error('Submission ID not found');
     }
-    const submission_id = `${obj.deviation.deviationId}`;
+    const submission_id = `${deviation_id}`;
     const title = obj.deviation.title ?? '';
 
     // api often gives custom markup. use the rendered html
@@ -727,19 +721,44 @@ function getStashSubmissionData(obj: any, dom: Document) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function createStashDownload(
+function createStashDownloads(
     submission_meta: DeviantartSubmissionMeta,
     stash_meta: StashSubmissionMeta,
-    file_data: StashFileData,
+    file_datas: StashFileData[],
     options: DeviantartOptionsValues,
 ) {
-    const meta: StashFile = { ...stash_meta, ...file_data.meta };
-
-    const download: DownloadInfo = {
-        ...file_data.info,
-        path: renderPath(options.stashFile, meta as unknown as MetaRecord, submission_meta as unknown as MetaRecord),
-    };
-    return download;
+    const downloads = [];
+    if (file_datas.length > 1) {
+        for (const [i, file] of enumerate(file_datas)) {
+            const meta: StashMultiple = {
+                ...stash_meta,
+                ...file.meta,
+                page: `${i + 1}`,
+            };
+            downloads.push({
+                ...file.info,
+                path: renderPath(
+                    options.stashMultiple,
+                    meta as unknown as MetaRecord,
+                    submission_meta as unknown as MetaRecord,
+                ),
+            });
+        }
+    } else {
+        const meta: StashFile = {
+            ...stash_meta,
+            ...file_datas[0].meta,
+        };
+        downloads.push({
+            ...file_datas[0].info,
+            path: renderPath(
+                options.stashFile,
+                meta as unknown as MetaRecord,
+                submission_meta as unknown as MetaRecord,
+            ),
+        });
+    }
+    return downloads;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

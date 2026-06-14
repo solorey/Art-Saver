@@ -587,7 +587,7 @@ function sanitizePathComponent(text: string) {
         .replaceAll('<', '＜') // \uff1c
         .replaceAll('>', '＞') // \uff1e
         .replaceAll('|', '｜') // \uff5c
-        .replace(/[\u200e\u200f\u202a-\u202e]/g, ''); // remove bidirectional formatting characters.
+        .replace(/[\u200b-\u200f\u202a-\u202e]/g, ''); // remove zero width and bidirectional formatting characters.
     // not illegal in windows but firefox errors when trying to download a filename with them.
 }
 
