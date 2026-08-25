@@ -208,8 +208,8 @@ function checkBlueskyThumbnail(element: HTMLElement) {
     }
 
     let link: string | undefined;
-    // Follow button next to main post selector
-    if (element.querySelector('button[data-testid="followBtn"]')) {
+    // time and date element that only shows on the focused post
+    if (element.querySelector(divPath(2, 2, 0, 1))) {
         link = window.location.href;
     } else {
         link = element.querySelector<HTMLAnchorElement>('a[href*="/post/"][data-tooltip]')?.href;
