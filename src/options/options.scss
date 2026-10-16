@@ -668,6 +668,14 @@ form {
 
 .switch {
     @include b.p-switch(32, 18, 12, rem);
+
+    .site-header & {
+        background-color: var(--color-3);
+
+        &:hover {
+            background-color: var(--color-4);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------------------------------------------------

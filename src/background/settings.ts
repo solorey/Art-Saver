@@ -78,9 +78,10 @@ interface ShortcutOption extends Option {
 }
 
 type SupportedOption = SelectOption | CheckboxOption | NumberOption | SliderOption | TextareaOption | ShortcutOption;
-type SiteForm = Record<string, SupportedOption>;
+type OptionForm = Record<string, SupportedOption>;
+type SiteForm = { enabled: CheckboxOption } & OptionForm;
 
-type SiteOptions<T extends SiteForm> = {
+type SiteOptions<T extends OptionForm> = {
     [s in keyof T]: T[s]['default'];
 };
 
@@ -142,6 +143,15 @@ const global_form = {
         min: 0,
         unit: 'px',
         default: 16,
+    },
+    showDownload: {
+        type: 'select',
+        label: 'Show download buttons',
+        options: [
+            { value: 'hover', label: 'On hover' },
+            { value: 'always', label: 'Always' },
+        ],
+        default: 'hover',
     },
     addScreen: {
         type: 'checkbox',
@@ -221,7 +231,7 @@ const global_form = {
         ],
         default: '3',
     },
-} satisfies SiteForm;
+} satisfies OptionForm;
 type GlobalOptionsValues = SiteOptions<typeof global_form>;
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -252,7 +262,7 @@ const SITES_FORMS: Record<Site, SiteForm> = {
     inkbunny: inkbunny_form,
 };
 
-const SITES_AND_GLOBAL_FORMS: Record<SiteOrGlobal, SiteForm> = {
+const SITES_AND_GLOBAL_FORMS: Record<SiteOrGlobal, OptionForm> = {
     ...SITES_FORMS,
     global: global_form,
 };

@@ -48,7 +48,8 @@ class ToolTip {
     error: HTMLElement | null;
     constructor(root: HTMLElement, nodes: NodeListOf<ChildNode>) {
         const { container, shadow } = createCustomElement('tool-tip');
-        shadow.append(G_ui_styles.common.cloneNode(true), G_ui_styles.tool_tip.cloneNode(true), ...nodes);
+        shadow.adoptedStyleSheets = [G_style_vars, G_ui_styles.common, G_ui_styles.tool_tip];
+        shadow.append(...nodes);
 
         const tip = shadow.querySelector<HTMLElement>('#tool-tip');
         tip?.setAttribute('data-theme', G_options.theme);
@@ -743,7 +744,7 @@ function createCustomElement(name: string, mode?: ShadowRootMode) {
 function initalButtonContainer() {
     const custom = createCustomElement('submission');
     custom.container.style.display = 'contents';
-    custom.shadow.append(G_ui_styles.common.cloneNode(true), G_ui_styles.submission.cloneNode(true));
+    custom.shadow.adoptedStyleSheets = [G_style_vars, G_ui_styles.common, G_ui_styles.submission];
     return custom;
 }
 
@@ -859,7 +860,8 @@ class InfoBar {
         if (!G_options.infoBar) {
             container.style.display = 'none';
         }
-        shadow.append(G_ui_styles.common.cloneNode(true), G_ui_styles.info_bar.cloneNode(true), ...nodes);
+        shadow.adoptedStyleSheets = [G_style_vars, G_ui_styles.common, G_ui_styles.info_bar];
+        shadow.append(...nodes);
         shadow.querySelectorAll<HTMLElement>('#info-bar, #show-area').forEach((element) => {
             element.setAttribute('data-theme', G_options.theme);
             G_themed_elements.push(element);

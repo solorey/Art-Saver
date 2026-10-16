@@ -462,7 +462,7 @@ class OptionsForm {
         const options_form: Partial<typeof this.form> = {};
         for (const site of SITES_AND_GLOBAL) {
             const site_options: Record<string, OptionClass> = {};
-            const site_form: SiteForm = SITES_AND_GLOBAL_FORMS[site];
+            const site_form: OptionForm = SITES_AND_GLOBAL_FORMS[site];
             for (const [key, option] of Object.entries(site_form)) {
                 const option_id = `${site}-${key}`;
                 let new_option: OptionClass;
@@ -494,7 +494,7 @@ class OptionsForm {
         this.form = options_form as typeof this.form;
 
         for (const site of SITES_AND_GLOBAL) {
-            const site_form: SiteForm = SITES_AND_GLOBAL_FORMS[site];
+            const site_form = SITES_AND_GLOBAL_FORMS[site];
             for (const key in site_form) {
                 const option_class = options_form[site]?.[key];
                 if (!option_class) {
@@ -528,7 +528,7 @@ class OptionsForm {
     }
     setValues(all_options: Partial<JsonOptions>, initialize_default = false) {
         for (const site of SITES_AND_GLOBAL) {
-            const site_form: SiteForm = SITES_AND_GLOBAL_FORMS[site];
+            const site_form = SITES_AND_GLOBAL_FORMS[site];
             for (const [key, option] of Object.entries(site_form)) {
                 let value = all_options[site]?.[key];
                 if (initialize_default) {
@@ -1025,10 +1025,21 @@ async function setupOptionsSections() {
         section?.setAttribute('id', `${site}-options`);
 
         for (const option of Object.values(G_options_form.form[site])) {
-            section?.append(option.block);
+            // custom position for the site enabled option in the site header
+            if ((SITES as string[]).includes(site) && option.id === `${site}-enabled`) {
+                const label = option.block.firstElementChild;
+                if (label) {
+                    label.setAttribute('title', 'enabled');
+                    label.classList.remove('label-row');
+                    label.replaceChildren(...label.querySelectorAll('*'));
+                    section?.querySelector('header')?.prepend(label);
+                }
+            } else {
+                section?.append(option.block);
+            }
         }
 
-        const header = section?.querySelector('[data-site-header]');
+        const header = section?.querySelector('[data-site-title]');
         const help_link = section?.querySelector('[data-help-link]');
 
         if (site === 'global') {

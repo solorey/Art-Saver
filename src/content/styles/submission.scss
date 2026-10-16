@@ -8,6 +8,9 @@
 
 .invisible {
     visibility: hidden;
+    &.icon-download {
+        visibility: var(--download-visibility);
+    }
 }
 
 .action-button {
@@ -16,7 +19,7 @@
         block-start: 0;
         inline-start: 0;
     }
-    inline-size: var(--as-icon-size);
+    inline-size: var(--icon-size);
     aspect-ratio: 1;
     background: {
         repeat: no-repeat;
@@ -46,7 +49,7 @@
 }
 
 .icon-check {
-    border-radius: var(--as-icon-size);
+    border-radius: var(--icon-size);
 
     &[data-color='green'] {
         background-image: var(--icon-check_green);
@@ -65,11 +68,11 @@
 .screen {
     position: absolute;
     inset: 0;
-    display: var(--as-screen-display, flex);
+    display: var(--screen-display, flex);
     justify-content: center;
     align-items: center;
     background-color: gray;
-    opacity: var(--as-screen-opacity);
+    opacity: var(--screen-opacity);
     pointer-events: none;
 
     &::after {
@@ -94,22 +97,22 @@
 }
 
 .icon-download {
-    border-radius: calc(var(--as-icon-size) * (3 / 16));
+    border-radius: calc(var(--icon-size) * (3 / 16));
     background-image: var(--icon-download);
 }
 
 .icon-remove {
-    border-radius: var(--as-icon-size);
+    border-radius: var(--icon-size);
     background-image: var(--icon-remove);
 }
 
 .icon-error {
-    border-radius: calc(var(--as-icon-size) * (3 / 16));
+    border-radius: calc(var(--icon-size) * (3 / 16));
     background-image: var(--icon-error);
 }
 
 .icon-loading {
-    border-radius: var(--as-icon-size);
+    border-radius: var(--icon-size);
     background-image: var(--icon-loading);
     animation: {
         name: rotation;

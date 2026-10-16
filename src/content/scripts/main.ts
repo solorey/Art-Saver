@@ -5,7 +5,7 @@ let G_info_bar: InfoBar;
 const G_state_manager = new StateManager();
 const G_download_queue = new DownloadQueue();
 const G_themed_elements: (HTMLElement | null)[] = [];
-const G_head_style = document.createElement('style');
+const G_style_vars = new CSSStyleSheet();
 const G_check_log = new CheckLogCache();
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -20,9 +20,7 @@ async function main() {
         getUI('info_bar'),
     ]);
 
-    G_head_style.setAttribute('data-art-saver', 'style');
-    updateGlobalStyle();
-    document.head.append(G_head_style);
+    updateStyleVars();
 
     const ui_root = document.createElement('art-saver-ui');
     ui_root.setAttribute('data-art-saver', 'ui');
@@ -157,49 +155,49 @@ function asLog(type: LogType, ...obj: any[]) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function createUIStyles() {
-    const css = ['submission', 'tool_tip', 'info_bar'];
-    const styles = await Promise.all(css.map((s) => createUIStyleElement(s)));
+    const style_promises = ['submission', 'tool_tip', 'info_bar'].map((s) => createUIStyleSheet(s));
+    style_promises.push(createCommonStyleSheet());
+    const style_sheets = await Promise.all(style_promises);
     return {
-        submission: styles[0],
-        tool_tip: styles[1],
-        info_bar: styles[2],
-        common: await createCommonStyleElement(),
+        submission: style_sheets[0],
+        tool_tip: style_sheets[1],
+        info_bar: style_sheets[2],
+        common: style_sheets[3],
     };
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-async function createUIStyleElement(ui: string) {
+async function createUIStyleSheet(ui: string) {
     const response = await fetchOk(browser.runtime.getURL(`/content/styles/${ui}.css`));
-    const style = document.createElement('style');
-    style.setAttribute('data-sheet', ui);
-    style.textContent = await response.text();
-    return style;
+    const style_sheet = new CSSStyleSheet();
+    style_sheet.replaceSync(await response.text());
+    return style_sheet;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-async function createCommonStyleElement() {
-    const style = document.createElement('style');
-    style.setAttribute('data-sheet', 'common');
+async function createCommonStyleSheet() {
     const rules = await Promise.all(
         ['shadow', 'colors', 'common'].map(async (sheet) => {
             const response = await fetchOk(browser.runtime.getURL(`/styles/${sheet}.css`));
             return await response.text();
         }),
     );
-    style.textContent = `${createIconsStyle()}${rules.join('')}`;
-    return style;
+    const style_sheet = new CSSStyleSheet();
+    style_sheet.replaceSync(`${createIconsStyleRule()}${rules.join('')}`);
+    return style_sheet;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function updateGlobalStyle() {
-    const icons_size = `--as-icon-size: ${G_options.iconSize}px;`;
-    const screen_display = `--as-screen-display: ${G_options.addScreen ? 'flex' : 'none'};`;
-    const screen_opacity = `--as-screen-opacity: ${G_options.screenOpacity}%;`;
+function updateStyleVars() {
+    const icons_size = `--icon-size: ${G_options.iconSize}px;`;
+    const screen_display = `--screen-display: ${G_options.addScreen ? 'flex' : 'none'};`;
+    const screen_opacity = `--screen-opacity: ${G_options.screenOpacity}%;`;
+    const download_visibility = `--download-visibility: ${G_options.showDownload === 'hover' ? 'hidden' : 'visible'};`;
 
-    G_head_style.textContent = `:root {${icons_size} ${screen_display} ${screen_opacity}}`;
+    G_style_vars.replaceSync(`:host {${icons_size} ${screen_display} ${screen_opacity} ${download_visibility}}`);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -211,7 +209,7 @@ function createFlatIconVars(size: number, icons: string[]) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function createIconsStyle() {
+function createIconsStyleRule() {
     const icons = ['check_green', 'check_yellow', 'download', 'error', 'loading', 'remove']
         .map((icon) => `--icon-${icon}: url("${browser.runtime.getURL(`icons/${icon}.svg`)}");`)
         .join('');
@@ -407,7 +405,7 @@ browser.storage.local.onChanged.addListener((changes) => {
     const global_changed_values = changes[optionsKey('global')]?.newValue as GlobalOptionsValues | undefined;
     if (global_changed_values) {
         G_options = global_changed_values;
-        updateGlobalStyle();
+        updateStyleVars();
         for (const element of G_themed_elements) {
             element?.setAttribute('data-theme', G_options.theme);
         }
@@ -418,8 +416,7 @@ browser.storage.local.onChanged.addListener((changes) => {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 async function getUI(ui: string) {
-    const ui_url = browser.runtime.getURL(`/content/ui/${ui}.html`);
-    const response = await fetchOk(ui_url);
+    const response = await fetchOk(browser.runtime.getURL(`/content/ui/${ui}.html`));
     const dom = await response.dom();
     return dom.body.childNodes;
 }
