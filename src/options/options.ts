@@ -640,6 +640,50 @@ class CommandsForm {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+class PermissionsForm {
+    form: Record<string, OptionCheckbox> = {};
+    constructor() {
+        const section = document.querySelector<HTMLElement>('#permissions-list');
+        const optional_permissions: {
+            permission: Browser.Manifest.OptionalPermission | Browser.Manifest.OptionalOnlyPermission;
+            values: CheckboxOption;
+        }[] = [
+            {
+                permission: 'cookies',
+                values: {
+                    type: 'checkbox',
+                    default: false,
+                    label: 'Use additional cookies',
+                },
+            },
+        ];
+        for (const optional_permission of optional_permissions) {
+            const input = new OptionCheckbox(`optional_${optional_permission.permission}`, optional_permission.values);
+            input.value_element.addEventListener('click', () => {
+                const permission = { permissions: [optional_permission.permission] };
+                if (input.value_element.checked) {
+                    browser.permissions.request(permission);
+                } else {
+                    browser.permissions.remove(permission);
+                }
+            });
+            section?.append(input.block);
+            this.form[optional_permission.permission] = input;
+        }
+    }
+    setValues(permissions: Browser.Permissions.AnyPermissions) {
+        const enabled_permissions = permissions.permissions ?? [];
+        for (const [optional_permission, value] of Object.entries(this.form)) {
+            value?.setValue(enabled_permissions.includes(optional_permission));
+        }
+    }
+    async checkValues() {
+        this.setValues(await browser.permissions.getAll());
+    }
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 class TableSiteData {
     site: Site;
     row: DocumentFragment;
@@ -885,6 +929,7 @@ class SavedTable {
 const G_delete_queue = new Set();
 const G_options_form = new OptionsForm();
 const G_commands_form = new CommandsForm();
+const G_permissions_form = new PermissionsForm();
 const G_saved_table = new SavedTable();
 const G_undo_bar = new UndoBar();
 const G_save_options = new FunctionDebouncer(saveOptions);
@@ -898,6 +943,7 @@ const G_save_options = new FunctionDebouncer(saveOptions);
     await setupOptionsSections();
     await setupCommandsSection();
     G_saved_table.getValues();
+    G_permissions_form.checkValues();
 
     const edit_enabled = document.querySelector<HTMLInputElement>('#saved-info-edit-switch input')?.checked ?? false;
     const saved_table = document.querySelector<HTMLElement>('#saved-table');
@@ -1072,6 +1118,11 @@ async function setupCommandsSection() {
         section?.append(input.block);
     }
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+browser.permissions.onAdded.addListener(() => G_permissions_form.checkValues());
+browser.permissions.onRemoved.addListener(() => G_permissions_form.checkValues());
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -668,6 +668,9 @@ function backgroundMessageActions(message: BackgroundMessage) {
 
         case 'background_show_download':
             return browser.downloads.show(message.id);
+
+        case 'background_setup_site':
+            return setupSite(message.site);
     }
 }
 
@@ -689,6 +692,41 @@ async function sendContentScriptMessage(message: ContentMessage) {
     for (const tab of tabs) {
         if (tab.id && tab.url) {
             browser.tabs.sendMessage(tab.id, message).catch(() => {});
+        }
+    }
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// sites setup on page load
+//---------------------------------------------------------------------------------------------------------------------
+
+async function setupSite(site: Site) {
+    // cookies permission enabled check
+    const cookies = browser.cookies;
+    if (!cookies) {
+        return;
+    }
+
+    if (site === 'furaffinity') {
+        // move cf_clearance cookie out of storage partition so that it can be used with fetch()
+        const url = SITES_INFO.furaffinity.links.main;
+        const name = 'cf_clearance';
+        const cf_cookies = await cookies.getAll({
+            url,
+            name,
+            partitionKey: {},
+        });
+        const cf_cookie = cf_cookies.find((c) => c.partitionKey);
+        if (cf_cookie) {
+            await cookies.set({
+                url,
+                name,
+                httpOnly: cf_cookie.httpOnly,
+                expirationDate: cf_cookie.expirationDate,
+                domain: cf_cookie.domain,
+                value: cf_cookie.value,
+                secure: cf_cookie.secure,
+            });
         }
     }
 }

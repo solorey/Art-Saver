@@ -157,7 +157,8 @@ type BackgroundMessage =
     | { action: 'background_set_db_json'; saved_json: Partial<JsonSaved> }
     | { action: 'background_add_db_json'; saved_json: Partial<JsonSaved> }
     | { action: 'background_open_user_folder'; path: string }
-    | { action: 'background_show_download'; id: number };
+    | { action: 'background_show_download'; id: number }
+    | { action: 'background_setup_site'; site: Site };
 
 type PopupMessage = { action: 'popup_db_update'; site: Site };
 

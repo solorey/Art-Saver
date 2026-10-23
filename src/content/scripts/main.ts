@@ -67,8 +67,8 @@ function reloadCleanUp() {
         if (!(await getOptionsStorage(G_site_info.site)).enabled) {
             return;
         }
-        // wake up background script ?
-        browser.runtime.sendMessage({ action: '' });
+
+        await browser.runtime.sendMessage({ action: 'background_setup_site', site: G_site_info.site } as BackgroundMessage);
         await main();
     } catch (error) {
         asLog('error', error);

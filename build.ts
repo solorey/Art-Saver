@@ -101,6 +101,7 @@ const manfiest = {
         },
     },
     permissions: ['downloads', 'storage'],
+    optional_permissions: ['cookies'],
     host_permissions: ['*://*/*'],
     web_accessible_resources: [
         {
