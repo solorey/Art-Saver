@@ -8,7 +8,7 @@ const twitter_info: SiteInfo = {
     links: {
         main: 'https://x.com',
         user: (u) => `https://x.com/${u}`,
-        gallery: (u) => `https://x.com/${u}/media`,
+        gallery: (u) => `https://x.com/${u}/media?filter=photo`,
         favorites: (u) => `https://x.com/${u}/likes`,
         submission: (s) => `https://x.com/i/web/status/${s}`,
     },

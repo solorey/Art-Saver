@@ -113,6 +113,7 @@ const manfiest = {
         ...Object.entries(sites).map(([site, s]) => ({
             matches: [s.pattern],
             js: [...(s.extra_js ?? []), siteBackground(site), siteContent(site)],
+            run_at: 'document_start',
         })),
         {
             matches: site_patterns,

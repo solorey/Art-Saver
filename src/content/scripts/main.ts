@@ -13,8 +13,7 @@ const G_check_log = new CheckLogCache();
 async function main() {
     let tool_tip_nodes: NodeListOf<ChildNode>;
     let info_bar_nodes: NodeListOf<ChildNode>;
-    [G_options, G_ui_styles, tool_tip_nodes, info_bar_nodes] = await Promise.all([
-        getOptionsStorage<GlobalOptionsValues>('global'),
+    [G_ui_styles, tool_tip_nodes, info_bar_nodes] = await Promise.all([
         createUIStyles(),
         getUI('tool_tip'),
         getUI('info_bar'),
@@ -51,6 +50,32 @@ function reloadCleanUp() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 (async () => {
+    try {
+        let site_enabled;
+        [G_options, site_enabled] = await Promise.all([
+            getOptionsStorage<GlobalOptionsValues>('global'),
+            isSiteEnabled(),
+            Promise.resolve(reloadCleanUp()),
+        ]);
+        if (!site_enabled) {
+            return;
+        }
+
+        await Promise.all([
+            browser.runtime.sendMessage({
+                action: 'background_setup_site',
+                site: G_site_info.site,
+            } as BackgroundMessage),
+            main(),
+        ]);
+    } catch (error) {
+        asLog('error', error);
+    }
+})();
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+async function isSiteEnabled() {
     while (true) {
         try {
             // G_site_info is defined in site script
@@ -61,19 +86,8 @@ function reloadCleanUp() {
             await timer(0.1);
         }
     }
-
-    try {
-        reloadCleanUp();
-        if (!(await getOptionsStorage(G_site_info.site)).enabled) {
-            return;
-        }
-
-        await browser.runtime.sendMessage({ action: 'background_setup_site', site: G_site_info.site } as BackgroundMessage);
-        await main();
-    } catch (error) {
-        asLog('error', error);
-    }
-})();
+    return (await getOptionsStorage(G_site_info.site)).enabled;
+}
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
