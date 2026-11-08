@@ -141,7 +141,7 @@ function sortSiteUsers(site: Site, users: User[]) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function sortSiteSubmissions(site: Site, submissions: Submission[]) {
-    if (site === 'twitter') {
+    if (site === 'twitter' || site === 'baraag') {
         return submissions
             .map(BigInt)
             .sort((a, b) => (a > b ? 1 : a === b ? 0 : -1))

@@ -178,7 +178,7 @@ type WhammyLib = {
     compile: (flag: boolean, callback: (blob: Blob) => void) => void;
 };
 type DOMPurifyLib = {
-    sanitize: (element: HTMLElement, params: any) => any;
+    sanitize: (content: HTMLElement | string, params?: any) => any;
 };
 type UPNGLib = {
     encode: (
