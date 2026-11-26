@@ -138,7 +138,11 @@ var getPageInfo = async () => {
         page = 'submission';
         has_user = true;
         user = canonical;
-    } else if (document.querySelector('script[data-testid^="UserProfileSchema"]')) {
+    } else if (
+        document.querySelector(
+            isTwitterNewLayout() ? '[property="profile:username"]' : '[data-testid="UserProfileSchema-test"]',
+        )
+    ) {
         page = 'user';
         has_user = true;
         user = canonical;
@@ -152,6 +156,11 @@ var getPageInfo = async () => {
     const info: PageInfo = { site: twitter_info.site, url, page, user };
     return info;
 };
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function isTwitterNewLayout(dom?: Document) {
+    return Boolean((dom ?? document).querySelector('meta[name="color-scheme"]'));
+}
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -164,13 +173,15 @@ var getUserInfo = async (user: User) => {
         throw new Error('Unable to find CSRF token');
     }
     const path = '/i/api/graphql/1VOOyvKkiI3FMmkeDNxM9A/UserByScreenName';
-    const headers = {
+    const headers: HeadersInit = {
         authorization:
             'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
         'x-csrf-token': csrf_token,
         'x-twitter-active-user': 'yes',
-        'x-client-transaction-id': await x_client.getTransactionId('GET', path),
     };
+    if (!isTwitterNewLayout()) {
+        headers['x-client-transaction-id'] = await x_client.getTransactionId('GET', path);
+    }
     const init: RequestInit = {
         credentials: 'include',
         referrer: window.location.href,
@@ -241,16 +252,34 @@ async function checkTwitter() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function checkTwitterPage() {
-    for (const tweet of document.querySelectorAll<HTMLElement>('[data-testid="tweet"]')) {
-        const media = tweet.querySelector(':scope [aria-labelledby] > div > div');
-        const tweet_photo = media?.querySelector('[data-testid="tweetPhoto"]');
-        if (tweet_photo) {
-            checkTwitterThumbnail(tweet);
+    if (isTwitterNewLayout()) {
+        for (const tweet of document.querySelectorAll<HTMLElement>(
+            '[id^="urt:"] [data-href*="/status/"], [id^="urt:conversation:"] li > div:has(> article:only-child)',
+        )) {
+            const has_media =
+                tweet?.querySelector(
+                    '[src^="https://pbs.twimg.com/media/"], [src^="https://pbs.twimg.com/amplify_video_thumb/"], [src^="https://video.twimg.com/tweet_video/"], [poster^="https://pbs.twimg.com/amplify_video_thumb/"]',
+                ) &&
+                // tweet media is just a quote
+                !tweet.querySelector('.empty\\:hidden > [data-slot="embedded-tweet-frame"]:only-child');
+            if (has_media) {
+                checkTwitterThumbnailNew(tweet);
+            }
         }
-        const quote = tweet.querySelector<HTMLElement>(':scope [aria-labelledby] > div > [tabindex="0"][role="link"]');
-        const quote_photo = quote?.querySelector('[data-testid="tweetPhoto"]');
-        if (quote && quote_photo) {
-            checkTwitterThumbnail(quote);
+    } else {
+        for (const tweet of document.querySelectorAll<HTMLElement>('[data-testid="tweet"]')) {
+            const media = tweet.querySelector(':scope [aria-labelledby] > div > div');
+            const tweet_photo = media?.querySelector('[data-testid="tweetPhoto"]');
+            if (tweet_photo) {
+                checkTwitterThumbnail(tweet);
+            }
+            const quote = tweet.querySelector<HTMLElement>(
+                ':scope [aria-labelledby] > div > [tabindex="0"][role="link"]',
+            );
+            const quote_photo = quote?.querySelector('[data-testid="tweetPhoto"]');
+            if (quote && quote_photo) {
+                checkTwitterThumbnail(quote);
+            }
         }
     }
 }
@@ -291,11 +320,54 @@ function checkTwitterThumbnail(element: HTMLElement) {
     const info = { site: twitter_info.site, user: user.toLowerCase(), submission };
     createButton(info, media_box);
 }
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function checkTwitterThumbnailNew(element: HTMLElement) {
+    let media_box = selectFirst(element, [
+        // status & timeline media
+        '.gap-3.empty\\:hidden > .after\\:pointer-events-none',
+        // carousel media
+        '[class*="group/carousel"]',
+        // quote media
+        '.mx-auto[style^="aspect-ratio:"]',
+        // quote small media
+        '.aspect-square.rounded-md',
+        // link image
+        '.empty\\:hidden > div > .x-link',
+    ]);
+    if (!media_box) {
+        G_check_log.log(element, 'Tweet media not found');
+        return;
+    }
+    const link =
+        element.getAttribute('data-href') ||
+        element.querySelector('a[href*="/status/"][data-status="active"]')?.getAttribute('href');
+    if (!link) {
+        G_check_log.log(element, 'Link not found');
+        return;
+    }
+    const user = link.split('/')[1];
+    if (!user) {
+        G_check_log.log(element, 'User not found');
+        return;
+    }
+    const regex_result = /\/status\/(\d+)/.exec(link);
+    if (!regex_result) {
+        G_check_log.log(element, 'Link does not match RegExp');
+        return;
+    }
+    const submission = regex_result[1];
+
+    const info = { site: twitter_info.site, user: user.toLowerCase(), submission };
+    createButton(info, navigateUpSmaller(media_box));
+}
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function checkTwitterMediaGrid() {
-    for (const element of document.querySelectorAll<HTMLElement>('[data-testid="cellInnerDiv"] li')) {
+    for (const element of document.querySelectorAll<HTMLElement>(
+        isTwitterNewLayout() ? '[id^="urt:photos:"] [role="listitem"]' : '[data-testid="cellInnerDiv"] li',
+    )) {
         const link = element.querySelector<HTMLAnchorElement>('a[href*="/status/"]');
         if (!link) {
             G_check_log.log(element, 'Link not found');
@@ -320,15 +392,20 @@ function checkTwitterMediaGrid() {
 
 // this is for adding a button to the media dialog
 function checkTwitterSubmissionPage(url: string, user: User) {
-    const media_element =
-        // multiple
-        document.querySelector<HTMLElement>(
-            ':is([aria-labelledby="modal-header"], main) [aria-roledescription="carousel"]',
-        ) ??
-        // single
-        document.querySelector<HTMLElement>(
-            ':is([aria-labelledby="modal-header"], main) [data-testid="swipe-to-dismiss"]',
-        );
+    let media_element;
+    if (isTwitterNewLayout()) {
+        media_element = document.querySelector<HTMLElement>('span + span[aria-live="polite"] + div')?.parentElement;
+    } else {
+        media_element =
+            // multiple
+            document.querySelector<HTMLElement>(
+                ':is([aria-labelledby="modal-header"], main) [aria-roledescription="carousel"]',
+            ) ??
+            // single
+            document.querySelector<HTMLElement>(
+                ':is([aria-labelledby="modal-header"], main) [data-testid="swipe-to-dismiss"]',
+            );
+    }
     if (!media_element) {
         G_check_log.log('Submission page:', 'Media element not found');
         return;
@@ -367,13 +444,15 @@ var startDownloading = async (submission: Submission, progress: ProgressControll
         throw new Error('Unable to find CSRF token');
     }
     const path = '/i/api/graphql/_8aYOgEDz35BrBcBal1-_w/TweetDetail';
-    const headers = {
+    const headers: HeadersInit = {
         authorization:
             'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
         'x-csrf-token': csrf_token,
         'x-twitter-active-user': 'yes',
-        'x-client-transaction-id': await x_client.getTransactionId('GET', path),
     };
+    if (!isTwitterNewLayout()) {
+        headers['x-client-transaction-id'] = await x_client.getTransactionId('GET', path);
+    }
     const init: RequestInit = {
         credentials: 'include',
         referrer: window.location.href,
@@ -454,9 +533,28 @@ function getTwitterSubmissionData(submission: Submission, obj: any) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function getTwitterFileDatas(obj: any) {
-    const medias: any[] = obj.legacy.extended_entities.media;
+    const medias: any[] = [];
+
+    // image links
+    const unified_card_string: string | undefined = obj.card?.legacy?.binding_values?.find(
+        (value: any) => value.key === 'unified_card',
+    )?.value.string_value;
+    if (unified_card_string) {
+        const card_obj = JSON.parse(unified_card_string);
+        const media_entities = card_obj.media_entities;
+        if (media_entities) {
+            medias.push(...Object.values(media_entities));
+        }
+    }
+    const media = obj.legacy?.extended_entities?.media;
+    if (media) {
+        medias.push(...media);
+    }
 
     const files = medias.map((media) => getTwitterFileData(media));
+    if (files.length === 0) {
+        throw new Error('Tweet files not found');
+    }
     return files;
 }
 
