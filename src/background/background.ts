@@ -619,16 +619,16 @@ async function setupStates() {
 // message functions
 //---------------------------------------------------------------------------------------------------------------------
 
-browser.runtime.onMessage.addListener((message: any) => {
-    return backgroundMessageActions(message);
+browser.runtime.onMessage.addListener((message: any, sender: Browser.Runtime.MessageSender) => {
+    return backgroundMessageActions(message, sender);
 });
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function backgroundMessageActions(message: BackgroundMessage) {
+function backgroundMessageActions(message: BackgroundMessage, sender: Browser.Runtime.MessageSender) {
     switch (message.action) {
         case 'background_download_blob':
-            return downloadBlob(message.blob, message.path);
+            return downloadBlob(message.blob, message.path, sender.tab?.cookieStoreId);
 
         case 'background_create_object_url':
             return Promise.resolve(URL.createObjectURL(message.blob));
@@ -670,7 +670,7 @@ function backgroundMessageActions(message: BackgroundMessage) {
             return browser.downloads.show(message.id);
 
         case 'background_setup_site':
-            return setupSite(message.site);
+            return setupSite(message.site, sender.tab);
     }
 }
 
@@ -700,25 +700,30 @@ async function sendContentScriptMessage(message: ContentMessage) {
 // sites setup on page load
 //---------------------------------------------------------------------------------------------------------------------
 
-async function setupSite(site: Site) {
+async function setupSite(site: Site, tab?: Browser.Tabs.Tab) {
     // cookies permission enabled check
     const cookies = browser.cookies;
     if (!cookies) {
         return;
     }
+    const cookie_store = tab?.cookieStoreId;
 
     if (site === 'furaffinity') {
         // move cf_clearance cookie out of storage partition so that it can be used with fetch()
         const url = SITES_INFO.furaffinity.links.main;
         const name = 'cf_clearance';
-        const cf_cookies = await cookies.getAll({
+        const get_details: Browser.Cookies.GetAllDetailsType = {
             url,
             name,
             partitionKey: {},
-        });
+        };
+        if (cookie_store) {
+            get_details.storeId = cookie_store;
+        }
+        const cf_cookies = await cookies.getAll(get_details);
         const cf_cookie = cf_cookies.find((c) => c.partitionKey);
         if (cf_cookie) {
-            await cookies.set({
+            const set_details: Browser.Cookies.SetDetailsType = {
                 url,
                 name,
                 httpOnly: cf_cookie.httpOnly,
@@ -726,7 +731,11 @@ async function setupSite(site: Site) {
                 domain: cf_cookie.domain,
                 value: cf_cookie.value,
                 secure: cf_cookie.secure,
-            });
+            };
+            if (cookie_store) {
+                set_details.storeId = cookie_store;
+            }
+            await cookies.set(set_details);
         }
     }
 }
@@ -735,16 +744,20 @@ async function setupSite(site: Site) {
 // downloading functions
 //---------------------------------------------------------------------------------------------------------------------
 
-async function downloadBlob(blob: Blob, path: string) {
+async function downloadBlob(blob: Blob, path: string, cookie_store?: string) {
     const url = URL.createObjectURL(blob);
     const stored_global = await getOptionsStorage<GlobalOptionsValues>('global');
+    const options: Browser.Downloads.DownloadOptionsType = {
+        url,
+        filename: path,
+        conflictAction: stored_global.conflict as Browser.Downloads.FilenameConflictAction,
+        saveAs: stored_global.saveAs,
+    };
+    if (browser.cookies && cookie_store) {
+        options.cookieStoreId = cookie_store;
+    }
     try {
-        return await browser.downloads.download({
-            url,
-            filename: path,
-            conflictAction: stored_global.conflict as Browser.Downloads.FilenameConflictAction,
-            saveAs: stored_global.saveAs,
-        });
+        return await browser.downloads.download(options);
     } catch (error) {
         // return undefined if the download was canceled by the user
         if ((error as Error).message.includes('canceled')) {
@@ -767,10 +780,14 @@ function onDownloadChanged(delta: Browser.Downloads.OnChangedDownloadDeltaType) 
     }
     const download_id = delta.id;
     if (G_folder_files.has(download_id)) {
-        // delete the file used to open the folder and remove from the download history
-        browser.downloads.removeFile(download_id);
-        browser.downloads.erase({ id: download_id });
-        G_folder_files.delete(download_id);
+        browser.downloads.show(download_id).then(() => {
+            setTimeout(() => {
+                // delete the file used to open the folder and remove from the download history
+                browser.downloads.removeFile(download_id);
+                browser.downloads.erase({ id: download_id });
+                G_folder_files.delete(download_id);
+            }, 80);
+        });
     }
 }
 
@@ -786,5 +803,4 @@ async function openFolder(path: string) {
     const url = URL.createObjectURL(new Blob());
     const download_id = await browser.downloads.download({ url, filename: path, saveAs: false });
     G_folder_files.set(download_id, url);
-    browser.downloads.show(download_id);
 }
